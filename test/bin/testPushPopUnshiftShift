@@ -1,0 +1,17 @@
+#!/bin/bash
+dir=`dirname $1`
+base=`basename $1`
+abspath=`pushd ${dir} >/dev/null 2>&1;pwd;popd >/dev/null 2>&1`
+prog=${abspath}/${base}
+min=$2
+max=$(($3-1))
+file=$4
+file_root=$(echo $file | perl -pe 's/(.*)(\.\b\w+\b)/$1/')
+file_ext=$(echo $file | perl -pe 's/(.*)(\.\b\w+\b)/$2/')
+for i in `eval echo {$min..$max}`;do
+	echo ${prog} ~/sugraphset $i $file ${file_root}$i${file_ext}
+	${prog} ~/subgraphset $i $file ${file_root}$i${file_ext}&
+	pid=$!
+	echo $pid >> /tmp/hehe
+	wait $pid
+done

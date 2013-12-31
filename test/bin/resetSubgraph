@@ -1,0 +1,5 @@
+#!/bin/bash
+subgraph=~/subgraphset/subgraph$1
+[ -e $subgraph ] && rm -fr $subgraph/* ||mkdir $subgraph
+
+./formatSubgraph $subgraph

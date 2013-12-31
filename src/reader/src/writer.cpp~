@@ -1,0 +1,7 @@
+#include<nynn_mm_config.h>
+#include<ProducerRPC.h>
+
+int main()
+{
+
+}

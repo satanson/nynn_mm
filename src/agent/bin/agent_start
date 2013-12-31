@@ -1,0 +1,12 @@
+#!/bin/bash
+export PRODUCER_HOST=centos1
+
+export PRODUCER_PORT=30011
+export PROVIDER_PORT=30012
+export AGENT_PORT=30013
+
+export REPLICA=1
+export PROVIDER_CONF="provider.conf"
+export SUBGRAPHSET_BASEDIR="/root/subgraphset"
+
+./agent
