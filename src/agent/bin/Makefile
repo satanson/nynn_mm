@@ -17,6 +17,9 @@
 # under the License.
 #
 vpath %.cpp ../test ../src ../../provider/src ../../producer/src
+ifdef dbg
+DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
+endif
 
 BOOST_DIR = /usr/include/boost
 THRIFT_DIR = /usr/local/include/thrift
@@ -28,7 +31,7 @@ PRODUCER_DIR=../../producer/src
 
 CXXFLAGS =--std=c++0x \
 		  -I${THRIFT_DIR} -I${BOOST_DIR}  -I. -L${LIB_DIR} -I${NYNN_MM_INC} -I${AGENT_DIR}\
-		  -I${PROVIDER_DIR} -I${PRODUCER_DIR} -lthrift -lthriftnb -levent
+		  -I${PROVIDER_DIR} -I${PRODUCER_DIR} -lthrift -lthriftnb -levent ${DEBUG}
 
 GEN_SRC = Agent_constants.cpp Agent.cpp Agent_types.cpp\
 		  Producer_constants.cpp Producer.cpp Producer_types.cpp\

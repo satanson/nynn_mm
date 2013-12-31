@@ -18,6 +18,10 @@
 #
 vpath %.cpp ../test ../src ../../agent/src ../../provider/src
 
+ifdef dbg
+DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
+endif
+
 BOOST_DIR = /usr/include/boost
 THRIFT_DIR = /usr/local/include/thrift
 LIB_DIR = /usr/local/lib
@@ -28,12 +32,13 @@ PRODUCER_DIR=../src
 
 CXXFLAGS =--std=c++0x \
 		  -I${THRIFT_DIR} -I${BOOST_DIR}  -I. -L${LIB_DIR} -I${NYNN_MM_INC} -I${AGENT_DIR}\
-		  -I${PROVIDER_DIR} -I${PRODUCER_DIR} -lthrift -lthriftnb -levent
+		  -I${PROVIDER_DIR} -I${PRODUCER_DIR} -lthrift -lthriftnb -levent ${DEBUG}
 
 GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
 
 default:producer
+	cp $^ ../../../bin
 
 producer: ProducerDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 
