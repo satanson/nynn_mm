@@ -42,7 +42,8 @@ function build(){
 #start bins
 function start_bin(){
 	pushd "$project_root/bin"
-	bin="`pwd`/$1";shift
+	bin="`pwd 2>/dev/null`/$1";shift
+	echo ${bin} $@ &
 	${bin} $@ &
 	popd
 }
