@@ -44,7 +44,7 @@ function start_bin(){
 	pushd "${project_root}/bin"
 	bin="`pwd 2>/dev/null`/$1";shift
 	echo ${bin} $@
-	${bin} $@
+	${bin} $@ &
 	popd
 }
 
