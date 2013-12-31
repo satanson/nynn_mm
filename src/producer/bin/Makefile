@@ -34,6 +34,7 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
 
 default:producer
+	cp $^ ../../../bin
 
 producer: ProducerDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

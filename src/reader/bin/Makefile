@@ -39,6 +39,7 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
 
 default:reader
+	cp $^ ../../../bin
 
 reader: reader.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

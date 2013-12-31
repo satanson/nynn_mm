@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-vpath %.cpp ../test ../src ../../provider ../../producer
+vpath %.cpp ../test ../src ../../provider/src ../../producer/src
 
 BOOST_DIR = /usr/include/boost
 THRIFT_DIR = /usr/local/include/thrift
@@ -35,6 +35,7 @@ GEN_SRC = Agent_constants.cpp Agent.cpp Agent_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
 
 default:agent 
+	cp $^ ../../../bin
 
 agent: AgentDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

@@ -31,6 +31,7 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
 
 default: provider test_getSubgraphKeys testPushShift
+	cp $^ ../../../bin
 
 provider: ProviderDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

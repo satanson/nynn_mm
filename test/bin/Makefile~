@@ -11,7 +11,7 @@ progs:= formatSubgraph testAccessSubgraph testMultiAccessSubgraph \
 
 all:$(progs)
 
-testGetTuple:testGraphTable0.cc
+testGetTuple:testGetTuple.cc
 	g++ $(DEBUG) $(FLAGS) -o $@ $^
 testGraphTable0:testGraphTable0.cc
 	g++ $(DEBUG) $(FLAGS) -o $@ $^
