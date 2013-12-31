@@ -34,7 +34,7 @@ function build(){
 #start bins
 function start_bin(){
 	for host in ${deploy_hosts};do
-		ssh ${user}@${host} ${nynn_ctl} start_bin $@
+		echo ssh ${user}@${host} ${nynn_ctl} start_bin $@
 	done
 }
 
