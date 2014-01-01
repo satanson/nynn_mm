@@ -27,7 +27,11 @@ public:
 				m_host2Provider[host].reset(new ProviderRPC(host,m_provPort));
 			}
 			vector<int32_t> sgkeys;
-			m_host2Provider[m_localHost]->getSubgraphKeys(sgkeys);
+			shared_ptr<ProviderRPC>& localProv=m_host2Provider[m_localHost];
+			localProv->getSubgraphKeys(sgkeys);
+			//attach subgraph
+			for (int i=0;i<sgkeys.size();i++)prov.attachSubgraph(sgkeys[i]);
+			
 			m_producer->report(m_localHost,sgkeys);
 		}catch(NynnException &ex){
 			throwNynnException("Failed to complete construction of Graph Object");

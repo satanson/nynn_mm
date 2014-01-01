@@ -38,10 +38,12 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
 
-default:writer
+BIN=agent_pop agent_shift
+
+default:$(BIN)
 	mv -f $^ ../../../bin/bin
 
-writer: writer.cpp $(GEN_SRC)
+%: %.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 
 clean:
 	$(RM) -r writer 

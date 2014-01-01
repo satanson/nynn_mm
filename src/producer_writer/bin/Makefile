@@ -37,11 +37,11 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
-
-default:reader
+BIN=prod_unshift prod_shift prod_push prod_pop
+default:$(BIN)
 	mv -f $^ ../../../bin/bin
 
-reader: reader.cpp $(GEN_SRC)
+%:%.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 
 clean:
 	$(RM) -r writer 
