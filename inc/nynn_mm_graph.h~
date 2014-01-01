@@ -27,9 +27,11 @@ public:
 				m_host2Provider[host].reset(new ProviderRPC(host,m_provPort));
 			}
 			vector<int32_t> sgkeys;
-			shared_ptr<ProviderRPC>& localProv=m_host2Provider[m_localHost];
+			std::shared_ptr<ProviderRPC>& localProv=m_host2Provider[m_localHost];
 			localProv->getSubgraphKeys(sgkeys);
-			for (int i=0;i<sgkeys.size();i++)prov.attachSubgraph(sgkeys[i]);
+			//attach subgraph
+			for (int i=0;i<sgkeys.size();i++)localProv->attachSubgraph(sgkeys[i]);
+			
 			m_producer->report(m_localHost,sgkeys);
 		}catch(NynnException &ex){
 			throwNynnException("Failed to complete construction of Graph Object");
