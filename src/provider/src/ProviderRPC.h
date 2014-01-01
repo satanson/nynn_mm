@@ -86,19 +86,19 @@ public:
 		return m_client->insertNext(vtxno, prevBlkno, xblk);
 	}
 
-	bool remove(const int32_t vtxno, const int32_t blkno) { return m_client->remove(vtxno, blkno);}
+	int32_t remove(const int32_t vtxno, const int32_t blkno) { return m_client->remove(vtxno, blkno);}
 
 	int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newHeadXBlk) 
 	{ 
 		return m_client->unshift(vtxno, newHeadXBlk);
 	}
 
-	bool shift(const int32_t vtxno) { return m_client->shift(vtxno);}
+	int32_t shift(const int32_t vtxno) { return m_client->shift(vtxno);}
 
 	int32_t push(const int32_t vtxno, const std::vector<int8_t> & newTailXBlk) {
 	   	return m_client->push(vtxno, newTailXBlk);
 	}
-	bool pop(const int32_t vtxno) { return m_client->pop(vtxno);}
+	int32_t pop(const int32_t vtxno) { return m_client->pop(vtxno);}
 	
 private:
 	std::shared_ptr<ProviderClient> m_client;

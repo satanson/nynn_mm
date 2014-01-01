@@ -17,6 +17,9 @@
 # under the License.
 #
 vpath %.cpp ../test ../src
+ifdef dbg
+DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
+endif
 
 BOOST_DIR = /usr/include/boost
 THRIFT_DIR = /usr/local/include/thrift
@@ -26,19 +29,18 @@ PROVIDER_INC=../src/
 
 CXXFLAGS =--std=c++0x \
 		  -I${THRIFT_DIR} -I${BOOST_DIR}  -I. -L${LIB_DIR} -I${NYNN_MM_INC} -I${PROVIDER_INC}\
-		  -lthrift -lthriftnb -levent
+		  -lthrift -lthriftnb -levent ${DEBUG}
 
 GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
+BIN=provider prov_dump prov_unshift prov_push prov_shift prov_pop prov_create_subgraph prov_destroy_subgraph
 
-default: provider test_getSubgraphKeys testPushShift
+default:$(BIN) 
 	cp $^ ../../../bin
 
 provider: ProviderDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 
-test_getSubgraphKeys:test_getSubgraphKeys.cpp $(GEN_SRC)
-	g++ $(CXXFLAGS) -o $@ $^ 
-testPushShift:testPushShift.cpp $(GEN_SRC)
+%:%.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 
 clean:
-	$(RM) -r provider
+	$(RM) -r $(BIN)
 

@@ -52,6 +52,7 @@ class ProviderHandler : virtual public ProviderIf {
   bool attachSubgraph(const int32_t subgraphKey) {
 	  try{
 		  subgraphSet->attachSubgraph(subgraphKey);
+		  cout<<"attach subgraph:key="<<subgraphKey<<endl;
 		  return true;
 	  }catch(NynnException &ex){
 		  return false;
@@ -124,40 +125,37 @@ class ProviderHandler : virtual public ProviderIf {
 	  return subgraphSet->insertNext(vtxno,prevBlkno,blk);
   }
 
-  bool remove(const int32_t vtxno, const int32_t blkno) {
+  int32_t remove(const int32_t vtxno, const int32_t blkno) {
 	  try{
-		  subgraphSet->remove(vtxno,blkno);
-		  return true;
+		  return subgraphSet->remove(vtxno,blkno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 
-  int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newXHeadBlk) {
-	  Block *newHeadBlk=reinterpret_cast<Block*>(const_cast<int8_t*>(newXHeadBlk.data()));
+  int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newHeadXBlk) {
+	  Block *newHeadBlk=reinterpret_cast<Block*>(const_cast<int8_t*>(newHeadXBlk.data()));
 	  return subgraphSet->unshift(vtxno,newHeadBlk);
   }
 
-  bool shift(const int32_t vtxno) {
+  int32_t shift(const int32_t vtxno) {
 	  try{
-		  subgraphSet->shift(vtxno);
-		  return true;
+		  return subgraphSet->shift(vtxno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 
-  int32_t push(const int32_t vtxno, const std::vector<int8_t> & newXTailBlk) {
-	  Block* newTailBlk=reinterpret_cast<Block*>(const_cast<int8_t*>(newXTailBlk.data()));
+  int32_t push(const int32_t vtxno, const std::vector<int8_t> & newTailXBlk) {
+	  Block* newTailBlk=reinterpret_cast<Block*>(const_cast<int8_t*>(newTailXBlk.data()));
 	  return subgraphSet->push(vtxno,newTailBlk); 
   }
 
-  bool pop(const int32_t vtxno) {
+  int32_t pop(const int32_t vtxno) {
 	  try{
-		  subgraphSet->pop(vtxno);
-		  return true;
+		  return subgraphSet->pop(vtxno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 

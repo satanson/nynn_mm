@@ -124,12 +124,11 @@ class ProviderHandler : virtual public ProviderIf {
 	  return subgraphSet->insertNext(vtxno,prevBlkno,blk);
   }
 
-  bool remove(const int32_t vtxno, const int32_t blkno) {
+  int32_t remove(const int32_t vtxno, const int32_t blkno) {
 	  try{
-		  subgraphSet->remove(vtxno,blkno);
-		  return true;
+		  return subgraphSet->remove(vtxno,blkno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 
@@ -138,12 +137,11 @@ class ProviderHandler : virtual public ProviderIf {
 	  return subgraphSet->unshift(vtxno,newHeadBlk);
   }
 
-  bool shift(const int32_t vtxno) {
+  int32_t shift(const int32_t vtxno) {
 	  try{
-		  subgraphSet->shift(vtxno);
-		  return true;
+		  return subgraphSet->shift(vtxno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 
@@ -152,12 +150,11 @@ class ProviderHandler : virtual public ProviderIf {
 	  return subgraphSet->push(vtxno,newTailBlk); 
   }
 
-  bool pop(const int32_t vtxno) {
+  int32_t pop(const int32_t vtxno) {
 	  try{
-		  subgraphSet->pop(vtxno);
-		  return true;
+		  return subgraphSet->pop(vtxno);
 	  }catch(NynnException &ex){
-		  return false;
+		  return INVALID_BLOCKNO;
 	  }
   }
 

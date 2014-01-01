@@ -24,7 +24,7 @@ public:
 		boost::shared_ptr<TTransport> socket(new TSocket(host,port));	
 		boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 		boost::shared_ptr<TProtocol>  protocol(new TBinaryProtocol(transport));
-		client.reset(new ProviderClient(protocol));
+		m_client.reset(new ProviderClient(protocol));
 		try{
 			socket->open();
 		}catch(TException &tx){
@@ -35,73 +35,73 @@ public:
 	{
 
 	}
-	bool createSubgraph(const int32_t subgraphKey) { return client->createSubgraph(subgraphKey); }
+	bool createSubgraph(const int32_t subgraphKey) { return m_client->createSubgraph(subgraphKey); }
 
-	bool destroySubgraph(const int32_t subgraphKey) { return client->destroySubgraph(subgraphKey); }
+	bool destroySubgraph(const int32_t subgraphKey) { return m_client->destroySubgraph(subgraphKey); }
 
-	bool attachSubgraph(const int32_t subgraphKey) { return client->attachSubgraph(subgraphKey); }
+	bool attachSubgraph(const int32_t subgraphKey) { return m_client->attachSubgraph(subgraphKey); }
 
-	bool detachSubgraph(const int32_t subgraphKey) { return client->detachSubgraph(subgraphKey); }
+	bool detachSubgraph(const int32_t subgraphKey) { return m_client->detachSubgraph(subgraphKey); }
 
 	void getSubgraphKeys(std::vector<int32_t> & keys) 
 	{ 
 		vector<int32_t> tempKeys;
-		client->getSubgraphKeys(tempKeys);
+		m_client->getSubgraphKeys(tempKeys);
 		keys.resize(tempKeys.size());
 		std::copy(tempKeys.begin(),tempKeys.end(),keys.begin());
 	}
 
-	bool lock(const int32_t vtxno, const int32_t flag) { return client->lock(vtxno, flag);}
+	bool lock(const int32_t vtxno, const int32_t flag) { return m_client->lock(vtxno, flag);}
 
-	bool unlock(const int32_t vtxno) { return client->unlock(vtxno);}
+	bool unlock(const int32_t vtxno) { return m_client->unlock(vtxno);}
 
-	int32_t getSize(const int32_t vtxno) { return client->getSize(vtxno);}
+	int32_t getSize(const int32_t vtxno) { return m_client->getSize(vtxno);}
 
-	int32_t getHeadBlkno(const int32_t vtxno) { return client->getHeadBlkno(vtxno);}
+	int32_t getHeadBlkno(const int32_t vtxno) { return m_client->getHeadBlkno(vtxno);}
 
-	int32_t getTailBlkno(const int32_t vtxno) { return client->getTailBlkno(vtxno);}
+	int32_t getTailBlkno(const int32_t vtxno) { return m_client->getTailBlkno(vtxno);}
 
 	void readAllBlknos(uint32_t vtxno,std::vector<int32_t>& blknos)
 	{
-		client->readAllBlknos(blknos,vtxno);
+		m_client->readAllBlknos(blknos,vtxno);
 	}
 
 	void read(const int32_t vtxno,const int32_t blkno, std::vector<int8_t> & xblk) 
 	{ 
-		client->read(xblk, vtxno, blkno);
+		m_client->read(xblk, vtxno, blkno);
 	}
 
 	void readn(const int32_t vtxno,const int32_t blkno, const int32_t n,std::vector<int8_t>& xblks)
 	{
-		client->readn(xblks,vtxno,blkno,n);
+		m_client->readn(xblks,vtxno,blkno,n);
 	}
 
 	int32_t insertPrev(const int32_t vtxno, const int32_t nextBlkno, const std::vector<int8_t> & xblk) 
 	{ 
-		return client->insertPrev(vtxno, nextBlkno, xblk);
+		return m_client->insertPrev(vtxno, nextBlkno, xblk);
 	}
 
 	int32_t insertNext(const int32_t vtxno, const int32_t prevBlkno, const std::vector<int8_t> & xblk) 
 	{ 
-		return client->insertNext(vtxno, prevBlkno, xblk);
+		return m_client->insertNext(vtxno, prevBlkno, xblk);
 	}
 
-	bool remove(const int32_t vtxno, const int32_t blkno) { return client->remove(vtxno, blkno);}
+	int32_t remove(const int32_t vtxno, const int32_t blkno) { return m_client->remove(vtxno, blkno);}
 
 	int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newHeadXBlk) 
 	{ 
-		return client->unshift(vtxno, newHeadXBlk);
+		return m_client->unshift(vtxno, newHeadXBlk);
 	}
 
-	bool shift(const int32_t vtxno) { return client->shift(vtxno);}
+	int32_t shift(const int32_t vtxno) { return m_client->shift(vtxno);}
 
 	int32_t push(const int32_t vtxno, const std::vector<int8_t> & newTailXBlk) {
-	   	return client->push(vtxno, newTailXBlk);
+	   	return m_client->push(vtxno, newTailXBlk);
 	}
-	bool pop(const int32_t vtxno) { return client->pop(vtxno);}
+	int32_t pop(const int32_t vtxno) { return m_client->pop(vtxno);}
 	
 private:
-	std::shared_ptr<ProviderClient> client;
+	std::shared_ptr<ProviderClient> m_client;
 };
 }}}
 #endif

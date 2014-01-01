@@ -39,7 +39,12 @@ public:
 			}
 			for (uint32_t  i=0;i<g.gl_pathc;i++) {
 				uint32_t subgraphKey=makeSubgraphKey(g.gl_pathv[i]);
-				m_subgraphMap[subgraphKey];//insert (subgraphKey,nullptr)
+
+				//dynamic attach/detach subgraph.
+				m_subgraphMap[subgraphKey];
+				//static attach/detach subgraph.
+				//string subgraphBasedir=makeSubgraphPath(subgraphKey);
+				//m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir)));
 			}
 		}catch(NynnException &ex){
 			throwNynnException("Fail to create Graph object");
@@ -80,9 +85,9 @@ public:
 	void detachSubgraph(uint32_t subgraphKey)
 	{
 		ExclusiveSynchronization es(&m_subgraphMapRWLock);
-		if (m_subgraphMap.find(subgraphKey)!=m_subgraphMap.end()){
-			std::swap(shared_ptr<SubgraphStorageT>(),m_subgraphMap[subgraphKey]);
-		}else{
+		try{
+			m_subgraphMap.erase(subgraphKey);
+		}catch(NynnException &ex){
 			throwNynnException("The subgraph that would be detached is not found!");
 		}
 	}
@@ -91,8 +96,8 @@ public:
 	{
 		ExclusiveSynchronization es(&m_subgraphMapRWLock);
 		try{
-			string subgraphBasedir=makeSubgraphPath(subgraphKey);
-			if (m_subgraphMap.find(subgraphKey)==m_subgraphMap.end()){
+			if (m_subgraphMap[subgraphKey].get()==NULL){
+				string subgraphBasedir=makeSubgraphPath(subgraphKey);
 				m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir));
 			}
 		}catch(NynnException &err){
@@ -282,7 +287,7 @@ public:
 		}
 	}
 
-	void remove(uint32_t vtxno,uint32_t blkno)
+	uint32_t remove(uint32_t vtxno,uint32_t blkno)
 	{
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		
@@ -293,14 +298,14 @@ public:
 
 	    //if Vertex has no blocks.
 		//tailBlkno==INVALID_BLOCKNO also is TRUE
-		if (headBlkno==INVALID_BLOCKNO)return;
+		if (headBlkno==INVALID_BLOCKNO)INVALID_BLOCKNO;
 
 		//remove head block.
 		if (headBlkno==blkno){
-			shift(vtxno);
+			return shift(vtxno);
 		//remove tail block.
 		}else if (tailBlkno==blkno){
-			pop(vtxno);
+			return pop(vtxno);
 		//remove inner block that has prev or next block.
 		}else{
 			Block *blk=subgraph->getBlock(blkno);
@@ -312,6 +317,7 @@ public:
 			subgraph->getBlock(prevBlkno)->getHeader()->setNext(nextBlkno);
 			subgraph->getBlock(nextBlkno)->getHeader()->setPrev(prevBlkno);
 			subgraph->release(blkno);
+			return blkno;
 		}
 	}
 	
@@ -340,23 +346,21 @@ public:
 			newHeadBlk->getHeader()->setPrev(INVALID_BLOCKNO);
 		}
 		subgraph->writeBlock(newHeadBlkno,newHeadBlk);
-//		log_i("unshift vtxno=%d blkno=%d",vtxno,newHeadBlkno);/g
 		return newHeadBlkno;
 	}
 
-	void shift(uint32_t vtxno)
+	uint32_t shift(uint32_t vtxno)
 	{
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldHeadBlkno=vtx->getHeadBlkno();
 
-		if (oldHeadBlkno == INVALID_BLOCKNO)return;
+		if (oldHeadBlkno == INVALID_BLOCKNO)return INVALID_BLOCKNO;
 
 		Block *oldHeadBlk=subgraph->getBlock(oldHeadBlkno);
 		uint32_t newHeadBlkno=oldHeadBlk->getHeader()->getNext();
 		BlockContent *oldHeadBlkContent=*oldHeadBlk;
 		vtx->resize(vtx->size()-oldHeadBlkContent->size());
-
 
 		if (newHeadBlkno != INVALID_BLOCKNO){
 			Block *newHeadBlk=subgraph->getBlock(newHeadBlkno);
@@ -367,7 +371,7 @@ public:
 			vtx->setTailBlkno(INVALID_BLOCKNO);
 		}
 		subgraph->release(oldHeadBlkno);
-//		log_i("shift vtxno=%d blkno=%d",vtxno,oldHeadBlkno);/g
+		return oldHeadBlkno;
 	}
 
 	uint32_t push(uint32_t vtxno,Block*newTailBlk)
@@ -400,13 +404,13 @@ public:
 		return newTailBlkno;
 	}
 
-	void pop(uint32_t vtxno)
+	uint32_t pop(uint32_t vtxno)
 	{
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldTailBlkno=vtx->getTailBlkno();
 
-		if (oldTailBlkno == INVALID_BLOCKNO)return;
+		if (oldTailBlkno == INVALID_BLOCKNO)return INVALID_BLOCKNO;
 
 		Block *oldTailBlk=subgraph->getBlock(oldTailBlkno);
 		uint32_t newTailBlkno=oldTailBlk->getHeader()->getPrev();
@@ -423,7 +427,7 @@ public:
 			vtx->setTailBlkno(INVALID_BLOCKNO);
 		}
 		subgraph->release(oldTailBlkno);
-//		log_i("pop vtxno=%d blkno=%d",vtxno,oldTailBlkno);/g
+		return oldTailBlkno;
 	}
 
 	string makeSubgraphPath(uint32_t vtxno)
