@@ -61,15 +61,12 @@ private:
 	uint32_t m_vtxno;	
 };
 
-#if 1
 class AttachSG{
 public:
-#if 1
 	AttachSG(ProviderRPC& prov,uint32_t sgkey):m_prov(prov),m_sgkey(sgkey)
 	{
 		m_prov.attachSubgraph(m_sgkey);
 	}
-#endif
 	~AttachSG()
 	{
 		m_prov.detachSubgraph(m_sgkey);
@@ -78,7 +75,6 @@ private:
 	ProviderRPC& m_prov;
 	uint32_t m_sgkey;
 };
-#endif 
 class ProducerHandler : virtual public ProducerIf {
  public:
   ProducerHandler() {
@@ -123,16 +119,17 @@ class ProducerHandler : virtual public ProducerIf {
 	  return blkno;
   }
 
-  bool remove(const int32_t vtxno, const int32_t blkno) {
+  int32_t remove(const int32_t vtxno, const int32_t blkno) {
 	  vector<string> hosts;
 	  getHosts(graphTable.get(),vtxno,hosts);
-	  uint32_t ret=INVALID_BLOCKNO;
+
+	  uint32_t rmblkno=INVALID_BLOCKNO;
 	  for (int i=0;i<hosts.size();i++){
 		  ProviderRPC prov(hosts[i],provPort);
 		  LockVertex lockv(prov,vtxno);
-		  if (!prov.remove(vtxno,blkno))return false;
+		  if ((rmblkno=prov.remove(vtxno,blkno))==INVALID_BLOCKNO)return INVALID_BLOCKNO;
 	  }
-	  return true;
+	  return rmblkno;
   }
 
   int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newHeadXBlk) {
@@ -147,16 +144,17 @@ class ProducerHandler : virtual public ProducerIf {
 	  return blkno;
   }
 
-  bool shift(const int32_t vtxno) {
+  int32_t shift(const int32_t vtxno) {
 	  vector<string> hosts;
 	  getHosts(graphTable.get(),vtxno,hosts);
 
+	  uint32_t blkno=INVALID_BLOCKNO;
 	  for (int i=0;i<hosts.size();i++){
 		  ProviderRPC prov(hosts[i],provPort);
 		  LockVertex lockv(prov,vtxno);
-		  if (!prov.shift(vtxno))return false;
+		  if ((blkno=prov.shift(vtxno))==INVALID_BLOCKNO)return INVALID_BLOCKNO;
 	  }
-	  return true;
+	  return blkno;
   }
 
   int32_t push(const int32_t vtxno, const std::vector<int8_t> & newTailXBlk) {
@@ -172,16 +170,17 @@ class ProducerHandler : virtual public ProducerIf {
 	  return blkno;
   }
 
-  bool pop(const int32_t vtxno) {
+  int32_t pop(const int32_t vtxno) {
 	  vector<string> hosts;
 	  getHosts(graphTable.get(),vtxno,hosts);
 
+	  uint32_t blkno=INVALID_BLOCKNO;
 	  for (int i=0;i<hosts.size();i++){
 		  ProviderRPC prov(hosts[i],provPort);
 		  LockVertex lockv(prov,vtxno);
-		  if (!prov.pop(vtxno))return false;
+		  if ((blkno=prov.pop(vtxno)))return INVALID_BLOCKNO;
 	  }
-	  return true;
+	  return blkno;
   }
 };
 

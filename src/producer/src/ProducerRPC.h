@@ -50,7 +50,7 @@ public:
 		return m_client->insertNext(vtxno,prevBlkno,xblk);
 	}
 
-	bool remove(const int32_t vtxno, const int32_t blkno) {
+	int32_t remove(const int32_t vtxno, const int32_t blkno) {
 		return m_client->remove(vtxno,blkno);
 	}
 
@@ -58,7 +58,7 @@ public:
 		return m_client->unshift(vtxno,newHeadXBlk);
 	}
 
-	bool shift(const int32_t vtxno) {
+	int32_t shift(const int32_t vtxno) {
 		return m_client->shift(vtxno);
 	}
 
@@ -66,7 +66,7 @@ public:
 		return m_client->push(vtxno,newTailXBlk);
 	}
 
-	bool pop(const int32_t vtxno) {
+	int32_t pop(const int32_t vtxno) {
 		return m_client->pop(vtxno);
 	}
 private:

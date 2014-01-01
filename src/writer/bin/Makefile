@@ -39,7 +39,7 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
 
 default:writer
-	cp $^ ../../../bin
+	mv -f $^ ../../../bin/bin
 
 writer: writer.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

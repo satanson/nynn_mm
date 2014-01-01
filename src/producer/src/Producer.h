@@ -7,10 +7,9 @@
 #ifndef Producer_H
 #define Producer_H
 
-//#include <arpa/inet.h>
+#include<arpa/inet.h>
 #include <thrift/TDispatchProcessor.h>
 #include "Producer_types.h"
-
 
 namespace nynn { namespace mm {
 
@@ -21,11 +20,11 @@ class ProducerIf {
   virtual void getHost(std::string& _return, const int32_t subgraphKey) = 0;
   virtual int32_t insertPrev(const int32_t vtxno, const int32_t nextBlkno, const std::vector<int8_t> & xblk) = 0;
   virtual int32_t insertNext(const int32_t vtxno, const int32_t prevBlkno, const std::vector<int8_t> & xblk) = 0;
-  virtual bool remove(const int32_t vtxno, const int32_t blkno) = 0;
+  virtual int32_t remove(const int32_t vtxno, const int32_t blkno) = 0;
   virtual int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newXHeadBlk) = 0;
-  virtual bool shift(const int32_t vtxno) = 0;
+  virtual int32_t shift(const int32_t vtxno) = 0;
   virtual int32_t push(const int32_t vtxno, const std::vector<int8_t> & newXTailBlk) = 0;
-  virtual bool pop(const int32_t vtxno) = 0;
+  virtual int32_t pop(const int32_t vtxno) = 0;
 };
 
 class ProducerIfFactory {
@@ -70,24 +69,24 @@ class ProducerNull : virtual public ProducerIf {
     int32_t _return = 0;
     return _return;
   }
-  bool remove(const int32_t /* vtxno */, const int32_t /* blkno */) {
-    bool _return = false;
+  int32_t remove(const int32_t /* vtxno */, const int32_t /* blkno */) {
+    int32_t _return = 0;
     return _return;
   }
   int32_t unshift(const int32_t /* vtxno */, const std::vector<int8_t> & /* newXHeadBlk */) {
     int32_t _return = 0;
     return _return;
   }
-  bool shift(const int32_t /* vtxno */) {
-    bool _return = false;
+  int32_t shift(const int32_t /* vtxno */) {
+    int32_t _return = 0;
     return _return;
   }
   int32_t push(const int32_t /* vtxno */, const std::vector<int8_t> & /* newXTailBlk */) {
     int32_t _return = 0;
     return _return;
   }
-  bool pop(const int32_t /* vtxno */) {
-    bool _return = false;
+  int32_t pop(const int32_t /* vtxno */) {
+    int32_t _return = 0;
     return _return;
   }
 };
@@ -642,11 +641,11 @@ class Producer_remove_result {
 
   virtual ~Producer_remove_result() throw() {}
 
-  bool success;
+  int32_t success;
 
   _Producer_remove_result__isset __isset;
 
-  void __set_success(const bool val) {
+  void __set_success(const int32_t val) {
     success = val;
   }
 
@@ -678,7 +677,7 @@ class Producer_remove_presult {
 
   virtual ~Producer_remove_presult() throw() {}
 
-  bool* success;
+  int32_t* success;
 
   _Producer_remove_presult__isset __isset;
 
@@ -867,11 +866,11 @@ class Producer_shift_result {
 
   virtual ~Producer_shift_result() throw() {}
 
-  bool success;
+  int32_t success;
 
   _Producer_shift_result__isset __isset;
 
-  void __set_success(const bool val) {
+  void __set_success(const int32_t val) {
     success = val;
   }
 
@@ -903,7 +902,7 @@ class Producer_shift_presult {
 
   virtual ~Producer_shift_presult() throw() {}
 
-  bool* success;
+  int32_t* success;
 
   _Producer_shift_presult__isset __isset;
 
@@ -1092,11 +1091,11 @@ class Producer_pop_result {
 
   virtual ~Producer_pop_result() throw() {}
 
-  bool success;
+  int32_t success;
 
   _Producer_pop_result__isset __isset;
 
-  void __set_success(const bool val) {
+  void __set_success(const int32_t val) {
     success = val;
   }
 
@@ -1128,7 +1127,7 @@ class Producer_pop_presult {
 
   virtual ~Producer_pop_presult() throw() {}
 
-  bool* success;
+  int32_t* success;
 
   _Producer_pop_presult__isset __isset;
 
@@ -1168,21 +1167,21 @@ class ProducerClient : virtual public ProducerIf {
   int32_t insertNext(const int32_t vtxno, const int32_t prevBlkno, const std::vector<int8_t> & xblk);
   void send_insertNext(const int32_t vtxno, const int32_t prevBlkno, const std::vector<int8_t> & xblk);
   int32_t recv_insertNext();
-  bool remove(const int32_t vtxno, const int32_t blkno);
+  int32_t remove(const int32_t vtxno, const int32_t blkno);
   void send_remove(const int32_t vtxno, const int32_t blkno);
-  bool recv_remove();
+  int32_t recv_remove();
   int32_t unshift(const int32_t vtxno, const std::vector<int8_t> & newXHeadBlk);
   void send_unshift(const int32_t vtxno, const std::vector<int8_t> & newXHeadBlk);
   int32_t recv_unshift();
-  bool shift(const int32_t vtxno);
+  int32_t shift(const int32_t vtxno);
   void send_shift(const int32_t vtxno);
-  bool recv_shift();
+  int32_t recv_shift();
   int32_t push(const int32_t vtxno, const std::vector<int8_t> & newXTailBlk);
   void send_push(const int32_t vtxno, const std::vector<int8_t> & newXTailBlk);
   int32_t recv_push();
-  bool pop(const int32_t vtxno);
+  int32_t pop(const int32_t vtxno);
   void send_pop(const int32_t vtxno);
-  bool recv_pop();
+  int32_t recv_pop();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1284,7 +1283,7 @@ class ProducerMultiface : virtual public ProducerIf {
     return ifaces_[i]->insertNext(vtxno, prevBlkno, xblk);
   }
 
-  bool remove(const int32_t vtxno, const int32_t blkno) {
+  int32_t remove(const int32_t vtxno, const int32_t blkno) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -1302,7 +1301,7 @@ class ProducerMultiface : virtual public ProducerIf {
     return ifaces_[i]->unshift(vtxno, newXHeadBlk);
   }
 
-  bool shift(const int32_t vtxno) {
+  int32_t shift(const int32_t vtxno) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -1320,7 +1319,7 @@ class ProducerMultiface : virtual public ProducerIf {
     return ifaces_[i]->push(vtxno, newXTailBlk);
   }
 
-  bool pop(const int32_t vtxno) {
+  int32_t pop(const int32_t vtxno) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {

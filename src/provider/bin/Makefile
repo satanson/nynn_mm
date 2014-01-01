@@ -35,7 +35,7 @@ GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
 BIN=provider prov_dump prov_unshift prov_push prov_shift prov_pop prov_create_subgraph prov_destroy_subgraph
 
 default:$(BIN) 
-	cp $^ ../../../bin
+	mv -f $^ ../../../bin/bin
 
 provider: ProviderDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

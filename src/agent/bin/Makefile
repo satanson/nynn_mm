@@ -38,7 +38,7 @@ GEN_SRC = Agent_constants.cpp Agent.cpp Agent_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
 
 default:agent 
-	cp $^ ../../../bin
+	mv -f $^ ../../../bin/bin
 
 agent: AgentDaemon.cpp $(GEN_SRC)
 	g++ $(CXXFLAGS) -o $@ $^ 

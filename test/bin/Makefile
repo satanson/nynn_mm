@@ -10,7 +10,7 @@ progs:= formatSubgraph testAccessSubgraph testMultiAccessSubgraph \
 		testSubgraphSet 
 
 all:$(progs)
-	cp $^ ../../bin
+	mv -f  $^ ../../bin/bin/
 
 testGetTuple:testGetTuple.cc
 	g++ $(DEBUG) $(FLAGS) -o $@ $^

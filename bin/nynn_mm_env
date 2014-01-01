@@ -6,6 +6,8 @@ export PROVIDER_PORT=30012
 export AGENT_PORT=30013
 
 export REPLICA=1
-export PROVIDER_CONF="provider.conf"
+dir=`dirname $0`
+export PROVIDER_CONF="`pushd ${dir}>/dev/null,2>&1;pwd;popd>/dev/null,2>&1`/../conf/provider.conf"
+echo  $PROVIDER_CONF
 export SUBGRAPHSET_BASEDIR="/root/subgraphset"
 
