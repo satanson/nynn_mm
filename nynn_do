@@ -9,7 +9,7 @@ export nynn_ctl="${project_root}/nynn_ctl"
 #deploy host->repo host
 function handin(){
 	host=$1;shift
-	ssh ${user}@${host} ${nynn_ctl} handin "\"$@\""
+	ssh ${user}@${host} ${nynn_ctl} handin $* 
 }
 
 #repo host->deploy host
