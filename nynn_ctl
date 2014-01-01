@@ -10,7 +10,7 @@ export data_dir="/root/subgraphset"
 function handin(){
 	pushd ${project_root}
 	git add .
-	git commit -m $@  
+	git commit -m "$@"  
 	git push repo master
 	popd
 }
