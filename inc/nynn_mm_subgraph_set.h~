@@ -213,6 +213,7 @@ public:
 			Block *blk=reinterpret_cast<Block*>(&xblk[i*sizeof(Block)]);
 			subgraph->readBlock(blkno,blk);
 			blkno=(blk->getHeader()->*next)();
+			i++;//fix bug 2014/01/02 03:35, so agony 
 		}
 	}
 
@@ -417,14 +418,13 @@ public:
 		BlockContent *oldTailBlkContent=*oldTailBlk;
 		vtx->resize(vtx->size()-oldTailBlkContent->size());
 
-
 		if (newTailBlkno != INVALID_BLOCKNO){
 			Block *newTailBlk=subgraph->getBlock(newTailBlkno);
 			vtx->setTailBlkno(newTailBlkno);
 			newTailBlk->getHeader()->setNext(INVALID_BLOCKNO);
 		}else{
 			vtx->setTailBlkno(INVALID_BLOCKNO);
-			vtx->setTailBlkno(INVALID_BLOCKNO);
+			vtx->setHeadBlkno(INVALID_BLOCKNO);
 		}
 		subgraph->release(oldTailBlkno);
 		return oldTailBlkno;

@@ -70,7 +70,9 @@ public:
 	bool read(uint32_t vtxno,uint32_t blkno,vector<int8_t>& xblk)
 	{
 		string host=getHost(vtxno);
-		Block *blk=reinterpret_cast<Block*>(xblk.data());
+		//xblk's storage must be allocated before be used
+		xblk.resize(sizeof(Block));
+		Block* blk=reinterpret_cast<Block*>(xblk.data());
 
 		if (isNative(host)){
 			getProvider(host)->read(vtxno,blkno,xblk);
@@ -79,11 +81,9 @@ public:
 				vector<int8_t> xblks;
 				getProvider(host)->readn(vtxno,blkno,4096/sizeof(Block),xblks);
 				Block* blk=reinterpret_cast<Block*>(xblks.data());
-				xblk.resize(sizeof(Block));
 				std::copy(&xblks[0],&xblks[sizeof(Block)],xblk.begin());
 
 				int blkNum=xblks.size()/sizeof(Block);
-				cout<<"readn: blkNum="<<blkNum<<endl;
 				int i=0;
 				do{
 					m_graphCache.write(vtxno,blkno,blk);

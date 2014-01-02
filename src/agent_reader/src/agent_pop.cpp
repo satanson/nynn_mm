@@ -18,7 +18,7 @@ int main(int argc,char**argv)
 	agent->lock(vtxno);
 
 	uint32_t blkno=agent->getTailBlkno(vtxno);
-	while(blkno<INVALID_BLOCKNO){
+	while(blkno!=INVALID_BLOCKNO){
 		agent->read(vtxno,blkno,xblk);
 		string output(content->begin(),content->end());
 		cout<<output<<endl;

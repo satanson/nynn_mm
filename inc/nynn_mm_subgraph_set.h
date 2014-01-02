@@ -213,6 +213,7 @@ public:
 			Block *blk=reinterpret_cast<Block*>(&xblk[i*sizeof(Block)]);
 			subgraph->readBlock(blkno,blk);
 			blkno=(blk->getHeader()->*next)();
+			i++;//fix bug 2014/01/02 03:35, so agony 
 		}
 	}
 
