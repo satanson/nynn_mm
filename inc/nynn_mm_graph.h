@@ -79,9 +79,12 @@ public:
 				vector<int8_t> xblks;
 				getProvider(host)->readn(vtxno,blkno,4096/sizeof(Block),xblks);
 				Block* blk=reinterpret_cast<Block*>(xblks.data());
+				xblk.resize(sizeof(Block));
+				std::copy(&xblks[0],&xblks[sizeof(Block)],xblk.begin());
+
 				int blkNum=xblks.size()/sizeof(Block);
+				cout<<"readn: blkNum="<<blkNum<<endl;
 				int i=0;
-				std::copy(&xblks[0],&xblks[0]+sizeof(Block),xblk.begin());
 				do{
 					m_graphCache.write(vtxno,blkno,blk);
 					blkno=blk->getHeader()->getNext();

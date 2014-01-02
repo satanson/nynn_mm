@@ -47,7 +47,7 @@ class AgentHandler : virtual public AgentIf {
   }
 
   int32_t getTailBlkno(const int32_t vtxno) {
-	  return getTailBlkno(vtxno);
+	  return graph->getTailBlkno(vtxno);
   }
 
   void read(std::vector<int8_t> & xblk, const int32_t vtxno, const int32_t blkno) {
