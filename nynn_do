@@ -58,6 +58,11 @@ function stop_iptables()
 		ssh ${user}@${host} ${nynn_ctl} stop_iptables $@
 	done
 }
+function clean_core(){
+	for host in ${deploy_hosts};do
+		ssh ${user}@${host} ${nynn_ctl} clean_core $@
+	done
+}
 cmd=$1;shift
 
 case ${cmd} in
@@ -84,6 +89,9 @@ case ${cmd} in
   ;;
   "clean_data")
   clean_data $@
+  ;;
+  "clean_core")
+  clean_core $@
   ;;
   *)
   echo "unknown '$cmd $@'"

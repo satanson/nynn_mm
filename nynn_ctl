@@ -64,6 +64,10 @@ function stop_iptables()
 {
 	service iptables stop
 }
+
+function clean_core(){
+	find ${project_root} -name "core*" -type f -exec rm -f '{}' \;
+}
 cmd=$1;shift
 
 case ${cmd} in
@@ -90,6 +94,9 @@ case ${cmd} in
   ;;
   "clean_data")
   clean_data $@
+  ;;
+  "clean_core")
+  clean_core $@
   ;;
   *)
   echo "unknown '$cmd $@'"
