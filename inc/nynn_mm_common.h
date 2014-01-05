@@ -336,7 +336,7 @@ public:
 	MmapFile(const string& m_path,size_t m_length)throw(NynnException)
 		:m_path(m_path),m_length(m_length),m_offset(0),m_base(0)
 	{
-		m_fd=open(m_path.c_str(),O_RDWR|O_CREAT|O_EXCL);
+		m_fd=open(m_path.c_str(),O_RDWR|O_CREAT|O_EXCL,S_IRWXU);
 		if (m_fd<0)
 			throwNynnException(strerr(errno).c_str());
 
