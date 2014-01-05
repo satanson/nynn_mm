@@ -113,7 +113,10 @@ public:
 			OverflowEntry(uint32_t no=INVALID_BLOCKNO,void* addr=0):
 				m_overflowBlkno(no),m_hit(0),m_overflowBlk(addr){}
 		};
-		OverflowEntry m_table[OVERFLOW_NUM];
+		OverflowEntry *m_table;
+
+		Overflow() { m_table=new OverflowEntry[OVERFLOW_NUM];}
+		~Overflow() { delete[] m_table;}
 
 		static uint32_t const SIZE=OVERFLOW_NUM;
 		static uint32_t mapping(uint32_t x)
