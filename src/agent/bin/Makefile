@@ -36,12 +36,17 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Agent_constants.cpp Agent.cpp Agent_types.cpp\
 		  Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
+OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 
 default:agent 
 	mv -f $^ ../../../bin/bin
 
-agent: AgentDaemon.cpp $(GEN_SRC)
+agent: AgentDaemon.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
+
+%.o:%.cpp
+	g++ $(CXXFLAGS) -c -o $@ $^
+
 clean:
 	$(RM) -r agent 
 

@@ -40,11 +40,19 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 
 BIN=agent_pop agent_shift
 
+OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
+
 default:$(BIN)
 	mv -f $^ ../../../bin/bin
 
-%: %.cpp $(GEN_SRC)
-	g++ $(CXXFLAGS) -o $@ $^ 
+agent_pop:agent_pop.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+agent_shift:agent_shift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+
+%.o:%.cpp
+	g++ $(CXXFLAGS) -c -o $@ $^
+
 clean:
 	$(RM) -r writer 
 

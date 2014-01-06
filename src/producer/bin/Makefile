@@ -37,11 +37,15 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp
 
+OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 default:producer
 	mv -f $^ ../../../bin/bin
 
-producer: ProducerDaemon.cpp $(GEN_SRC)
+producer: ProducerDaemon.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
+
+%.o:%.cpp
+	g++ $(CXXFLAGS) -c -o $@ $^
 clean:
 	$(RM) -r producer
 

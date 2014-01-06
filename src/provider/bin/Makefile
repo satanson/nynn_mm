@@ -34,13 +34,30 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
 BIN=provider prov_dump prov_unshift prov_push prov_shift prov_pop prov_create_subgraph prov_destroy_subgraph
 
+OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
+
 default:$(BIN) 
 	mv -f $^ ../../../bin/bin
 
-provider: ProviderDaemon.cpp $(GEN_SRC)
+provider: ProviderDaemon.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
-%:%.cpp $(GEN_SRC)
-	g++ $(CXXFLAGS) -o $@ $^ 
+prov_unshift:prov_unshift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_push:prov_push.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_shift:prov_shift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_pop:prov_pop.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_create_subgraph:prov_create_subgraph.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_destroy_subgraph:prov_destroy_subgraph.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_dump:prov_dump.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+
+%.o:%.cpp
+	g++ $(CXXFLAGS) -c -o $@ $^
 clean:
 	$(RM) -r $(BIN)
 

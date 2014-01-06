@@ -38,11 +38,23 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
 BIN=prod_unshift prod_shift prod_push prod_pop
+
+OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
+
 default:$(BIN)
 	mv -f $^ ../../../bin/bin
-
-%:%.cpp $(GEN_SRC)
+prod_unshift:prod_unshift.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
+prod_push:prod_push.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^ 
+prod_shift:prod_shift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^ 
+prod_pop:prod_pop.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^ 
+
+%.o:%.cpp
+	g++ $(CXXFLAGS) -c -o $@ $^
+
 clean:
 	$(RM) -r writer 
 
