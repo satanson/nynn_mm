@@ -805,11 +805,11 @@ inline int rand_int()
 }
 
 class Monitor{
-	pthread_mutex_t m_mutex;
+	pthread_spinlock_t m_mutex;
 public:
-	Monitor(){pthread_mutex_init(&this->m_mutex,NULL);}
-	~Monitor(){pthread_mutex_destroy(&this->m_mutex);}
-	pthread_mutex_t* get(){return &this->m_mutex;}
+	Monitor(){pthread_spin_init(&this->m_mutex,PTHREAD_PROCESS_SHARED);}
+	~Monitor(){pthread_spin_destroy(&this->m_mutex);}
+	pthread_spinlock_t* get(){return &this->m_mutex;}
 };
 class RWLock{
 	pthread_rwlock_t m_rwlock;
@@ -823,8 +823,8 @@ public:
 class Synchronization{
 	Monitor *m_monitor;
 public:
-	Synchronization(Monitor* m):m_monitor(m){pthread_mutex_lock(m_monitor->get());}
-	~Synchronization(){pthread_mutex_unlock(m_monitor->get());}
+	Synchronization(Monitor* m):m_monitor(m){pthread_spin_lock(m_monitor->get());}
+	~Synchronization(){pthread_spin_unlock(m_monitor->get());}
 };	
 class SharedSynchronization{
 	RWLock *m_lock;
