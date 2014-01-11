@@ -38,7 +38,7 @@ GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
 
-BIN=agent_pop agent_shift
+BIN=agent_pop agent_shift agent_perform
 
 OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 
@@ -50,6 +50,8 @@ agent_pop:agent_pop.o $(OBJ)
 agent_shift:agent_shift.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^
 
+agent_perform:agent_perform.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
 %.o:%.cpp
 	g++ $(CXXFLAGS) -c -o $@ $^
 

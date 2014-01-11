@@ -37,7 +37,7 @@ CXXFLAGS =--std=c++0x \
 GEN_SRC = Producer_constants.cpp Producer.cpp Producer_types.cpp\
 		  Provider_constants.cpp Provider.cpp Provider_types.cpp\
 		  Agent_constants.cpp Agent.cpp Agent_types.cpp
-BIN=prod_unshift prod_shift prod_push prod_pop
+BIN=prod_unshift prod_shift prod_push prod_pop prod_perform
 
 OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 
@@ -50,6 +50,9 @@ prod_push:prod_push.o $(OBJ)
 prod_shift:prod_shift.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
 prod_pop:prod_pop.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^ 
+
+prod_perform:prod_perform.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
 
 %.o:%.cpp
