@@ -807,7 +807,7 @@ inline int rand_int()
 class Monitor{
 	pthread_spinlock_t m_mutex;
 public:
-	Monitor(){pthread_spin_init(&this->m_mutex,PTHREAD_PROCESS_SHARED);}
+	Monitor(){pthread_spin_init(&this->m_mutex,PTHREAD_PROCESS_PRIVATE);}
 	~Monitor(){pthread_spin_destroy(&this->m_mutex);}
 	pthread_spinlock_t* get(){return &this->m_mutex;}
 };
