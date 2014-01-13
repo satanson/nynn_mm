@@ -19,8 +19,8 @@
 vpath %.cpp ../test ../src ../../agent/src ../../provider/src ../../producer/src
 
 BOOST_DIR = /usr/include/boost
-THRIFT_DIR = /usr/local/include/thrift
-LIB_DIR = /usr/local/lib
+THRIFT_DIR = /root/nynn/include/thrift
+LIB_DIR = /root/nynn/lib
 NYNN_MM_INC= ../../../inc/
 AGENT_DIR=../../agent/src
 PROVIDER_DIR=../../provider/src
