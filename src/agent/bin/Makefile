@@ -22,7 +22,7 @@ DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
 endif
 
 BOOST_DIR = /usr/include/boost
-THRIFT_DIR = /root/nynn/include/thrift
+THRIFT_DIR = /root/nynn/include/
 LIB_DIR = /root/nynn/lib
 NYNN_MM_INC= ../../../inc/
 AGENT_DIR=../src/
