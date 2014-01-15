@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-vpath %.cpp ../test ../src
+vpath %.cpp ../src ../../provider/src
 ifdef dbg
 DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
 endif
@@ -25,25 +25,42 @@ BOOST_DIR = /usr/include/boost
 THRIFT_DIR = /root/nynn/include/
 LIB_DIR = /root/nynn/lib
 NYNN_MM_INC= ../../../inc/
-PROVIDER_INC=../src/
+PROVIDER_INC=../../provider/src/
 
 CXXFLAGS =--std=c++0x \
 		  -I${THRIFT_DIR} -I${BOOST_DIR}  -I. -L${LIB_DIR} -I${NYNN_MM_INC} -I${PROVIDER_INC}\
 		  -lthrift -lthriftnb -levent ${DEBUG}
 
 GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
-BIN=provider 
+BIN=prov_write prov_read prov_dump prov_unshift prov_push prov_shift prov_pop prov_create_subgraph prov_destroy_subgraph
 
 OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 
 default:$(BIN) 
 	mv -f $^ ../../../bin/bin
 
-provider: ProviderDaemon.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^ 
+prov_write:prov_write.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_read:prov_read.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_unshift:prov_unshift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_push:prov_push.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_shift:prov_shift.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_pop:prov_pop.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_create_subgraph:prov_create_subgraph.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_destroy_subgraph:prov_destroy_subgraph.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
+prov_dump:prov_dump.o $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^
 
 %.o:%.cpp
 	g++ $(CXXFLAGS) -c -o $@ $^
 clean:
 	$(RM) -r $(BIN)
+
 

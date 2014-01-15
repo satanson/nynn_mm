@@ -49,10 +49,9 @@ int main(int argc, char**argv)
 		}
 	}
 	gettimeofday(&end_tv,NULL);
-	double t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-
-		   (beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;
+	double t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-(beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;
 	cout<<"time usage:"<<t<<"s"<<endl;
-	cout<<"write vtxno:<<"<<vtxnoEnd-vtxnoBeg<<endl;
+	cout<<"write vtxno:="<<vtxnoEnd-vtxnoBeg<<endl;
 	cout<<"vtxno per second="<<(vtxnoEnd-vtxnoBeg)/t<<endl;
 }
 
