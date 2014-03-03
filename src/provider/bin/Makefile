@@ -22,8 +22,8 @@ DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
 endif
 
 BOOST_DIR = /usr/include/boost
-THRIFT_DIR = /usr/local/include/thrift
-LIB_DIR = /usr/local/lib
+THRIFT_DIR = /root/nynn/include/
+LIB_DIR = /root/nynn/lib
 NYNN_MM_INC= ../../../inc/
 PROVIDER_INC=../src/
 
@@ -32,7 +32,7 @@ CXXFLAGS =--std=c++0x \
 		  -lthrift -lthriftnb -levent ${DEBUG}
 
 GEN_SRC = Provider_constants.cpp Provider.cpp Provider_types.cpp
-BIN=provider prov_dump prov_unshift prov_push prov_shift prov_pop prov_create_subgraph prov_destroy_subgraph
+BIN=provider 
 
 OBJ=$(addsuffix .o, $(basename $(GEN_SRC)))
 
@@ -41,20 +41,6 @@ default:$(BIN)
 
 provider: ProviderDaemon.o $(OBJ)
 	g++ $(CXXFLAGS) -o $@ $^ 
-prov_unshift:prov_unshift.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_push:prov_push.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_shift:prov_shift.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_pop:prov_pop.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_create_subgraph:prov_create_subgraph.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_destroy_subgraph:prov_destroy_subgraph.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
-prov_dump:prov_dump.o $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^
 
 %.o:%.cpp
 	g++ $(CXXFLAGS) -c -o $@ $^
