@@ -4,6 +4,7 @@
 #include<nynn_exception.hpp>
 #include<nynn_thread.hpp>
 #include<nynn_log.hpp>
+#include<nynn_ipc.hpp>
 using namespace nynn;
 using namespace std;
 

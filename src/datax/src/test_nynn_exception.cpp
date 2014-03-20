@@ -1,5 +1,5 @@
 #include<iostream>
-#include<nynn_exception.h>
+#include<nynn_common.hpp>
 using namespace std;
 using namespace nynn;
 

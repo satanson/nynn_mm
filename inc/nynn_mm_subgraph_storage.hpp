@@ -1,8 +1,9 @@
-#ifndef NYNN_MM_SUBGRAPH_STORAGE_BY_SATANSON
-#define NYNN_MM_SUBGRAPH_STORAGE_BY_SATANSON
-#include<nynn_mm_common.h>
-#include<nynn_mm_types.h>
-using namespace nynn::mm::common;
+#ifndef NYNN_MM_SUBGRAPH_STORAGE_HPP_BY_SATANSON
+#define NYNN_MM_SUBGRAPH_STORAGE_HPP_BY_SATANSON
+#include<nynn_common.hpp>
+#include<nynn_mm_types.hpp>
+
+using namespace nynn;
 using namespace nynn::mm;
 namespace nynn{namespace mm{
 
@@ -36,8 +37,7 @@ uint32_t OVERFLOW_NUM,
 uint32_t MONITOR_NUM
 >class SubgraphStorageType{
 public:
-	static uint32_t const INVALID_BLOCKNO=~0L;
-	static uint32_t const INVALID_VERTEXNO=~0L;
+
 	static uint32_t const BLOCKSZ=1<<LOG2_BLOCKSZ;
 	static uint32_t const OVERFLOW_BLOCKSZ=1<<LOG2_OVERFLOW_BLOCKSZ;
 	static uint32_t const OVERFLOW_BLOCKNO_MASK=(1<<LOG2_OVERFLOW_BLOCKSZ-LOG2_BLOCKSZ)-1;
@@ -78,7 +78,7 @@ public:
 		void     setMinVtxno(uint32_t minVtxno)
 		{
 			if (minVtxno%VERTEX_INTERVAL_WIDTH!=0){
-				throwNynnException("Minimal vertex no must be multiple of VERTEX_INTERVAL_WIDTH!");
+				throw_nynn_exception(0,"Minimal vertex no must be multiple of VERTEX_INTERVAL_WIDTH!");
 			}			
 			for (uint32_t vtxno=minVtxno;vtxno<minVtxno+VERTEX_INTERVAL_WIDTH;vtxno++){
 				m_data->m_vertices[vtxno-minVtxno]=Vertex(vtxno);
@@ -173,8 +173,7 @@ public:
 
 			int retcode=glob(overflowBlkPathPattern.c_str(),0,0,&g);
 			if (retcode!=0 && retcode!=GLOB_NOMATCH){
-				string errinfo=string("Fail to invoke glob!")+"("+strerr(errno)+")";
-				throwNynnException(errinfo.c_str());
+				throw_nynn_exception(errno,"failed to invoke glob");
 			}
 			uint32_t numOfPreloadedOverflowBlk=OVERFLOW_NUM<g.gl_pathc?
 				                               OVERFLOW_NUM:g.gl_pathc;
@@ -193,8 +192,8 @@ public:
 //			log_i("superblk.supBlkno=%d",m_superblk.getSupBlkno());/g
 //			log_i("superblk.minVtxno=%d",m_superblk.getMinVtxno());/g
 			
-		}catch(NynnException &err){
-			throwNynnException("Fail to construct SubgraphStorage object!");
+		}catch(nynn_exception_t &err){
+			throw_nynn_exception(0,"Fail to construct SubgraphStorage object!");
 		}
 	}
 	~SubgraphStorageType()
@@ -205,7 +204,7 @@ public:
 
 	uint32_t require()
 	{
-		nynn::mm::common::ExclusiveSynchronization es(&m_superblkRWLock);
+		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
 
 		uint32_t blkno=requireAllocated();
 		return blkno==INVALID_BLOCKNO?requireUnallocated():blkno;
@@ -213,7 +212,7 @@ public:
 
 	void release(uint32_t blkno)
 	{
-		nynn::mm::common::ExclusiveSynchronization es(&m_superblkRWLock);
+		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
 		releaseRaw(blkno);
 	}
 
@@ -239,12 +238,13 @@ public:
 
 	Block* readBlock(uint32_t blkno,Block*blk)
 	{
+		if (unlikely(blkno==INVALID_BLOCKNO))return NULL;
 		SharedSynchronization ss(&m_superblkRWLock);
 		unique_ptr<Synchronization> s;
-		if (isOverflow(blkno))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
 		Block *srcBlk=getBlock(blkno);
-		if (srcBlk==NULL)throwNynnException("Fail to get specified block(getBlock)!");
+		if (unlikely(srcBlk==NULL))throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
 
 		memcpy(blk,srcBlk,sizeof(Block));
 		return blk;
@@ -257,7 +257,7 @@ public:
 		if (isOverflow(blkno))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
 		Block *blk=getBlock(blkno);
-		if (blk==NULL)throwNynnException("Fail to get specified block(getBlock)!");
+		if (blk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
 
 		memcpy(header,blk->getHeader(),sizeof(BlockHeader));
 		return header;
@@ -265,10 +265,10 @@ public:
 	
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
-		nynn::mm::common::SharedSynchronization ss(&m_superblkRWLock);
-		nynn::mm::common::Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+		nynn::SharedSynchronization ss(&m_superblkRWLock);
+		nynn::Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
 		Block *destBlk=getBlock(blkno);
-		if (destBlk==NULL)throwNynnException("Fail to get specified block(getBlock)!");
+		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
 		memcpy(destBlk,blk,sizeof(Block));
 	}
 
@@ -293,14 +293,14 @@ public:
 			MmapFile volumeFile(volumePath,VOLUME_SIZE);
 			string overflowDir=path+"/overflow";
 			if (mkdir(overflowDir.c_str(),0770)!=0) {
-				throwNynnException(strerr(errno).c_str());
+				throw_nynn_exception(errno,"failed to mkdir");
 			}
 			void *superblk = superblkFile.getBaseAddress();
 			void *volume = volumeFile.getBaseAddress();
 
 			SubgraphStorageType subgraph(path,superblk,volume);	
-		}catch(NynnException &err){
-			throwNynnException(err.what());
+		}catch(nynn_exception_t &err){
+			throw_nynn_exception(0,err.what());
 		}
 	}
 
@@ -313,7 +313,10 @@ private:
 		m_superblk.resetNumberOfFreeBlks();
 		m_superblk.setHeadBlkno(INVALID_BLOCKNO);
 		m_superblk.setSupBlkno(OVERFLOW_BLOCKNO_MIN);
-		for (uint32_t i=OVERFLOW_BLOCKNO_MIN;i>0;i--)release(i-1);
+		//blkno=0:HEAD_BLKNO;
+		//blkno=1:TAIL_BLKNO;
+		for (uint32_t i=OVERFLOW_BLOCKNO_MIN-1;i>1;i--)release(i);//reserve blk 0
+		//for (uint32_t i=OVERFLOW_BLOCKNO_MIN;i>0;i--)release(i)-1;
 
 		const char *path=basedir.c_str();
 		const char *strMinVtxno=path+strlen(path)-strlen("0xffff0000");
@@ -329,8 +332,8 @@ private:
 		cout<<"\tfree blocks:("<<m_superblk.getNumberOfFreeBlks()<<")"<<endl;
 		cout<<"\thead blkno:("<<m_superblk.getHeadBlkno()<<")"<<endl;
 		cout<<"\tsup blkno:("<<m_superblk.getSupBlkno()<<")"<<endl;
-	}catch (NynnException &err){
-		throwNynnException("Fail to initialize new SubgraphStorage object!");
+	}catch (nynn_exception_t &err){
+		throw_nynn_exception(0,"Fail to initialize new SubgraphStorage object!");
 	}
 
 	bool isFlat(uint32_t blkno) 
@@ -361,7 +364,7 @@ private:
 
 		}
 //		log_d("blkno=%d",blkno);/g
-		throwNynnException("blkno is invalid or not overflow");
+		throw_nynn_exception(0,"blkno is invalid or not overflow");
 	}
 
 
@@ -430,7 +433,7 @@ private:
 		uint32_t headBlkno=m_superblk.getHeadBlkno();
 		Block *blk=getBlock(blkno);
 		if (blk==NULL){
-			throwNynnException("The released block is NULL!");
+			throw_nynn_exception(0,"The released block is NULL!");
 		}
 		//free list is empty or its head block is full.
 		if (headBlkno==INVALID_BLOCKNO||getBlock(headBlkno)->isAtTop()) {

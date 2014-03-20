@@ -2,6 +2,7 @@
 #define NYNN_UTIL_HPP_BY_SATANSON
 #include<linuxcpp.hpp>
 #include<nynn_log.hpp>
+#include<nynn_exception.hpp>
 namespace nynn{
 
 uint32_t parse_int(const char* s,uint32_t value);
@@ -9,6 +10,18 @@ uint32_t parse_int(const char* s,uint32_t value);
 template<typename T>
 string to_string(T const& a){
 	return ((stringstream&)(stringstream()<<a)).str();
+}
+string format(const string& fmt,...){
+	va_list ap;
+	va_start(ap,fmt);
+	string s(256,0);
+	if(unlikely(vsnprintf((char*)&*s.begin(),s.size(),fmt.c_str(),ap)<0)){
+		throw_nynn_exception(0,"failed to format s string");
+	}
+	va_end(ap);
+
+	s.resize(s.size()-1);
+	return s;
 }
 
 void set_signal_handler(int signum,void(*handler)(int));
@@ -24,6 +37,8 @@ string get_host();
 uint32_t get_ip(string &hostname);
 string ip2string(uint32_t ip);
 uint32_t string2ip(string const& s);
+string ip2host(uint32_t);
+uint32_t host2ip(string const&);
 
 time_t string2time(string const& s);
 string time2string(time_t t);
@@ -81,7 +96,7 @@ inline void rand_nanosleep(){
 	clock_gettime(CLOCK_REALTIME,&ts);
 	ts.tv_sec=0;
 	ts.tv_nsec=rand_r((uint32_t*)&ts.tv_nsec);
-	cout<<"sleep "<<ts.tv_nsec<<"ns"<<endl;
+	//cout<<"sleep "<<ts.tv_nsec<<"ns"<<endl;
 	nanosleep(&ts,NULL);
 }
 
@@ -89,44 +104,62 @@ inline void rand_nanosleep(){
 inline string get_host()
 {
 	char host[128];
-	gethostname(host,sizeof(host));
-	return string(host,host+strlen(host));
+	int rc=gethostname(host,sizeof(host));
+	if (unlikely(rc!=0))
+		throw_nynn_exception(errno,"failed to get hostname");
+	return string(host);
 }
 
 inline uint32_t get_ip(){
-	uint32_t addr;
-	char host[INET_ADDRSTRLEN];
-	if (-1==gethostname(host,INET_ADDRSTRLEN)){
-		log_e(errno);
-		return 0;
+	try{
+		return host2ip(get_host());
+	}catch(nynn_exception_t& ex){
+		cerr<<ex.what()<<endl;
+		throw_nynn_exception(0,"failed to get ip");
 	}
-
+}
+string ip2host(uint32_t ip){
+	struct sockaddr sa;
+	struct sockaddr_in& sai=*(struct sockaddr_in*)&sa;
+	sai.sin_family=AF_INET;
+	sai.sin_addr=*(in_addr*)&ip;
+	socklen_t salen=sizeof(struct sockaddr_in);
+	char host[128];
+	int flags=NI_NAMEREQD|NI_NOFQDN;
+	int rc=getnameinfo(&sa,salen,host,sizeof(host),NULL,0,flags);
+	if (rc!=0){
+		throw_nynn_exception(0,gai_strerror(rc));
+	}
+	return string(host);
+}
+uint32_t host2ip(string const& host){
 	struct addrinfo  hint, *res, *p;
 	memset(&hint,0,sizeof(hint));
 	hint.ai_family = AF_INET;
 	hint.ai_flags = AI_ADDRCONFIG;
-	
-	if (-1==getaddrinfo(host,NULL,&hint,&res)){
-		log_e(errno);
-		return 0;
+
+	int rc=getaddrinfo(host.c_str(),NULL,&hint,&res);
+	if (rc!=0){
+		throw_nynn_exception(0,gai_strerror(rc));
 	}
 
+	uint32_t addr=0;
 	if (res!=NULL){
 		p=res;
 		do{
-			addr=((sockaddr_in*)p->ai_addr)->sin_addr.s_addr;
-			//inet_ntop(AF_INET,&addr,buf,INET_ADDRSTRLEN);
-			//if (strcmp(buf,"127.0.0.1")!=0){
-			if ( addr!=0 && (addr&0xff)!=0x7f)
+			addr=*(uint32_t*)&((sockaddr_in*)p->ai_addr)->sin_addr;
+			if ( addr!=0 && (addr&0xff)!=0x7f){
+				freeaddrinfo(res);
 				return addr;
-
+			}
 			p=p->ai_next;
-		}while(NULL!=p);
-		freeaddrinfo(res);
-	}else{
-		return 0;
+		}while(p!=NULL);
 	}
+	freeaddrinfo(res);
+	throw_nynn_exception(0,"failed to convert hostname to ip");
+
 }
+
 inline string ip2string(uint32_t ip){
 	char buff[16];
 	return string(inet_ntop(AF_INET,&ip,buff,16));

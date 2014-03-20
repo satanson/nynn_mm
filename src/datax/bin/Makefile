@@ -12,9 +12,23 @@ BIN=$(basename $(SRC))
 
 default:$(BIN)
 
+test_nynn_zmqprot:test_nynn_zmqprot.o
+	g++ $(CXXFLAGS) -o $@ $^ 
 nynn_mm_serv:nynn_mm_serv.o
 	g++ $(CXXFLAGS) -o $@ $^ 
 getaddrinfoDemo:getaddrinfoDemo.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_ipc4:test_nynn_ipc4.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_ipc3:test_nynn_ipc3.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_ipc2:test_nynn_ipc2.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_ipc1:test_nynn_ipc1.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_ipc:test_nynn_ipc.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+test_nynn_util1:test_nynn_util1.o
 	g++ $(CXXFLAGS) -o $@ $^ 
 test_nynn_util:test_nynn_util.o
 	g++ $(CXXFLAGS) -o $@ $^ 

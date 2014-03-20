@@ -1,7 +1,7 @@
-#ifndef NYNN_MM_TYPES_H_BY_SATANSON
-#define NYNN_MM_TYPES_H_BY_SATANSON
-#include<nynn_mm_common.h>
-using namespace nynn::mm::common;
+#ifndef NYNN_MM_TYPES_HPP_BY_SATANSON
+#define NYNN_MM_TYPES_HPP_BY_SATANSON
+#include<nynn_common.hpp>
+using namespace nynn;
 
 namespace nynn{namespace mm{
 	
@@ -9,8 +9,10 @@ struct Vertex;
 struct Edge;
 template <uint32_t BLOCKSZ> union BlockType;
 
-static uint32_t const INVALID_BLOCKNO=~0L;
-static uint32_t const INVALID_VERTEXNO=~0L;
+static uint32_t const INVALID_BLOCKNO=~0UL;
+static uint32_t const HEAD_BLOCKNO=0UL;
+static uint32_t const TAIL_BLOCKNO=1UL;
+static uint32_t const INVALID_VERTEXNO=~0UL;
 
 struct Vertex{
 private:
@@ -167,6 +169,90 @@ private:
 	uint32_t m_indexes[BLOCKSZ/sizeof(uint32_t)];
 	BlockHeader m_header;
 }__attribute__((packed));
+
+enum {OP_SHIFT,OP_UNSHIFT,OP_PUSH,OP_POP,OP_NUM};
+
+struct ReadOptions{
+	uint32_t vtxno;
+	uint32_t blkno;
+};
+struct WriteOptions{
+	uint32_t opcode;
+	uint32_t vtxno;
+	uint32_t blkno;
+	mutable uint32_t ipnum;
+
+	static WriteOptions* make(uint32_t op,uint32_t v,uint32_t b,uint32_t n){
+		char* p=new char[sizeof(WriteOptions)+n*sizeof(uint32_t)];
+		WriteOptions& opts=*(WriteOptions*)p;
+		opts.opcode=op;
+		opts.vtxno=v;
+		opts.blkno=b;
+		opts.ipnum=n;
+		return &opts;
+	}
+
+	size_t num()const{return this->ipnum;}
+	size_t size()const{
+		return sizeof(WriteOptions)+this->num()*sizeof(uint32_t);
+	}
+	void shrink()const{
+		this->ipnum--;
+	}
+	uint32_t& operator[](size_t i){
+		char*  p=(char*)this+sizeof(WriteOptions);
+		uint32_t& ip=*(uint32_t*)(p+sizeof(uint32_t)*i);
+		return ip;
+	}
+};
+
+struct SubmitOptions{
+	uint32_t ip;
+	mutable uint32_t sgknum;
+	static SubmitOptions* make(uint32_t ip,uint32_t n){
+		char* p=new char[sizeof(SubmitOptions)+n*sizeof(uint32_t)];
+		SubmitOptions& opts=*(SubmitOptions*)p;
+		opts.ip=ip;
+		opts.sgknum=n;
+		return &opts;
+	}
+	size_t num()const{return this->sgknum;}
+	size_t size()const{
+		return sizeof(SubmitOptions)+sizeof(uint32_t)*this->sgknum;
+	}
+	uint32_t& operator[](size_t i){
+		char* p=(char*)this+sizeof(SubmitOptions);
+		uint32_t& sgkey=*(uint32_t*)(p+sizeof(uint32_t)*i);
+		return sgkey;
+	}
+};
+
+struct HelloOptions{
+	uint32_t ip;
+};
+
+struct ShardTable{
+	uint32_t stenum;
+	struct STEntry{
+		uint32_t sgkey;
+		uint32_t targetip;
+	};
+	static ShardTable* make(uint32_t n){
+		char *p=new char[sizeof(ShardTable)+n*sizeof(STEntry)];
+		ShardTable& st=*(ShardTable*)p;
+		st.stenum=n;
+		return &st;
+	}
+	size_t num()const{ return this->stenum; }
+	size_t size()const{
+		return sizeof(ShardTable)+sizeof(STEntry)*this->num();
+	}
+	STEntry& operator[](size_t i){
+		char *p=(char*)this+sizeof(ShardTable);
+		STEntry& ste=*(STEntry*)(p+sizeof(STEntry)*i);
+		return ste;
+	}
+};
 
 }}
 #endif

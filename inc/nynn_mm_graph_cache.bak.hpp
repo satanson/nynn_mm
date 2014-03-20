@@ -1,10 +1,10 @@
-#ifndef NYNN_MM_SUBGRAPH_CACHE_BY_SATANSON
-#define NYNN_MM_SUBGRAPH_CACHE_BY_SATANSON
-#include<nynn_mm_common.h>
-#include<nynn_mm_subgraph_storage.h>
-#include<nynn_mm_types.h>
+#ifndef NYNN_MM_SUBGRAPH_CACHE_HPP_BY_SATANSON
+#define NYNN_MM_SUBGRAPH_CACHE_HPP_BY_SATANSON
+#include<nynn_common.hpp>
+#include<nynn_mm_subgraph_storage.hpp>
+#include<nynn_mm_types.hpp>
 
-using namespace nynn::mm::common;
+using namespace nynn;
 namespace nynn{namespace mm{
 template <
 	uint32_t LOG2_BLOCKSZ,
@@ -219,6 +219,7 @@ private:
 	LRUList  m_freeList;
 	LRUListEntry m_entries[CACHE_BLOCK_NUM];
 	Block m_data[CACHE_BLOCK_NUM];
+
 	Monitor m_freeListMonitor;
 	Monitor m_LRUListMonitors[MONITOR_NUM];
 };

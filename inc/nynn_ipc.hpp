@@ -1,48 +1,9 @@
-#ifndef NYNN_MM_COMMON_BY_SATANSON
-#define NYNN_MM_COMMON_BY_SATANSON
-
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<iomanip>
-#include<memory>
-#include<string>
-#include<vector>
-#include<list>
-#include<set>
-#include<map>
-#include<exception>
-#include<algorithm>
-
-#include<cstring>
-#include<cstdlib>
-#include<cerrno>
-#include<cstdarg>
-#include<cassert>
-#include<cstdio>
-#include<ctime>
-#include<csignal>
-#include<climits>
-#include<cstddef>
-
-#include<sys/stat.h>
-#include<sys/types.h>
-#include<sys/ipc.h>
-#include<sys/mman.h>
-#include<sys/shm.h>
-#include<sys/sem.h>
-#include<sys/socket.h>
-
-
-#include<unistd.h>
-#include<fcntl.h>
-#include<execinfo.h>
-#include<glob.h>
-#include<netdb.h>
-
-#include<arpa/inet.h>
-
+#ifndef NYNN_IPC_HPP_BY_SATANSON
+#define NYNN_IPC_HPP_BY_SATANSON
+#include<nynn_exception.hpp>
+#include<nynn_util.hpp>
 using namespace std;
+using namespace nynn;
 
 typedef unsigned long long int uint64_t;
 typedef long long int int64_t;
@@ -50,14 +11,9 @@ typedef unsigned short int uint16_t;
 typedef short int int16_t;
 typedef unsigned char uint8_t;
 
-namespace nynn{ namespace mm{ namespace common{
+namespace nynn{ 
 //declaration
 enum{
-	ERR_BUFF_SIZE=128,
-	ERR_MSG_RESERVED_SIZE=256,
-	VSNPRINTF_BUFF_SIZE=512,
-
-
 	SEMGET_TRY_MAX=1000,
 	//rwlock type
 	RWLOCK_SHARED=1,
@@ -67,7 +23,7 @@ enum{
 };
 
 
-class NynnException;
+class nynn_exception_t;
 class MmapFile;
 
 struct ShmAllocator;
@@ -89,136 +45,136 @@ class Synchronized;
 class MmapFile{
 public:
 	//create a shared mapping file for already existed file
-	explicit MmapFile(const string& m_path) throw(NynnException)
+	explicit MmapFile(const string& m_path) throw(nynn_exception_t)
 		:m_path(m_path),m_offset(0),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR);
 		if (m_fd<0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		m_length=lseek(m_fd,0,SEEK_END);
 		if (m_length==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
 				,MAP_SHARED,m_fd,m_offset);
 
 		if (m_base==MAP_FAILED)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (close(m_fd)!=0)		
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 
 	//create a shared mapping file for already existed file
-	MmapFile(const string& m_path,size_t m_length,off_t m_offset)throw(NynnException)
+	MmapFile(const string& m_path,size_t m_length,off_t m_offset)throw(nynn_exception_t)
 		:m_path(m_path),m_offset(m_offset),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR);
 		if (m_fd<0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		m_length=lseek(m_fd,0,SEEK_END);
 		if (m_length==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
 				,MAP_SHARED,m_fd,m_offset);
 		if (m_base==MAP_FAILED)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (close(m_fd)!=0)		
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 	}
 
 	// create a private mapping file for a new file
-	MmapFile(const string& m_path,size_t m_length)throw(NynnException)
+	MmapFile(const string& m_path,size_t m_length)throw(nynn_exception_t)
 		:m_path(m_path),m_length(m_length),m_offset(0),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR|O_CREAT|O_EXCL,S_IRWXU);
 		if (m_fd<0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (lseek(m_fd,m_length-4,SEEK_SET)==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (write(m_fd,"\0\0\0\0",4)!=4)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
 				,MAP_SHARED,m_fd,m_offset);
 
 		if (m_base==MAP_FAILED)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (close(m_fd)!=0)		
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 
-	void lock(void* addr,size_t m_length)throw(NynnException)
+	void lock(void* addr,size_t m_length)throw(nynn_exception_t)
 	{
 
 		if (!checkPagedAlignment(addr,m_length))
-			throwNynnException(ENOMEM,NULL);
+			throw_nynn_exception(ENOMEM,NULL);
 
 		if (mlock(addr,m_length)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		return;
 	}
 
-	void lock()throw(NynnException)
+	void lock()throw(nynn_exception_t)
 	{
 		try{
 			lock(m_base,m_length);
-		}catch (NynnException& err) {
+		}catch (nynn_exception_t& err) {
 			throw err;
 		}
 
 		return; 
 	}
 
-	void unlock(void* addr,size_t m_length)throw(NynnException)
+	void unlock(void* addr,size_t m_length)throw(nynn_exception_t)
 	{
 
 		if (!checkPagedAlignment(addr,m_length))
-			throwNynnException(ENOMEM,NULL);
+			throw_nynn_exception(ENOMEM,NULL);
 
 		if (munlock(addr,m_length)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		return;
 	}
 
-	void unlock()throw(NynnException)
+	void unlock()throw(nynn_exception_t)
 	{
 		try{
 			unlock(m_base,m_length);
-		}catch (NynnException& err) {
+		}catch (nynn_exception_t& err) {
 			throw err;
 		}
 
 		return; 
 	}
 
-	void sync(void* addr,size_t m_length,int flags)throw(NynnException)
+	void sync(void* addr,size_t m_length,int flags)throw(nynn_exception_t)
 	{
 
 		if (!checkPagedAlignment(addr,m_length))
-			throwNynnException(ENOMEM,NULL);
+			throw_nynn_exception(ENOMEM,NULL);
 
 		if (msync(addr,m_length,flags)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		return;
 	}
 
-	void sync(int flags)throw(NynnException)
+	void sync(int flags)throw(nynn_exception_t)
 	{
 		try{
 			sync(m_base,m_length,flags);
-		}catch (NynnException& err){
+		}catch (nynn_exception_t& err){
 			throw err;
 		}
 		return;
@@ -276,14 +232,14 @@ struct ShmAllocator{
 };
 struct Semid0{
 
-	Semid0(size_t slots)throw(NynnException):slot_max(slots)
+	Semid0(size_t slots)throw(nynn_exception_t):slot_max(slots)
 	{	
 		semid=semget(IPC_PRIVATE,slot_max,IPC_CREAT|IPC_EXCL|0700);
-		if (semid==-1) throwNynnException(errno,NULL);
+		if (semid==-1) throw_nynn_exception(errno,NULL);
 		
 		uint16_t *array=new uint16_t[slot_max];
 		std::fill(array,array+slot_max,0);
-		if (semctl(semid,0,SETALL,array)==-1)throwNynnException(errno,NULL);
+		if (semctl(semid,0,SETALL,array)==-1)throw_nynn_exception(errno,NULL);
 	}
 
 	~Semid0(){}
@@ -300,7 +256,7 @@ struct Semid1{
 	
 	~Semid1()
 	{
-		if (semctl(semid,0,IPC_RMID)==-1)throwNynnException(errno,NULL);
+		if (semctl(semid,0,IPC_RMID)==-1)throw_nynn_exception(errno,NULL);
 	}
 
 	int    semid;
@@ -310,11 +266,11 @@ class Lockop {
 
 public:
 
-	Lockop(int semid,int slot )throw(NynnException):semid(semid),slot(slot)
+	Lockop(int semid,int slot )throw(nynn_exception_t):semid(semid),slot(slot)
 	{
 
 		struct seminfo si;
-		if (semctl(0,0,IPC_INFO,&si)==-1)throwNynnException(errno,NULL);
+		if (semctl(0,0,IPC_INFO,&si)==-1)throw_nynn_exception(errno,NULL);
 		int semmsl=si.semmsl;
 		int semopm=si.semopm;
 		log_i("semmsl=%d",semmsl);
@@ -322,26 +278,26 @@ public:
 		
 
 		struct semid_ds ds;
-		if (semctl(semid,0,IPC_STAT,&ds)!=0)throwNynnException(errno,NULL);
+		if (semctl(semid,0,IPC_STAT,&ds)!=0)throw_nynn_exception(errno,NULL);
 
-		if (slot>=ds.sem_nsems)throwNynnException(EINVAL,NULL);
+		if (slot>=ds.sem_nsems)throw_nynn_exception(EINVAL,NULL);
 
 		struct sembuf sop;
 		sop.sem_op=-1;
 		sop.sem_num=slot;
 		sop.sem_flg=SEM_UNDO;
 		
-		if (semop(semid,&sop,1)!=0)throwNynnException(errno,NULL);
+		if (semop(semid,&sop,1)!=0)throw_nynn_exception(errno,NULL);
 	}
 
-	~Lockop()throw(NynnException)
+	~Lockop()throw(nynn_exception_t)
 	{
 
 		struct sembuf sop;
 		sop.sem_op=1;
 		sop.sem_num=slot;
 		
-		if (semop(semid,&sop,1)!=0)throwNynnException(errno,NULL);
+		if (semop(semid,&sop,1)!=0)throw_nynn_exception(errno,NULL);
 	}
 
 private:
@@ -359,12 +315,12 @@ private:
 struct Shmid{
 	int m_shmid;
 	size_t m_length;
-	explicit Shmid(size_t m_length)throw(NynnException):
+	explicit Shmid(size_t m_length)throw(nynn_exception_t):
 		m_shmid(0),m_length(m_length)
 	{
 		m_shmid=shmget(IPC_PRIVATE,m_length,IPC_CREAT|IPC_EXCL|0700);
 		if (m_shmid==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 	~Shmid(){}
 	int get_shmid()const{return m_shmid;}
@@ -378,32 +334,32 @@ private:
 class Shm{
 public:
 
-	explicit Shm(int m_shmid,size_t m_length=0)throw(NynnException):
+	explicit Shm(int m_shmid,size_t m_length=0)throw(nynn_exception_t):
 		m_shmid(m_shmid),m_length(m_length),m_base(0)
 	{ 
 		m_base=shmat(m_shmid,NULL,0);
-		if(m_base==(void*)-1)throwNynnException(errno,NULL);
+		if(m_base==(void*)-1)throw_nynn_exception(errno,NULL);
 	}
 	
-	explicit Shm(const Shmid& id)throw(NynnException):
+	explicit Shm(const Shmid& id)throw(nynn_exception_t):
 		m_shmid(id.m_shmid),m_length(id.m_length)
 	{
 		m_base=shmat(m_shmid,NULL,0);
-		if(m_base==(void*)-1)throwNynnException(errno,NULL);
+		if(m_base==(void*)-1)throw_nynn_exception(errno,NULL);
 	}
 
 	~Shm()
 	{
 		if(shmdt(m_base)==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		struct shmid_ds ds;
 		if (shmctl(m_shmid,IPC_STAT,&ds)==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 		if (ds.shm_nattch>0)return;
 		if (shmctl(m_shmid,IPC_RMID,NULL)==-1)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 
 	void* getBaseAddress()const{return m_base;}
@@ -423,13 +379,13 @@ protected:
 	string m_path;
 	int m_fd;
 
-	Flock(const string& m_path)throw(NynnException):m_path(m_path){
+	Flock(const string& m_path)throw(nynn_exception_t):m_path(m_path){
 		if (!file_exist(m_path.c_str()))
-			throwNynnException(ENOENT,NULL);
+			throw_nynn_exception(ENOENT,NULL);
 
 		m_fd=open(m_path.c_str(),O_RDWR);
 		if (m_fd==-1)
-			throwNynnException(ENOENT,NULL);
+			throw_nynn_exception(ENOENT,NULL);
 	}
 
 public:
@@ -451,7 +407,7 @@ public:
 		op.l_len=m_length;
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLKW,&op)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 	
 	virtual void unlock(off_t start,off_t m_length)
@@ -462,7 +418,7 @@ public:
 		op.l_len=m_length;
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLKW,&op)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 
 	}
 	virtual bool trylock(off_t start,off_t m_length)
@@ -474,7 +430,7 @@ public:
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLK,&op)==0) return true;
 		if (errno==EAGAIN) return false;
-		throwNynnException(errno,NULL);
+		throw_nynn_exception(errno,NULL);
 	}
 };
 
@@ -490,7 +446,7 @@ public:
 		op.l_len=m_length;
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLKW,&op)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 
 	virtual void unlock(off_t start,off_t m_length)
@@ -501,7 +457,7 @@ public:
 		op.l_len=m_length;
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLKW,&op)!=0)
-			throwNynnException(errno,NULL);
+			throw_nynn_exception(errno,NULL);
 	}
 
 	virtual bool trylock(off_t start,off_t m_length)
@@ -513,7 +469,7 @@ public:
 		op.l_whence=SEEK_SET;
 		if (fcntl(m_fd,F_SETLK,&op)==0) return true;
 		if (errno==EAGAIN) return false;
-		throwNynnException(errno,NULL);
+		throw_nynn_exception(errno,NULL);
 	}
 };
 
@@ -577,5 +533,40 @@ public:
 	}
 	~ExclusiveSynchronization(){pthread_rwlock_unlock(m_lock->get());}
 };
-}}}
+template <typename Result,typename Class,typename MemFunc,typename...Args> 
+Result mfspinsync(Monitor& m,Class& obj, MemFunc mf,Args&&... args){
+	Synchronization get(&m);
+	return (obj.*mf)(forward<Args>(args)...);
+}
+
+template <typename Result,typename Class,typename MemFunc,typename...Args> 
+Result mfsyncw(RWLock& lock,Class& obj, MemFunc mf,Args&&... args){
+	ExclusiveSynchronization get(&lock);
+	return (obj.*mf)(forward<Args>(args)...);
+}
+
+template <typename Result,typename Class,typename MemFunc,typename...Args> 
+Result mfsyncr(RWLock& lock,Class& obj, MemFunc mf,Args&&... args){
+	SharedSynchronization get(&lock);
+	return (obj.*mf)(forward<Args>(args)...);
+}
+
+template <typename Result,typename Func,typename...Args> 
+Result spinsync(Monitor& m,Func f,Args&&... args){
+	Synchronization get(&m);
+	return f(forward<Args>(args)...);
+}
+
+template <typename Result,typename Func,typename...Args> 
+Result syncw(RWLock& lock,Func f,Args&&... args){
+	ExclusiveSynchronization get(&lock);
+	return f(forward<Args>(args)...);
+}
+
+template <typename Result,typename Func,typename...Args> 
+Result syncr(RWLock& lock,Func f,Args&&... args){
+	SharedSynchronization get(&lock);
+	return f(forward<Args>(args)...);
+}
+}
 #endif

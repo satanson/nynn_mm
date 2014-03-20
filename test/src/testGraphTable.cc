@@ -30,7 +30,7 @@ int main()
 
 	for (int i=0;i<keys.size();i++)
 	{
-		sLoad.selectReplicHosts(selHosts,3);
+		selHosts=sLoad.selectReplicHosts(3);
 		sgDist.insert(keys[i],selHosts);
 		set<string>& hostSet=sgDist.getHosts(keys[i]);
 		selHosts.resize(0);

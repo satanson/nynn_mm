@@ -1,8 +1,8 @@
-#include<nynn_mm_graph_table.h>
+#include<nynn_mm_graph_table.hpp>
 using namespace nynn::mm;
-void handle_setAllSgkeys(GraphTable& gt){
-	string host;
-	cin>>host;
+void handle_setAllSgkeysOfHost(GraphTable& gt){
+	uint32_t ip;
+	cin>>ip;
 	uint32_t n,sgkey;
 	cin>>n;
 	vector<uint32_t> sgkeys;
@@ -12,12 +12,12 @@ void handle_setAllSgkeys(GraphTable& gt){
 		cin>>sgkey;
 		sgkeys.push_back(sgkey);
 	}
-	gt.setAllSgkeys(host,sgkeys);
+	gt.setAllSgkeysOfHost(ip,sgkeys);
 }
-void handle_getHost(GraphTable& gt){
+void handle_getOptimalHostOfSgkey(GraphTable& gt){
 	uint32_t sgkey;
 	cin>>sgkey;
-	cout<<"getHost: "<<sgkey<<"->"<<gt.getHost(sgkey)<<endl;
+	cout<<"getOptimalHostOfSgkey: "<<sgkey<<"->"<<gt.getOptimalHostOfSgkey(sgkey)<<endl;
 }
 
 void handle_create(GraphTable& gt){
@@ -30,51 +30,51 @@ void handle_destroy(GraphTable& gt){
 	cin>>sgkey;
 	gt.destroy(sgkey);
 }
-void handle_getHosts(GraphTable& gt){
+void handle_getAllHostsOfSgkey(GraphTable& gt){
 	uint32_t sgkey;
 	cin>>sgkey;
-	vector<string> hosts;
-	gt.getHosts(sgkey,hosts);
-	cout<<"getHosts: "<<sgkey<<": ";
-	for (int i=0;i<hosts.size();i++)cout<<"->"<<hosts[i];
+	set<uint32_t> ips=gt.getAllHostsOfSgkey(sgkey);
+	cout<<"getAllHostsOfSgkey: "<<sgkey<<": ";
+	set<uint32_t>::iterator it=ips.begin();
+	for (;it!=ips.end();it++)cout<<"->"<<*it<<endl;
 	cout<<endl;
 }
 
 void handle_recycle(GraphTable& gt){
 	uint32_t sgkey;
-	string host;
-	cin>>sgkey>>host;
-	gt.recycle(sgkey,host);
+	uint32_t ip;
+	cin>>sgkey>>ip;
+	gt.recycle(sgkey,ip);
 }
 
 void handle_restore(GraphTable& gt){
 	uint32_t sgkey;
-	string host;
-	cin>>sgkey>>host;
-	gt.restore(sgkey,host);
+	uint32_t ip;
+	cin>>sgkey>>ip;
+	gt.restore(sgkey,ip);
 }
 int main(int argc,char**argv)
 {
-	vector<string> hosts;
+	vector<uint32_t> ips;
 	int n;
 	cin>>n;
-	hosts.reserve(n);
-	string host;
+	ips.reserve(n);
+	uint32_t ip;
 	for (int i=0;i<n;i++){
-		cin>>host;
-		hosts.push_back(host);
+		cin>>ip;
+		ips.push_back(ip);
 	}
-	GraphTable gt(hosts,3);
+	GraphTable gt(3);
 	string func;
-	int K=atoi(argv[1]),k=0;
+
 	while(cin>>func){
 		
 		cout<<func<<endl;
-		if (func=="setAllSgkeys")handle_setAllSgkeys(gt);
-		else if (func=="getHost")handle_getHost(gt);
+		if (func=="setAllSgkeysOfHost")handle_setAllSgkeysOfHost(gt);
+		else if (func=="getOptimalHostOfSgkey")handle_getOptimalHostOfSgkey(gt);
 		else if (func=="create")handle_create(gt);
 		else if (func=="destroy")handle_destroy(gt);
-		else if (func=="getHosts")handle_getHosts(gt);
+		else if (func=="getAllHostsOfSgkey")handle_getAllHostsOfSgkey(gt);
 		else if (func=="recycle")handle_recycle(gt);
 		else if (func=="restore")handle_restore(gt);
 		else{

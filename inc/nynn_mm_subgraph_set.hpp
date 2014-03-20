@@ -1,8 +1,9 @@
-#ifndef NYNN_MM_SUBGRAPH_SET_BY_SATANSON
-#define NYNN_MM_SUBGRAPH_SET_BY_SATANSON
-#include <nynn_mm_common.h>
-#include <nynn_mm_subgraph_storage.h>
-using namespace nynn::mm::common;
+#ifndef NYNN_MM_SUBGRAPH_SET_HPP_BY_SATANSON
+#define NYNN_MM_SUBGRAPH_SET_HPP_BY_SATANSON
+#include <nynn_common.hpp>
+#include <nynn_mm_types.hpp>
+#include <nynn_mm_subgraph_storage.hpp>
+using namespace nynn;
 using namespace nynn::mm;
 namespace nynn{namespace mm{
 template<
@@ -34,8 +35,7 @@ public:
 			string subgraphPathPattern=m_subgraphSetBasedir+"/subgraph0x????????";
 			int retcode=glob(subgraphPathPattern.c_str(),0,0,&g);
 			if (retcode!=0 && retcode!=GLOB_NOMATCH) {
-				string errinfo=string("Fail to invoke glob!")+"("+strerr(errno)+")";
-				throwNynnException(errinfo.c_str());
+				throw_nynn_exception(errno,"failed to invoking glob");
 			}
 			for (uint32_t  i=0;i<g.gl_pathc;i++) {
 				uint32_t subgraphKey=makeSubgraphKey(g.gl_pathv[i]);
@@ -46,8 +46,8 @@ public:
 				//string subgraphBasedir=makeSubgraphPath(subgraphKey);
 				//m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir)));
 			}
-		}catch(NynnException &ex){
-			throwNynnException("Fail to create Graph object");
+		}catch(nynn_exception_t &ex){
+			throw_nynn_exception(0,"Fail to create Graph object");
 		}
 	}
 
@@ -62,12 +62,12 @@ public:
 		string cmd="mkdir -p "+subgraphBasedir;
 		if (system(cmd.c_str())==-1){
 			string info="Fail to excecute '"+cmd+"' by invoking 'system'!";
-			throwNynnException(info.c_str());
+			throw_nynn_exception(0,info.c_str());
 		}
 		try{
 			SubgraphStorageT::format(subgraphBasedir);
-		}catch(NynnException &err){
-			throwNynnException("Fail to format a new Subgraph!");
+		}catch(nynn_exception_t &err){
+			throw_nynn_exception(0,"Fail to format a new Subgraph!");
 		}
 	}
 
@@ -78,7 +78,7 @@ public:
 		string cmd="rm -fr "+subgraphBasedir;
 		if (system(cmd.c_str())==-1){
 			string info="Fail to excecute '"+cmd+"' by invoking 'system'!";
-			throwNynnException(info.c_str());
+			throw_nynn_exception(0,info.c_str());
 		}
 	}
 
@@ -87,8 +87,8 @@ public:
 		ExclusiveSynchronization es(&m_subgraphMapRWLock);
 		try{
 			m_subgraphMap.erase(subgraphKey);
-		}catch(NynnException &ex){
-			throwNynnException("The subgraph that would be detached is not found!");
+		}catch(nynn_exception_t &ex){
+			throw_nynn_exception(0,"The subgraph that would be detached is not found!");
 		}
 	}
 
@@ -100,8 +100,8 @@ public:
 				string subgraphBasedir=makeSubgraphPath(subgraphKey);
 				m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir));
 			}
-		}catch(NynnException &err){
-			throwNynnException("Fail to attach specified subgraph");
+		}catch(nynn_exception_t &err){
+			throw_nynn_exception(0,"Fail to attach specified subgraph");
 		}
 	}
 	
@@ -115,31 +115,31 @@ public:
 				return subgraph;
 			}else{
 				log_w("subgraph(subgraphKey=0x%08x) has not been attached!",subgraphKey);
-				throwNynnException("Cannot get detached subgraph!");
+				throw_nynn_exception(0,"Cannot get detached subgraph!");
 			}
 		}else {
 			log_w("Cannot find specified subgraph(vtxno=0x%08x,subgraphKey=0x%08x)",vtxno,subgraphKey);
-			throwNynnException("Cannot find specified subgraph");
+			throw_nynn_exception(0,"Cannot find specified subgraph");
 		}
 	}
 
-	void getSubgraphKeys(vector<int32_t> &keys)
+	vector<uint32_t> getAllSgkeys()
 	{
 		ExclusiveSynchronization es();
-		keys.resize(0);
+		vector<uint32_t> keys;
 		keys.reserve(m_subgraphMap.size());
 		for(SubgraphMapIterator si=m_subgraphMap.begin();si!=m_subgraphMap.end();si++){
 			keys.push_back(si->first);
 		}
+		return keys;
 	}
 
 	uint32_t getWidthOfVertexInterval(){ return VERTEX_INTERVAL_WIDTH; }
 
 	//bit0: 0(read).1(read&write)
 	//bit1: 0(blocking).1(nonblocking).
-	bool lock(uint32_t vtxno,uint32_t flag)
+	Vertex seize(uint32_t vtxno,uint32_t flag=IS_READABLE|IS_BLOCKING)
 	{
-
 		pthread_rwlock_t *rwlock=m_vertexRWLocks[VTXNO2RWLOCK(vtxno)].get();
 
 		if (flag&IS_WRITABLE==IS_WRITABLE){
@@ -155,15 +155,14 @@ public:
 				pthread_rwlock_rdlock(rwlock);
 			}
 		}	
-
-		return true;
+		return *getSubgraph()->getVertex();
 	}
 
-	void unlock(uint32_t vtxno)
+	void loose(uint32_t vtxno)
 	{
 		pthread_rwlock_t *rwlock=m_vertexRWLocks[VTXNO2RWLOCK(vtxno)].get();
 		if (pthread_rwlock_unlock(rwlock)!=0){
-			throwNynnException("Fail to unlock vertex!");
+			throw_nynn_exception(0,"Fail to unlock vertex!");
 		}
 	}
 
@@ -192,6 +191,16 @@ public:
 
 	Block* read(uint32_t vtxno,uint32_t blkno,Block *blk)	
 	{
+		switch(blkno){
+			case HEAD_BLOCKNO:
+				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
+				break;
+			case TAIL_BLOCKNO:
+				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getTailBlkno();
+				break;
+			default:
+				break;
+		}
 		return getSubgraph(vtxno)->readBlock(blkno,blk);
 	}
 
@@ -350,7 +359,7 @@ public:
 		return newHeadBlkno;
 	}
 
-	uint32_t shift(uint32_t vtxno)
+	uint32_t shift(uint32_t vtxno,Block*_blk=NULL)
 	{
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
@@ -370,6 +379,9 @@ public:
 		}else{
 			vtx->setHeadBlkno(INVALID_BLOCKNO);
 			vtx->setTailBlkno(INVALID_BLOCKNO);
+		}
+		if (unlikely(_blk!=NULL)){
+			memcpy(_blk,oldHeadBlk,sizeof(Block));
 		}
 		subgraph->release(oldHeadBlkno);
 		return oldHeadBlkno;
@@ -405,7 +417,7 @@ public:
 		return newTailBlkno;
 	}
 
-	uint32_t pop(uint32_t vtxno)
+	uint32_t pop(uint32_t vtxno,Block*_blk=NULL)
 	{
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
@@ -425,6 +437,10 @@ public:
 		}else{
 			vtx->setTailBlkno(INVALID_BLOCKNO);
 			vtx->setHeadBlkno(INVALID_BLOCKNO);
+		}
+
+		if (unlikely(_blk!=NULL)){
+			memcpy(_blk,oldTailBlk,sizeof(Block));
 		}
 		subgraph->release(oldTailBlkno);
 		return oldTailBlkno;
@@ -450,7 +466,6 @@ public:
 	static uint32_t VTXNO2SUBGRAPH(uint32_t vtxno) { return vtxno&~(VERTEX_INTERVAL_WIDTH-1); }
 	static uint32_t VTXNO2RWLOCK(uint32_t vtxno){ return vtxno%VERTEX_RWLOCK_NUM;}
 private:
-	
 	string m_subgraphSetBasedir;
 	RWLock m_vertexRWLocks[VERTEX_RWLOCK_NUM];
 	RWLock m_subgraphMapRWLock;
