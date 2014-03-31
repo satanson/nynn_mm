@@ -26,8 +26,8 @@ int main(int argc,char**argv)
 	Block blk;
 	CharContent *content=blk; 
 	SubgraphSet sgs(basedir);
-	vector<int32_t> sgkeys;
-	sgs.getSubgraphKeys(sgkeys);
+	vector<int32_t> sgkeys(sgs.get_sgkey_num(),0);
+	sgs.get_sgkeys(sgkeys.begin(),sgkeys.end());
 	for (int i=0;i<sgkeys.size();i++){
 		sgs.attachSubgraph(sgkeys[i]);
 	}
