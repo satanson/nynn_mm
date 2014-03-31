@@ -69,26 +69,33 @@ void handle_hello(prot::Replier &rep,GraphTable& gt){
 	gt.get_shard_table(st.begin(),st.end());
 	rep.ans(prot::STATUS_OK,&st,st.size());
 }
-bool write(prot::Requester& req,uint32_t op,uint32_t vtxno,uint32_t blkno,Block* blk){
+uint32_t write(prot::Requester& req,uint32_t op,uint32_t vtxno,uint32_t blkno,Block* blk){
 	WriteOptions& wrtopts=*WriteOptions::make(0);
 	wrtopts->op=op;
 	wrtopts->vtxno=vtxno;
 	wrtopts->blkno=blkno;
 	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),blk,sizeof(Block));
 	req.parse_ans();
-	return req.get_status()==prot::STATUS_OK;
+	if (req.get_status()!=prot::STATUS_OK){
+		string errinfo=string()+"failet to write into system:"
+					  +"op="+to_string(op)+","
+					  +"vtxno="+to_string(vtxno)+","
+					  +"blkno="+to_string(blkno);
+		throw_nynn_exception(0,errinfo.c_str());
+	}
+	return *(uint32_t*)req.get_data();
 }
 
-bool unshift(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
+uint32_t unshift(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
 	return write(req,WRITE_UNSHIFT,vtxno,blkno,blk);
 }
-bool shift(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
+uint32_t shift(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
 	return write(req,WRITE_SHIFT,vtxno,blkno,blk);
 }
-bool push(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
+uint32_t push(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
 	return write(req,WRITE_PUSH,vtxno,blkno,blk);
 }
-bool pop(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
+uint32_t pop(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
 	return write(req,WRITE_POP,vtxno,blkno,blk);
 }
 void handle_write(prot::Replier& rep,GraphTable& gt,ZMQSockMap datasocks){
@@ -107,7 +114,7 @@ void handle_write(prot::Replier& rep,GraphTable& gt,ZMQSockMap datasocks){
 	prot::Requester req(*datasocks[wrtopts[-1]]);
 	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),rep.get_data(),sizeof(Block));
 	req.parse_ans();
-	rep.ans(req.get_status(),NULL,0);
+	rep.ans(req.get_status(),req.get_data(),req.get_data_size());
 	if (!already_exists)notify(datasocks);
 }
 void handle_write(prot::Replier& rep,Graph& g,ZMQSockMap& datasocks){
@@ -116,7 +123,7 @@ void handle_write(prot::Replier& rep,Graph& g,ZMQSockMap& datasocks){
 	if (!g.exists(sgkey)){
 		g.create(sgkey);
 	}
-	(g.*write_ops[wrtopts->op])(wrtopts->vtxno,wrtopts->blkno,rep.get_data());
+	uint32_t rc=(g.*write_ops[wrtopts->op])(wrtopts->vtxno,wrtopts->blkno,rep.get_data());
 	wrtopts.shrink(1);
 	//write to next datanode,if it's not last write operation.
 	if (wrtopts){
@@ -126,8 +133,9 @@ void handle_write(prot::Replier& rep,Graph& g,ZMQSockMap& datasocks){
 		if (unlikely(req.get_status()!=prot::STATUS_OK)){
 			throw_nynn_exception(0,"can't write to next datanode");
 		}
+		assert(rc==*(uint32_t*)req.get_data());
 	}
-	rep.ans(prot::STATUS_OK,NULL,0);
+	rep.ans(prot::STATUS_OK,&rc,sizeof(rc));
 }
 bool read(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block* blk){
 	ReadOptions& rdopts=*ReadOptions::make(0);

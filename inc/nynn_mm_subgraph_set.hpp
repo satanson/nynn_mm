@@ -389,7 +389,7 @@ public:
 			memcpy(_blk,oldHeadBlk,sizeof(Block));
 		}
 		subgraph->release(oldHeadBlkno);
-		return oldHeadBlkno;
+		return newHeadBlkno;
 	}
 
 	uint32_t push(uint32_t vtxno,Block*newTailBlk)
@@ -418,7 +418,6 @@ public:
 		}
 
 		subgraph->writeBlock(newTailBlkno,newTailBlk);
-//		log_i("push vtxno=%d blkno=%d",vtxno,newTailBlkno);/g
 		return newTailBlkno;
 	}
 
@@ -448,7 +447,7 @@ public:
 			memcpy(_blk,oldTailBlk,sizeof(Block));
 		}
 		subgraph->release(oldTailBlkno);
-		return oldTailBlkno;
+		return newTailBlkno;
 	}
 
 	bool exists(uint32_t sgkey){
