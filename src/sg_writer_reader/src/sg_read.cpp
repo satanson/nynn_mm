@@ -1,4 +1,4 @@
-#include<nynn_mm_config.h>
+#include<nynn_mm_config.hpp>
 #include<sys/time.h>
 
 typedef uint32_t (SubgraphSet::*First)(uint32_t);
@@ -10,22 +10,13 @@ int main(int argc,char**argv)
 	string basedir=argv[2];
 	uint32_t vtxnoBeg=strtoul(argv[3],NULL,0);
 	uint32_t vtxnoEnd=strtoul(argv[4],NULL,0);
-
-	map<string,First> firsts;
-	firsts["pop"]=&SubgraphSet::getTailBlkno;
-	firsts["shift"]=&SubgraphSet::getHeadBlkno;
+	uint32_t firstBlkno=actid==string("shift")?HEAD_BLOCKNO:TAIL_BLOCKNO;
 
 	map<string,Next> nexts;
 	nexts["pop"]=&Block::BlockHeader::getPrev;
 	nexts["shift"]=&Block::BlockHeader::getNext;
 
-	First first=firsts[actid];
 	Next next=nexts[actid];
-
-	if (first==NULL||next==NULL){
-		cout<<"Unknown act '"<<actid<<"'"<<endl;
-		exit(0);
-	}
 
 	uint32_t sgkeyBeg=vtxnoBeg-vtxnoBeg%SubgraphSet::VERTEX_INTERVAL_WIDTH;
 
@@ -50,13 +41,11 @@ int main(int argc,char**argv)
 	gettimeofday(&beg_tv,NULL);
 	for (uint32_t vtxno=vtxnoBeg;vtxno<vtxnoEnd;vtxno++) {
 	
-		sgs.lock(vtxno,false);
-		uint32_t blkno=(sgs.*first)(vtxno);
+		uint32_t blkno=firstBlkno;
 		while (blkno!=INVALID_BLOCKNO){
 			sgs.read(vtxno,blkno,&blk);
 			blkno=(blk.getHeader()->*next)();
-		}
-		sgs.unlock(vtxno);
+		};
 	}
 	gettimeofday(&end_tv,NULL);
 	t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-(beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;

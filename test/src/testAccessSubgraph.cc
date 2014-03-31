@@ -1,4 +1,3 @@
-#include<nynn_mm_subgraph_storage.h>
 #include<test.h>
 using namespace nynn::mm;
 
@@ -12,7 +11,7 @@ int main(int argc,char**argv)
 			cout<<"block#"<<s.require()<<endl;
 		}
 		for(uint32_t i=0;i<1<<17;i++)s.release((1<<17)-1-i);
-	}catch(NynnException &err){
+	}catch(nynn_exception_t &err){
 		err.printBacktrace();
 	}	
 }

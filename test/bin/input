@@ -1,32 +1,24 @@
 7
-host1 host2 host3
-host4 host5 host6
-host7
+111 112 113
+114 115 116
+117
 
-setAllSgkeys host1 7 1 2 3 4 5 6 7
-setAllSgkeys host2 7 3 4 5 7 8 9 10
-setAllSgkeys host3 5 11 12 13 14 15
-setAllSgkeys host4 4 1 4 7 11
-setAllSgkeys host5 9 1 2 3 5 6 8 9 10 11
-setAllSgkeys host6 1 10
-setAllSgkeys host7 2 15 14
+submit_sgkeys 111 0
+submit_sgkeys 112 0
+submit_sgkeys 113 0
+submit_sgkeys 114 0
+submit_sgkeys 115 0
+submit_sgkeys 116 0
+submit_sgkeys 117 0
 
-create 16
-create 17
+create 1
+create 2
+exists 1
+get_shard_table
 destroy 1
-getHost 7
-getHosts 7
-destroy 7
-getHost 7
-getHosts 7
-getHost 4
+exists 1
+exists 2
+get_replicas_hosts 1
+get_replicas_hosts 2
+get_shard_table
 
-recycle 3 host2
-recycle 4 host2
-recycle 5 host2
-recycle 9 host2
-recycle 11 host5
-recycle 10 host5
-
-restore 10 host5
-restore 9 host2

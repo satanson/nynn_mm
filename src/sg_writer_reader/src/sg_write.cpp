@@ -1,4 +1,4 @@
-#include<nynn_mm_config.h>
+#include<nynn_mm_config.hpp>
 #include<sys/time.h>
 
 typedef uint32_t (SubgraphSet::*Action)(uint32_t,Block*);

@@ -1,5 +1,5 @@
 #!/bin/bash
-export PRODUCER_HOST=blade4
+export PRODUCER_HOST=centos1
 
 export PRODUCER_PORT=30011
 export PROVIDER_PORT=30012
