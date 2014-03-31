@@ -17,9 +17,9 @@ enum{STATUS_OK,STATUS_ERR};
 static string v2s(uint32_t version_no){
 	return ip2string(version_no);
 }
-class requester{
+class Requester{
 public:
-	explicit requester(zmq::socket_t& s):sock(s){}
+	explicit Requester(zmq::socket_t& s):sock(s){}
 	void ask(uint8_t cmd,const void*options,size_t osize,const void*data,size_t dsize){
 		zmq::message_t omsg[ASK_SIZE];
 		
@@ -64,13 +64,13 @@ public:
 private:
 	zmq::socket_t& sock;
 	zmq::message_t imsg[ANS_SIZE];
-	requester(requester const&);
-	requester& operator=(requester const&);
+	Requester(Requester const&);
+	Requester& operator=(Requester const&);
 };
 
-class replier{
+class Replier{
 public:
-	explicit replier(zmq::socket_t& s):sock(s){}
+	explicit Replier(zmq::socket_t& s):sock(s){}
 	bool parse_ask(){
 		int i=0;
 		do{
@@ -119,8 +119,8 @@ public:
 private:
 	zmq::socket_t& sock;
 	zmq::message_t imsg[ASK_SIZE];
-	replier(replier const&);
-	replier& operator=(replier const&);
+	Replier(Replier const&);
+	Replier& operator=(Replier const&);
 };
 
 }}

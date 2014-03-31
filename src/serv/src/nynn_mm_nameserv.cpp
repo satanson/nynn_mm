@@ -1,16 +1,17 @@
+#include<zmq.hpp>
 #include<linuxcpp.hpp>
 #include<nynn_common.hpp>
-#include<zmq.hpp>
+#include<nynn_zmqprot.hpp>
+#include<nynn_mm_types.hpp>
+#include<nynn_mm_handler.hpp>
 #include<nynn_mm_graph_table.hpp>
 
 using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
 
-#define VERSION_NO 0X02000000
-
 static pthread_key_t flag_key;
-
+unique_ptr<GraphTable> graphtable;
 void* func(void*args){
 	int i=(intptr_t)args;
 	
@@ -42,15 +43,14 @@ typedef struct{
 	zmq::socket_t *frontend;
 	zmq::socket_t *backend;
 }X;
-void* do_switch(void*args){
+void* switcher(void*args){
 	X& x=*(X*)args;
 	zmq::proxy((void*)*x.frontend,(void*)*x.backend,NULL);
 	return NULL;
 }
 
-enum{VERSION_PART,CMD_PART,OPTIONS_PART,DATA_PART,PART_NUM};
 
-void* do_work(void*args){
+void* worker(void*args){
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socketNum=parse_int(getenv("NYNN_MM_NAMESERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
@@ -64,24 +64,41 @@ void* do_work(void*args){
 		items[i].socket=(void*)*sockets[i].get();
 		items[i].events=ZMQ_POLLIN|ZMQ_POLLERR;
 	}
+	//initialize datasocks
+	ZMQSockMap datasocks;
+	istringstream iss(getenv("NYNN_MM_DATASERV_LIST"));
+	vector<string> hosts=get_a_line_of_words(iss);
+	string localhost=get_host();
+	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
+	for (int i=0;i<hosts.size();i++){
+		uint32_t ip=host2ip(hosts[i]);
+		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(data_port);
+		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
+		datasocks[ip]->connect(data_endpoint.c_str());
+	}
 
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
-	zmq::message_t msg[PART_NUM];
+	uint32_t replics_num=parse_int(getenv("NYNN_MM_REPLICAS_NUM"),3);
 	while(flag){
 		zmq::poll(items.get(),socketNum,-1);
 		for (int i=0;i<socketNum;i++){
 			if (items[i].revents&ZMQ_POLLIN){
-				int k=0;
-				do{
-					sockets[i]->recv(msg[k],0);
-				}while(msg[k++].more()&&k<PART_NUM);
-				
-				if (k!=PART_NUM){
-					log_w("require %d parts,but actually recv %d part(s)",PART_NUM,k);
-					continue;
+				prot::Replier rep(*sockets[i].get());
+				rep.parse_ask();
+				switch(rep.get_cmd()){
+				case prot::CMD_SUBMIT:
+					handle_submit(rep,*graphtable.get());
+					break;
+				case prot::CMD_WRITE:
+					handle_write(rep,*graphtable.get(),datasocks);
+					break;
+				case prot::CMD_HELLO:
+					handle_hello(rep,*graphtable.get());
+					break;
+				default:
+					break;
 				}
-				handle_msg();
 			}
 			if (items[i].revents&ZMQ_POLLERR){
 				pthread_setspecific(flag_key,(void*)0);
@@ -93,21 +110,19 @@ void* do_work(void*args){
 	log_i("work terminated normally");
 }
 
-unique_ptr<GraphTable> graphTable;
-unordered_map<string,unique_ptr<zmq::socket_t> > dataNodes;
 
 int main(){
 
 	//initialization
 	uint32_t replica=parse_int(getenv("NYNN_MM_REPLICAS"),3);
-	graphTable.reset(new GraphTable(replica));
+	graphtable.reset(new GraphTable(replica));
 
 
 	add_signal_handler(SIGTERM,&kill_thread);
 	add_signal_handler(SIGINT,SIG_IGN);
 	thread_key_t create(&flag_key,NULL);
 	
-	//creating switcher,logger,workers threads.
+	//creating switcher_thd,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
 	zmq::socket_t dispatcher(ctx,ZMQ_DEALER);
@@ -116,18 +131,18 @@ int main(){
 	string collector_endpoint=string("tcp://")+ ip2string(get_ip())+ ":"+to_string(port); 
 	log_i("collector endpoint: %s",collector_endpoint.c_str());
 
-	//create switcher
+	//create switcher_thd
 	collector.bind(collector_endpoint.c_str());
 	dispatcher.bind("inproc://dispatcher.inproc");
 	X x={&collector,&dispatcher};
-	thread_t switcher(do_switch,&x);
-	switcher.start();
+	thread_t switcher_thd(switcher,&x);
+	switcher_thd.start();
 
-	//create workers
-	uint32_t workerNum=parse_int(getenv("NYNN_MM_NAMESERV_WORKER_NUM"),3);
-	unique_ptr<thread_t> *workers=new unique_ptr<thread_t>[workerNum];
-	for (int i=0;i<workerNum;i++)workers[i].reset(new thread_t(do_work,&ctx));
-	for (int i=0;i<workerNum;i++)workers[i]->start();
+	//create worker_thds
+	uint32_t work_thd_num=parse_int(getenv("NYNN_MM_NAMESERV_WORKER_NUM"),3);
+	unique_ptr<thread_t> *worker_thds=new unique_ptr<thread_t>[work_thd_num];
+	for (int i=0;i<work_thd_num;i++)worker_thds[i].reset(new thread_t(worker,&ctx));
+	for (int i=0;i<work_thd_num;i++)worker_thds[i]->start();
 
 	sigset_t sigs;
 	sigemptyset(&sigs);
@@ -137,23 +152,23 @@ int main(){
 	sigwait(&sigs,&signum);
 	cout<<"process terminated by 'SIGQUIT'"<<endl;
 
-	//shutdown all workers gracefully.
-	for (int i=0;i<workerNum;i++){
+	//shutdown all worker_thds gracefully.
+	for (int i=0;i<work_thd_num;i++){
 		nanosleep_for(5000);
-		if (workers[i]->is_alive())workers[i]->kill(SIGTERM);
+		if (worker_thds[i]->is_alive())worker_thds[i]->kill(SIGTERM);
 	}
 	nanosleep_for(5000);
 
-	for (int i=0;i<workerNum;i++){workers[i]->join();}
-	log_i("all workers are shutdown");
+	for (int i=0;i<work_thd_num;i++){worker_thds[i]->join();}
+	log_i("all worker_thds are shutdown");
 	
-	//shutdown switcher gracefully.
+	//shutdown switcher_thd gracefully.
 	collector.close();
 	dispatcher.close();
 	nanosleep_for(5000);
-	if (switcher.is_alive())switcher.kill(SIGTERM);
+	if (switcher_thd.is_alive())switcher_thd.kill(SIGTERM);
 	nanosleep_for(5000);
-	if (switcher.is_alive())switcher.stop();
-	switcher.join();
-	log_i("switcher is shutdown");
+	if (switcher_thd.is_alive())switcher_thd.stop();
+	switcher_thd.join();
+	log_i("switcher_thd is shutdown");
 }

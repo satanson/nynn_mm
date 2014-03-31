@@ -1,8 +1,6 @@
 #ifndef NYNN_MM_GRAPH_TABLE_BY_SATANSON
 #define NYNN_MM_GRAPH_TABLE_BY_SATANSON
 #include<nynn_common.hpp>
-#include<nynn_mm_config.hpp>
-#include<nynn_zmqprot.hpp>
 using namespace std;
 using namespace nynn;
 namespace nynn{namespace mm{
@@ -10,172 +8,73 @@ class GraphTable{
 public:
 	typedef set<uint32_t> IPSet;
 	typedef IPSet::iterator IPSetIter;
-	typedef unordered_map<uint32_t,IPSet> ReplicasMap;
+
+	typedef map<uint32_t,IPSet> ReplicasMap;
+	typedef pair<uint32_t,IPSet> ReplicasPair;
 	typedef ReplicasMap::iterator ReplicasMapIter;
 
-	typedef unordered_map<uint32_t,uint32_t> LoadMap;
+	typedef map<uint32_t,uint32_t> LoadMap;
 	typedef LoadMap::iterator LoadMapIter;
-	typedef pair<uint32_t,uint32_t> LoadPair;
+	typedef pair<uint32_t,uint32_t>LoadPair;
 
-	typedef unordered_map<uint32_t,uint32_t> ShardMap;
+	typedef map<uint32_t,uint32_t> ShardMap;
 	typedef pair<uint32_t,uint32_t>ShardPair;
 	typedef ShardMap::iterator ShardMapIter;
 
-	struct Replicas{
-
-		bool insert(uint32_t sgkey,uint32_t ip){ 
-			m_replicasMap[sgkey].insert(ip); 
+	struct LoadLess{
+		bool operator()(const LoadPair& lhs,const LoadPair& rhs){
+			return lhs.second<rhs.second;
 		}
+	};
 
-		bool insert(uint32_t sgkey,vector<uint32_t>&ips){
-			m_replicasMap[sgkey].insert(ips.begin(),ips.end());
+	struct LoadMore{
+		bool operator()(const LoadPair& lhs,const LoadPair& rhs){
+			return lhs.second>rhs.second;
 		}
+	};
 
-		bool erase(uint32_t sgkey,uint32_t ip){ 
-			m_replicasMap[sgkey].erase(ip);
-			if (m_replicasMap[sgkey].empty())m_replicasMap.erase(sgkey);
-		}
+	explicit GraphTable(uint32_t replicasNum):m_replicasNum(replicasNum){}
 
-		bool erase(uint32_t sgkey){
-			m_replicasMap.erase(sgkey);
-		}
+	IPSet select_replicas_hosts(){
+		IPSet ips;
+		vector<LoadPair> v;
 		
-		IPSet& operator[](uint32_t sgkey){ return m_replicasMap[sgkey];}
-		
-		ostream& dump(ostream& out){
-			for (ReplicasMapIter it=m_replicasMap.begin();it!=m_replicasMap.end();it++){
-				cout<<it->first<<": ";
-				IPSet& ipset=it->second;
-				for (IPSetIter it0=ipset.begin();it0!=ipset.end();it0++){
-					cout<<"-->'"<<*it0<<"'";
-				}
-				cout<<endl;
-			}
-		}
-
-	private:
-		ReplicasMap m_replicasMap;
-	};
-	
-	//ip->number of subgraphs
-	struct Load{
-
-		struct LoadLess{
-			bool operator()(const LoadPair& lhs,const LoadPair& rhs){
-				return lhs.second<rhs.second;
-			}
-		};
-
-		struct LoadMore{
-			bool operator()(const LoadPair& lhs,const LoadPair& rhs){
-				return lhs.second>rhs.second;
-			}
-		};
-
-		//constructor
-		Load(vector<uint32_t>&ips){
-			for (int i=0;i<ips.size();i++)m_loadMap[ips[i]]=0;
-		}
-		Load(){}
-
-		//select replicasNum load least ips for storing replicas 
-		vector<uint32_t> selectReplicHosts(uint32_t replicasNum) {
-			vector<uint32_t> ips;
-			ips.reserve(replicasNum);
-
-			vector<LoadPair> v;
-			v.reserve(m_loadMap.size());
-			v.insert(v.end(),m_loadMap.begin(),m_loadMap.end());
-			LoadMore loadMore;
-			make_heap(v.begin(),v.end(),loadMore);
-			do{
-				uint32_t ip=v.front().first;
-				ips.push_back(ip);
-				m_loadMap[ip]++;
-				pop_heap(v.begin(),v.end(),loadMore);
-				v.pop_back();
-			}while(ips.size()<replicasNum);
-			return ips;
-		}
-
-		void deselectReplicHosts(vector<uint32_t>& ips){
-			for (int i=0;i<ips.size();i++)m_loadMap[ips[i]]--;
-		}
-
-		uint32_t getLoadLeastHost(vector<uint32_t>& ips){
-			vector<LoadPair> v;
-			v.reserve(ips.size());
-
-			for (int i=0;i<ips.size();i++){
-				uint32_t ip=ips[i];			
-				v.push_back(LoadPair(ip,m_loadMap[ip]));
-			}
-
-			uint32_t ip=min_element(v.begin(),v.end(),LoadLess())->first;
-			m_loadMap[ip]++;
-			return ip;
-		}
-
-		uint32_t& operator[](uint32_t ip){
-			return m_loadMap[ip];
-		}
-
-		ostream& dump(ostream& out){
-			for(LoadMapIter it=m_loadMap.begin();it!=m_loadMap.end();it++){
-				cout<<it->first<<": "<<it->second<<endl;
-			}
-			return out;
-		}
-	private:
-		LoadMap m_loadMap;
-	};
-	
-	struct Partition{
-		uint32_t& operator[](uint32_t sgkey){
-			return m_partitionMap[sgkey];
-		}
-
-		void erase(uint32_t sgkey){
-			m_partitionMap.erase(sgkey);
-		}
-		ostream& dump(ostream& out){
-			for(ShardMapIter it=m_partitionMap.begin();it!=m_partitionMap.end();it++){
-				out<<it->first<<"->"<<it->second<<endl;
-			}
-			return out;
-		}
-		ShardMap& getShardMap(){
-			return m_partitionMap;
-		}
-
-		vector<ShardPair> getShards(){
-			vector<ShardPair> pairs;
-			pairs.reserve(m_partitionMap.size());
-			ShardMapIter it=m_partitionMap.begin();
-			while(it!=m_partitionMap.end()){
-				if (it->second!=0)pairs.push_back(*it);
-				it++;
-			}
-			return pairs;
-		}
-	private:
-		ShardMap m_partitionMap;
-	};
-	
-	GraphTable(vector<uint32_t>& ips,uint32_t replicasNum):
-		m_sLoad(ips),m_aLoad(ips),m_replicasNum(replicasNum)
-	{
+		LoadMore loadMore;
+		v.reserve(m_sloadMap.size());
+		v.insert(v.end(),m_sloadMap.begin(),m_sloadMap.end());
+		make_heap(v.begin(),v.end(),loadMore);
+		do{
+			uint32_t ip=v.front().first;
+			ips.insert(ip);
+			m_sloadMap[ip]++;
+			pop_heap(v.begin(),v.end(),loadMore);
+			v.pop_back();
+		}while(ips.size()<m_replicasNum);
+		return ips;
 
 	}
-	explicit GraphTable(uint32_t replicasNum):m_replicasNum(replicasNum){}
+
+	void deselect_replicas_hosts(const IPSet& ips){
+		for(IPSetIter it=ips.begin();it!=ips.end();it++)m_sloadMap[*it]--;
+	}
+
+	uint32_t select_host(uint32_t sgkey){
+		IPSet& ips=m_replicasMap[sgkey];
+		LoadPair minpair={0,~0ul};
+		LoadLess lt;
+		for (IPSetIter it=ips.begin();it!=ips.end();it++){
+			LoadPair tmppair={*it,m_aloadMap[*it]};
+			if (lt(tmppair,minpair))minpair=tmppair;
+		}
+		return minpair.first;
+	}
 
 	//nameserv create a new subgraph 
 	void create(uint32_t sgkey)
 	{
-		vector<uint32_t> ips=m_sLoad.selectReplicHosts(m_replicasNum);
-		for (int i=0;i<ips.size();i++){
-			uint32_t ip=ips[i];
-			m_replicas.insert(sgkey,ip);
+		IPSet ips=select_replicas_hosts();
+		for (IPSetIter it=ips.begin();it!=ips.end();it++){
+			m_replicasMap[sgkey].insert(*it);
 		}
 		refresh(sgkey);
 	}
@@ -183,100 +82,101 @@ public:
 	// nameservs destroy a subgraph
 	void destroy(uint32_t sgkey)
 	{
-		set<uint32_t>& ipSet=m_replicas[sgkey];
-		vector<uint32_t> ips(ipSet.begin(),ipSet.end());
-		m_sLoad.deselectReplicHosts(ips);
-		m_aLoad[m_partition[sgkey]]--;
-		m_replicas.erase(sgkey);
-		m_partition.erase(sgkey);
+		if (m_replicasMap.count(sgkey)==0)return;
+		deselect_replicas_hosts(m_replicasMap[sgkey]);
+		m_aloadMap[m_shardMap[sgkey]]--;
+		m_replicasMap.erase(sgkey);
+		m_shardMap.erase(sgkey);
 	}
-	// update data.
 
-	//fault-tolerance: recycle corrupted subgraph
-	uint32_t recycle(uint32_t sgkey,uint32_t ip)
+	template<typename Iterator>
+	void submit_sgkeys(uint32_t ip,Iterator begin,Iterator end)
 	{
-		m_replicas.erase(sgkey,ip);
-		m_rottenReplicas.insert(sgkey,ip);
-		m_sLoad[ip]--;
-		if (ip==m_partition[sgkey]){
-			refresh(sgkey);
+		m_sloadMap[ip]=end-begin;
+		m_aloadMap[ip]=0;
+		for (Iterator it=begin;it!=end;it++){
+			m_replicasMap[*it].insert(ip);
+			refresh(*it);
 		}
-		return 0;
 	}
-
-	//fault-tolerance: restore corrupted subgraph
-	uint32_t restore(uint32_t sgkey,uint32_t ip)
-	{
-		m_rottenReplicas.erase(sgkey,ip);
-		m_replicas.insert(sgkey,ip);
-		vector<uint32_t> ips;
-		ips.push_back(ip);
-		m_sLoad.getLoadLeastHost(ips);
-		refresh(sgkey);
-		return 0;
+	bool exists(uint32_t sgkey){
+		return m_replicasMap.count(sgkey)>0;
 	}
-	uint32_t recycleHost(uint32_t ip){
-		
-		return 0;
+	uint32_t get_replicas_num(uint32_t sgkey){
+		if (m_replicasMap.count(sgkey)==0)return 0;
+		else return m_replicasMap[sgkey].size();
 	}
-
-	uint32_t restoreHost(uint32_t ip){
-		return 0;
+	template<typename Iterator>
+	void get_replicas_hosts(uint32_t sgkey,Iterator begin,Iterator end){
+		if (m_replicasMap.count(sgkey)==0)return;
+		IPSet& ips=m_replicasMap[sgkey];
+		std::copy(ips.begin(),ips.end(),begin);
 	}
-	//recv dataservs's submission of subgraphkeys and write into graph table.
-	uint32_t setAllSgkeysOfHost(uint32_t ip,vector<uint32_t>& sgkeys)
-	{
-		m_sLoad[ip]=sgkeys.size();
-		m_aLoad[ip];
-		for (int i=0;i<sgkeys.size();i++){
-			uint32_t sgkey=sgkeys[i];
-			m_replicas.insert(sgkey,ip);
-			refresh(sgkey);
+	size_t get_shard_table_size(){
+		return m_replicasMap.size();
+	}
+	template<typename Iterator>
+	void get_shard_table(Iterator begin,Iterator end){
+		ShardMapIter it=m_shardMap.begin();
+		Iterator it1=begin;
+		for(;it!=m_shardMap.end()&&it1!=end;++it){
+			if (it->second==0)continue;
+			it1->sgkey=it->first;
+			it1->ip=it->second;
+			it1++;
 		}
-		return 0;
-	}
-	//response a dataserv request for from which remote dataservs it fetch data.
-	uint32_t getOptimalHostOfSgkey(uint32_t sgkey){
-		return m_partition[sgkey];
-	}
-
-	IPSet& getAllHostsOfSgkey(uint32_t sgkey){
-		return m_replicas[sgkey];
-	}
-	vector<ShardPair> getShards(){
-		return m_partition.getShards();
 	}
 	//debug
 	ostream& dump(ostream& out){
-		out<<"____subgraph distribution____"<<endl;
-		m_replicas.dump(out);
-		out<<"____corrupted subgraph Distribution____"<<endl;
-		m_rottenReplicas.dump(out);
-		out<<"____storage load____"<<endl;
-		m_sLoad.dump(out);
-		out<<"____access load____"<<endl;
-		m_aLoad.dump(out);
-		out<<"____partition____"<<endl;
-		m_partition.dump(out);
+		out<<"____replicas map____"<<endl;
+		{
+			ReplicasMapIter it0=m_replicasMap.begin();
+			for (;it0!=m_replicasMap.end();it0++){
+				out<<"[sgkey:"<<it0->first<<"]";
+				IPSet& ips=it0->second;
+				for (IPSetIter it1=ips.begin();it1!=ips.end();it1++){
+					out<<"-->|host:"<<*it1<<"|";
+				}
+				out<<endl;
+			}
+		}
+
+		out<<"____storage load map____"<<endl;	
+		{
+			LoadMapIter it=m_sloadMap.begin();
+			for (;it!=m_sloadMap.end();it++){
+				out<<"[host:"<<it->first<<"]="<<it->second<<endl;
+			}
+		}
+		out<<"____access load map____"<<endl;
+		{
+			LoadMapIter it=m_aloadMap.begin();
+			for (;it!=m_aloadMap.end();it++){
+				out<<"[host:"<<it->first<<"]="<<it->second<<endl;
+			}
+		}
+		out<<"____shard map____"<<endl;
+		{
+			ShardMapIter it=m_shardMap.begin();
+			for (;it!=m_shardMap.end();it++){
+				out<<"[sgkey:"<<it->first<<"]->[host:"<<it->second<<"]"<<endl;
+			}
+		}
 		return out;
 	}
 private:
 	//update partition
 	void refresh(uint32_t sgkey){
-		uint32_t oldip=m_partition[sgkey];
-		if (oldip!=0)m_aLoad[oldip]--;
-
-		set<uint32_t>& ipSet=m_replicas[sgkey];
-		vector<uint32_t> ips(ipSet.begin(),ipSet.end());
-		uint32_t newip=m_aLoad.getLoadLeastHost(ips);
-		m_partition[sgkey]=newip;
+		if (m_shardMap.count(sgkey)!=0)m_aloadMap[m_shardMap[sgkey]]--;
+		uint32_t newip=select_host(sgkey);
+		m_shardMap[sgkey]=newip;
+		m_aloadMap[newip]++;
 	}
 
-	Replicas m_replicas;
-	Replicas m_rottenReplicas;
-	Load   m_sLoad;//storage load
-	Load   m_aLoad;//access load
-	Partition m_partition;
+	ReplicasMap m_replicasMap;
+	LoadMap   m_sloadMap;
+	LoadMap   m_aloadMap;
+	ShardMap m_shardMap;
 	uint32_t m_replicasNum;
 };
 }}

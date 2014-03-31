@@ -3,42 +3,22 @@
 114 115 116
 117
 
-setAllSgkeysOfHost 111 0
-setAllSgkeysOfHost 112 0
-setAllSgkeysOfHost 113 0
-setAllSgkeysOfHost 114 0
-setAllSgkeysOfHost 115 0
-setAllSgkeysOfHost 116 0
-setAllSgkeysOfHost 117 0
+submit_sgkeys 111 0
+submit_sgkeys 112 0
+submit_sgkeys 113 0
+submit_sgkeys 114 0
+submit_sgkeys 115 0
+submit_sgkeys 116 0
+submit_sgkeys 117 0
 
 create 1
 create 2
-create 3
-create 4
-create 5
-create 6
-create 7
-create 8
-create 9
-create 10
-create 11
-create 12
-create 13
-create 14
-create 15
-create 16
-create 17
-create 18
-create 19
-create 20
-create 21
-create 22
-create 23
-create 24
-create 25
-create 26
-create 27
-create 28
-create 29
-create 30
-create 31
+exists 1
+get_shard_table
+destroy 1
+exists 1
+exists 2
+get_replicas_hosts 1
+get_replicas_hosts 2
+get_shard_table
+

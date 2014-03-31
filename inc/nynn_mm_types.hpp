@@ -170,89 +170,64 @@ private:
 	BlockHeader m_header;
 }__attribute__((packed));
 
-enum {OP_SHIFT,OP_UNSHIFT,OP_PUSH,OP_POP,OP_NUM};
 
-struct ReadOptions{
+template <typename Fixed,typename VariedElement>
+struct Varied{
+	Fixed fix;
+	mutable uint32_t len;
+	typedef Fixed FixedType;
+	typedef VariedElement  VariedElemType;
+	typedef VariedElement* iterator;
+
+	static Varied* make(uint32_t n){
+		n=(n<0)?0:n;
+		char *p=new char[sizeof(Varied)+sizeof(VariedElement)*n];
+		Varied& var=*(Varied*)p;
+		var.len=n;
+		return &var;
+	}
+	VariedElement& operator[](ssize_t i){
+		i=(i<0?(ssize_t)len+i:i);
+		VariedElement* base=(VariedElement*)((char*)this+sizeof(Varied));
+		return *(base+i);
+	}
+	iterator begin(){return &(*this)[0];}
+	iterator end(){return &(*this)[len];}
+	Varied& augment(size_t i){len+=i; return *this;}
+	Varied& shrink(size_t i){len-=i; return *this;}
+	operator bool(){return len!=0;}
+	size_t size(){return sizeof(Varied)+sizeof(VariedElement)*len;}
+	size_t length(){return len;}
+	Fixed* operator ->(){return &fix;}
+};
+
+struct WriteOptionsFixed{
+	uint32_t op;
 	uint32_t vtxno;
 	uint32_t blkno;
 };
-struct WriteOptions{
-	uint32_t opcode;
+struct ReadOptionsFixed{
 	uint32_t vtxno;
 	uint32_t blkno;
-	mutable uint32_t ipnum;
-
-	static WriteOptions* make(uint32_t op,uint32_t v,uint32_t b,uint32_t n){
-		char* p=new char[sizeof(WriteOptions)+n*sizeof(uint32_t)];
-		WriteOptions& opts=*(WriteOptions*)p;
-		opts.opcode=op;
-		opts.vtxno=v;
-		opts.blkno=b;
-		opts.ipnum=n;
-		return &opts;
-	}
-
-	size_t num()const{return this->ipnum;}
-	size_t size()const{
-		return sizeof(WriteOptions)+this->num()*sizeof(uint32_t);
-	}
-	void shrink()const{
-		this->ipnum--;
-	}
-	uint32_t& operator[](size_t i){
-		char*  p=(char*)this+sizeof(WriteOptions);
-		uint32_t& ip=*(uint32_t*)(p+sizeof(uint32_t)*i);
-		return ip;
-	}
 };
-
-struct SubmitOptions{
-	uint32_t ip;
-	mutable uint32_t sgknum;
-	static SubmitOptions* make(uint32_t ip,uint32_t n){
-		char* p=new char[sizeof(SubmitOptions)+n*sizeof(uint32_t)];
-		SubmitOptions& opts=*(SubmitOptions*)p;
-		opts.ip=ip;
-		opts.sgknum=n;
-		return &opts;
-	}
-	size_t num()const{return this->sgknum;}
-	size_t size()const{
-		return sizeof(SubmitOptions)+sizeof(uint32_t)*this->sgknum;
-	}
-	uint32_t& operator[](size_t i){
-		char* p=(char*)this+sizeof(SubmitOptions);
-		uint32_t& sgkey=*(uint32_t*)(p+sizeof(uint32_t)*i);
-		return sgkey;
-	}
-};
-
-struct HelloOptions{
+struct SubmitOptionsFixed{
 	uint32_t ip;
 };
-
-struct ShardTable{
-	uint32_t stenum;
-	struct STEntry{
-		uint32_t sgkey;
-		uint32_t targetip;
-	};
-	static ShardTable* make(uint32_t n){
-		char *p=new char[sizeof(ShardTable)+n*sizeof(STEntry)];
-		ShardTable& st=*(ShardTable*)p;
-		st.stenum=n;
-		return &st;
-	}
-	size_t num()const{ return this->stenum; }
-	size_t size()const{
-		return sizeof(ShardTable)+sizeof(STEntry)*this->num();
-	}
-	STEntry& operator[](size_t i){
-		char *p=(char*)this+sizeof(ShardTable);
-		STEntry& ste=*(STEntry*)(p+sizeof(STEntry)*i);
-		return ste;
-	}
+struct HelloOptionsFixed{
+	uint32_t ip;
 };
-
+struct STEntry{
+	uint32_t sgkey;
+	uint32_t ip;
+};
+struct JustPadding{
+	uint32_t padding;
+};
+typedef Varied<WriteOptionsFixed,uint32_t> WriteOptions;
+typedef Varied<ReadOptionsFixed,JustPadding> ReadOptions;
+typedef Varied<SubmitOptionsFixed,uint32_t> SubmitOptions;
+typedef Varied<HelloOptionsFixed,JustPadding> HelloOptions;
+typedef Varied<JustPadding,JustPadding> NotifyOptions;
+typedef Varied<JustPadding,STEntry> ShardTable;
 }}
 #endif

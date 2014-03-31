@@ -101,6 +101,7 @@ public:
 		int errnum=pthread_join(id,NULL);
 		if (errnum!=0)throw_nynn_exception(errnum,"failed to join thread via pthread_create");
 	}
+	pthread_t thread_id()const{return id;}
 	~thread_t(){}
 private:
 	thread_t(const thread_t& thr);

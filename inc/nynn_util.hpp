@@ -47,8 +47,8 @@ char* ltrim(const char *chars,const char *src, char *dest);
 char* rtrim(const char *chars,const char *src, char *dest);
 char* chop(const char ch,const char *src,char *dest);
 
-vector<string> get_array1d_of_words(istream & inputstream); 
-vector<vector<string> > get_array2d_of_words(istream & inputstream); 
+vector<string> get_a_line_of_words(istream & inputstream); 
+vector<vector<string> > get__multi_lines_of_words(istream & inputstream); 
 
 inline void add_signal_handler(int signum,void(*handler)(int)){
 	struct sigaction sigact;
@@ -209,7 +209,7 @@ inline char* chop(const char ch,const char *src,char *dest)
 	return dest;
 }
 
-inline vector<string> get_array1d_of_words(istream &inputstream)
+inline vector<string> get_a_line_of_words(istream &inputstream)
 {
 	vector<string> t;
 	string word;
@@ -220,7 +220,7 @@ inline vector<string> get_array1d_of_words(istream &inputstream)
 	return t;
 }
 
-inline vector<vector<string> > get_array2d_of_words(istream &inputstream)
+inline vector<vector<string> > get_multi_line_of_words(istream &inputstream)
 {
 	vector<vector<string> > array;
 	vector<string> t;
@@ -234,7 +234,7 @@ inline vector<vector<string> > get_array2d_of_words(istream &inputstream)
 			ss<<buff;
 		}while(inputstream.fail()&&!inputstream.eof());
 
-		if(ss.str().size()!=0)array.push_back(get_array1d_of_words(ss));
+		if(ss.str().size()!=0)array.push_back(get_a_line_of_words(ss));
 		ss.str(string(""));
 		ss.clear();
 	}

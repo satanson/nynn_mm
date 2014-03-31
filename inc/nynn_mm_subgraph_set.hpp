@@ -24,7 +24,7 @@ public:
 	static uint32_t const VERTEX_INTERVAL_WIDTH=SubgraphStorageT::VERTEX_INTERVAL_WIDTH;
 	
 	typedef map<uint32_t,shared_ptr<SubgraphStorageT> > SubgraphMap;
-	typedef typename SubgraphMap::iterator SubgraphMapIterator;
+	typedef typename SubgraphMap::iterator SubgraphMapIter;
 	typedef typename Block::BlockHeader BlockHeader;
 
 	SubgraphSetType(const string &subgraphSetBasedir):m_subgraphSetBasedir(subgraphSetBasedir)
@@ -108,7 +108,7 @@ public:
 	shared_ptr<SubgraphStorageT>& getSubgraph(uint32_t vtxno)
 	{
 		SharedSynchronization ss(&m_subgraphMapRWLock);
-		uint32_t subgraphKey=VTXNO2SUBGRAPH(vtxno);
+		uint32_t subgraphKey=VTXNO2SGKEY(vtxno);
 		if (m_subgraphMap.find(subgraphKey)!=m_subgraphMap.end()){
 			shared_ptr<SubgraphStorageT>& subgraph=m_subgraphMap[subgraphKey];
 			if (subgraph.get()!=NULL){
@@ -123,15 +123,20 @@ public:
 		}
 	}
 
-	vector<uint32_t> getAllSgkeys()
+	size_t get_sgkey_num()const{
+		return m_subgraphMap.size();
+	}
+
+	template<typename Interator>
+	void get_sgkeys(Interator begin,Interator end)
 	{
-		ExclusiveSynchronization es();
 		vector<uint32_t> keys;
 		keys.reserve(m_subgraphMap.size());
-		for(SubgraphMapIterator si=m_subgraphMap.begin();si!=m_subgraphMap.end();si++){
-			keys.push_back(si->first);
+		SubgraphMapIter si=m_subgraphMap.begin();
+		Interator it=begin;
+		for(;si!=m_subgraphMap.end()&&it!=end;si++,it++){
+			*it=si->first;
 		}
-		return keys;
 	}
 
 	uint32_t getWidthOfVertexInterval(){ return VERTEX_INTERVAL_WIDTH; }
@@ -446,9 +451,13 @@ public:
 		return oldTailBlkno;
 	}
 
+	bool exists(uint32_t sgkey){
+		return m_subgraphMap.count(sgkey)>0;
+	}
+
 	string makeSubgraphPath(uint32_t vtxno)
 	{
-		uint32_t subgraphKey=VTXNO2SUBGRAPH(vtxno);
+		uint32_t subgraphKey=VTXNO2SGKEY(vtxno);
 		stringstream ss;
 		ss<<m_subgraphSetBasedir<<"/subgraph0x";
 		ss<<hex<<nouppercase<<setw(8)<<setfill('0');
@@ -463,7 +472,7 @@ public:
 		uint32_t subgraphKey=strtoul(strSubgraphNo,NULL,16);
 		return subgraphKey;
 	}
-	static uint32_t VTXNO2SUBGRAPH(uint32_t vtxno) { return vtxno&~(VERTEX_INTERVAL_WIDTH-1); }
+	static uint32_t VTXNO2SGKEY(uint32_t vtxno) { return vtxno&~(VERTEX_INTERVAL_WIDTH-1); }
 	static uint32_t VTXNO2RWLOCK(uint32_t vtxno){ return vtxno%VERTEX_RWLOCK_NUM;}
 private:
 	string m_subgraphSetBasedir;

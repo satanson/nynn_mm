@@ -10,11 +10,13 @@ SRC = nynn_mm_serv.cpp threadDemo.cpp test_nynn_log.cpp test_nynn_exception.cpp 
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN=$(basename $(SRC))
 
-default:$(BIN)
+default:nynn_mm_dataserv nynn_mm_nameserv
 
 test_nynn_zmqprot:test_nynn_zmqprot.o
 	g++ $(CXXFLAGS) -o $@ $^ 
-nynn_mm_serv:nynn_mm_serv.o
+nynn_mm_dataserv:nynn_mm_dataserv.o
+	g++ $(CXXFLAGS) -o $@ $^ 
+nynn_mm_nameserv:nynn_mm_nameserv.o
 	g++ $(CXXFLAGS) -o $@ $^ 
 getaddrinfoDemo:getaddrinfoDemo.o
 	g++ $(CXXFLAGS) -o $@ $^ 
