@@ -114,7 +114,7 @@ void* worker(void*args){
 void* talker(void* args)
 {
 	zmq::context_t& ctx=*(zmq::context_t*)args;
-	zmq::socket_t namesock(ctx,ZMQ_REP);
+	zmq::socket_t namesock(ctx,ZMQ_REQ);
 	uint32_t name_node=host2ip(getenv("NYNN_MM_NAMESERV_HOST"));
 	uint16_t name_port=parse_int(getenv("NYNN_MM_NAMESERV_PORT"),40002);
 	string name_endpoint=string("tcp://")+ip2string(name_node)+":"+to_string(name_port);

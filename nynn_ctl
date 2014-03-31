@@ -4,7 +4,7 @@ export repo_host="centos1"
 export deploy_hosts="centos1 centos2 centos3"
 export project_root="/root/src/nynn/nynn_mm"
 export user="root"
-export data_dir="/root/subgraphset"
+export data_dir="/root/data"
 
 #deploy host->repo host
 function handin(){
