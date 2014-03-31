@@ -50,7 +50,7 @@ void* switcher(void*args){
 
 void* worker(void*args){
 	zmq::context_t& ctx=*(zmq::context_t*)args;
-	int socket_num=parse_int(getenv("NYNN_MM_SERV_SOCKET_NUM_PER_WORKER"),10);
+	int socket_num=parse_int(getenv("NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
 	sockets.reset(new unique_ptr<zmq::socket_t>[socket_num]);
 	unique_ptr<zmq::pollitem_t[]> items;
@@ -65,7 +65,7 @@ void* worker(void*args){
 	
 	//initialize datasocks
 	ZMQSockMap datasocks;
-	istringstream iss(getenv("NYNN_MM_DATASERV_LIST"));
+	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
 	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
@@ -173,7 +173,7 @@ int main(){
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
 	zmq::socket_t dispatcher(ctx,ZMQ_DEALER);
 	
-	uint32_t port=parse_int(getenv("NYNN_MM_SERV_PORT"),40001);
+	uint32_t port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
 	string collector_endpoint=string("tcp://")+ ip2string(get_ip())+ ":"+to_string(port); 
 	log_i("collector endpoint: %s",collector_endpoint.c_str());
 
@@ -185,7 +185,7 @@ int main(){
 	switcher_thd.start();
 
 	//create worker_thds
-	uint32_t workerNum=parse_int(getenv("NYNN_MM_SERV_WORER_NUM"),3);
+	uint32_t workerNum=parse_int(getenv("NYNN_MM_DATASERV_WORKER_NUM"),3);
 	unique_ptr<thread_t> *worker_thds=new unique_ptr<thread_t>[workerNum];
 	for (int i=0;i<workerNum;i++)worker_thds[i].reset(new thread_t(worker,&ctx));
 	for (int i=0;i<workerNum;i++)worker_thds[i]->start();

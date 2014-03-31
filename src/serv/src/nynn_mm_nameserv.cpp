@@ -66,7 +66,7 @@ void* worker(void*args){
 	}
 	//initialize datasocks
 	ZMQSockMap datasocks;
-	istringstream iss(getenv("NYNN_MM_DATASERV_LIST"));
+	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
 	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
@@ -79,7 +79,7 @@ void* worker(void*args){
 
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
-	uint32_t replics_num=parse_int(getenv("NYNN_MM_REPLICAS_NUM"),3);
+	uint32_t replics_num=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
 	while(flag){
 		zmq::poll(items.get(),socketNum,-1);
 		for (int i=0;i<socketNum;i++){
@@ -114,7 +114,7 @@ void* worker(void*args){
 int main(){
 
 	//initialization
-	uint32_t replica=parse_int(getenv("NYNN_MM_REPLICAS"),3);
+	uint32_t replica=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
 	graphtable.reset(new GraphTable(replica));
 
 
