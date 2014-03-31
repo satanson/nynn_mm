@@ -100,7 +100,7 @@ namespace zmq
         return zmq_poll (items_, nitems_, timeout_);
     }
 
-    inline proxy (void *frontend, void *backend, void *capture)
+    inline int proxy (void *frontend, void *backend, void *capture)
     {
         return zmq_proxy (frontend, backend, capture);
     }
