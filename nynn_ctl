@@ -31,7 +31,7 @@ function sync_github(){
 
 #build project_root
 function build(){
-	for makefile in `find ${project_root} -type f -name "Makefile"`;do
+	for makefile in `find ${project_root}/src -type f -name "Makefile"`;do
 		makefile_dir=`dirname ${makefile}`
 		pushd ${makefile_dir}
 		make $@
