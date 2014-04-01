@@ -9,9 +9,9 @@ using namespace nynn;
 
 static unique_ptr<Graph> graph;
 static pthread_t talkerid;
-static pthread_t mainid;
 
 static pthread_key_t flag_key;
+
 void* func(void*args){
 	int i=(intptr_t)args;
 	
@@ -114,7 +114,6 @@ void* worker(void*args)
 	}
 	}catch(zmq::error_t& err){
 		log_w(err.what());
-		pthread_kill(mainid,SIGQUIT);
 	}
 	log_i("work terminated normally");
 }
@@ -171,17 +170,15 @@ void* talker(void* args)
 	close(tfd);
 	}catch(zmq::error_t& err){
 		log_w(err.what());
-		pthread_kill(mainid,SIGQUIT);
 	}
 	log_i("work terminated normally");
 }
 
 int main(){
 
-	mainid=pthread_self();
-
 	add_signal_handler(SIGTERM,&kill_thread);
 	add_signal_handler(SIGINT,SIG_IGN);
+	add_signal_handler(SIGABRT,SIG_IGN);
 	thread_key_t create(&flag_key,NULL);
 	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR")));
 	//creating switcher,logger,worker_thds threads.

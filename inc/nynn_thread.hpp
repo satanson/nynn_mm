@@ -62,7 +62,7 @@ public:
 			sigaddset(&sigs,SIGQUIT);
 			sigdelset(&sigs,SIGTERM);
 			sigdelset(&sigs,SIGNAL_STOP_THREAD);
-			pthread_sigmask(SIG_BLOCK,&sigs,NULL);
+			pthread_sigmask(SIG_SETMASK,&sigs,NULL);
 			
 			log_i("create a thread");
 			add_stop_listener();

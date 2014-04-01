@@ -11,7 +11,6 @@ using namespace nynn;
 using namespace nynn::mm;
 
 static pthread_key_t flag_key;
-static pthread_t mainid;
 
 unique_ptr<GraphTable> graphtable;
 void* func(void*args){
@@ -114,7 +113,6 @@ void* worker(void*args)
 	}
 	}catch(zmq::error_t& err){
 		log_w(err.what());
-		pthread_kill(mainid,SIGQUIT);
 	}
 	log_i("work terminated normally");
 }
