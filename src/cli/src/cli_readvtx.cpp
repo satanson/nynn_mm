@@ -36,7 +36,7 @@ int main(int argc,char**argv){
 					 HEAD_BLOCKNO;
 
 	while(blkno!=INVALID_BLOCKNO){
-		read(req,vtxno,blkno,&blk);
+		if(!read(req,vtxno,blkno,&blk))break;
 		blkno=(blk.getHeader()->*next)();
 		string line(cctt->begin(),cctt->end());
 		cout<<line<<endl;

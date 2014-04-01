@@ -8,6 +8,7 @@ using namespace std;
 using namespace nynn;
 
 static unique_ptr<Graph> graph;
+static RWLock glock;
 static pthread_t talkerid;
 
 static pthread_key_t flag_key;
@@ -91,18 +92,23 @@ void* worker(void*args)
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
 				switch(rep.get_cmd()){
-				case prot::CMD_WRITE:
-					handle_write(rep,*graph.get(),datasocks);
-					break;
-				case prot::CMD_READ:
-					handle_read(rep,*graph.get(),localip,datasocks);
-					break;
-				case prot::CMD_NOTIFY:
+				case prot::CMD_WRITE:{
+					handle_write_g(rep,*graph.get(),glock,datasocks);
+					//auto p2h_write=handle_write_g;
+					//syncw<void>(glock,p2h_write,rep,*graph.get(),datasocks);
+					break;}
+				case prot::CMD_READ:{
+					handle_read(rep,*graph.get(),glock,localip,datasocks);
+					//auto p2h_read=handle_read;
+					//syncr<void>(glock,p2h_read,rep,*graph.get(),localip,datasocks);
+					break;}
+				case prot::CMD_NOTIFY:{
 					handle_notify(rep,talkerid);
-					break;
-				default:
+					//auto p2h_notity=handle_notify;
+					break;}
+				default:{
 					log_w("ignore invalid request cmd");
-					break;
+					break;}
 				};
 			}
 			if (items[i].revents&ZMQ_POLLERR){
@@ -130,7 +136,7 @@ void* talker(void* args)
 	namesock.connect(name_endpoint.c_str());
 	prot::Requester req(namesock);
 
-	submit(req,*graph.get());
+	submit(req,*graph.get(),glock);
 	//periodically pull ShardTable from namenode or be notified 
 	//by namenode to pull fresh shard table from namenode.
 	
@@ -160,7 +166,9 @@ void* talker(void* args)
 		for(int i=0;i<2;i++){
 			if(ready_events[i].events&EPOLLIN){
 				read(ready_events[i].data.fd,buff,sizeof(buff));
-				hello(req,*graph.get());
+				hello(req,*graph.get(),glock);
+				//auto p2hello=hello;
+				//syncw<void>(glock,p2hello,req,*graph.get());
 			}
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);

@@ -206,7 +206,7 @@ struct WriteOptionsFixed{
 	uint32_t vtxno;
 	uint32_t blkno;
 };
-struct ReadOptionsFixed{abspath
+struct ReadOptionsFixed{
 	uint32_t vtxno;
 	uint32_t blkno;
 };

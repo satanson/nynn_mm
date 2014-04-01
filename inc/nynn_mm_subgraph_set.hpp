@@ -207,7 +207,12 @@ public:
 			default:
 				break;
 		}
-		return getSubgraph(vtxno)->readBlock(blkno,blk);
+		Block *retblk=getSubgraph(vtxno)->readBlock(blkno,blk);
+		if (unlikely(retblk!=NULL && vtxno!=retblk->getHeader()->getSource())){
+			throw_nynn_exception(0,"specified block not belongs to specified vtx");
+		}else{
+			return retblk;
+		}
 	}
 
 	void readn(uint32_t vtxno,uint32_t blkno,int32_t n, vector<int8_t>& xblk)

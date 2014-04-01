@@ -9,10 +9,11 @@
 using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
-
 static pthread_key_t flag_key;
 
 unique_ptr<GraphTable> graphtable;
+Monitor gtlock;
+
 void* func(void*args){
 	int i=(intptr_t)args;
 	
@@ -91,15 +92,21 @@ void* worker(void*args)
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
 				switch(rep.get_cmd()){
-				case prot::CMD_SUBMIT:
-					handle_submit(rep,*graphtable.get());
-					break;
-				case prot::CMD_WRITE:
-					handle_write(rep,*graphtable.get(),datasocks);
-					break;
-				case prot::CMD_HELLO:
-					handle_hello(rep,*graphtable.get());
-					break;
+				case prot::CMD_SUBMIT:{
+					handle_submit(rep,*graphtable.get(),gtlock);
+					//auto p2h_submit=handle_submit;
+					//spinsync<void>(gtlock,p2h_submit,rep,*graphtable.get());
+					break;}
+				case prot::CMD_WRITE:{
+					handle_write_gt(rep,*graphtable.get(),gtlock,datasocks);
+					//auto p2h_write=handle_write_gt;
+					//spinsync<void>(gtlock,p2h_write,rep,*graphtable.get(),datasocks);
+					break;}
+				case prot::CMD_HELLO:{
+					handle_hello(rep,*graphtable.get(),gtlock);
+					//auto p2h_hello=handle_hello;
+					//spinsync<void>(gtlock,p2h_hello,rep,*graphtable.get());
+					break;}
 				default:
 					break;
 				}

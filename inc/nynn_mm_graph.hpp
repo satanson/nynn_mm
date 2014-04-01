@@ -11,6 +11,9 @@ using namespace nynn;
 using namespace nynn::mm;
 
 namespace nynn{namespace mm{
+
+class Graph;
+typedef uint32_t (Graph::*WriteOp)(uint32_t,uint32_t,void*);
 class Graph{
 public:
 	size_t get_sgkey_num()const{
@@ -19,6 +22,11 @@ public:
 	template <typename Iterator>
 	void get_sgkeys(Iterator begin,Iterator end){
 		return m_subgset.get_sgkeys(begin,end);
+	}
+	SubmitOptions* create_submit_options(){
+		SubmitOptions& sbmtopts=*SubmitOptions::make(get_sgkey_num());
+		get_sgkeys(sbmtopts.begin(),sbmtopts.end());
+		return &sbmtopts;
 	}
 	uint32_t unshift(uint32_t vtxno,uint32_t blkno,void*blk){
 		return m_subgset.unshift(vtxno,(Block*)blk);
@@ -32,6 +40,17 @@ public:
 	uint32_t pop(uint32_t vtxno,uint32_t blkno,void*blk){
 		return m_subgset.pop(vtxno,(Block*)blk);
 	}
+
+	static WriteOp write_ops[4];
+	uint32_t write(int op,uint32_t vtxno,uint32_t blkno,void*blk){
+		uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
+		if (!exists(sgkey)){
+			create(sgkey);
+		}
+		return (this->*write_ops[op])(vtxno,blkno,blk);
+	}
+
+	
 	uint32_t which_host(uint32_t vtxno){
 		uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
 		if (m_shardMap.count(sgkey)==0)return 0;
@@ -44,8 +63,13 @@ public:
 		m_subgset.createSubgraph(sgkey);
 		m_subgset.attachSubgraph(sgkey);
 	}
-	void* read(uint32_t vtxno,uint32_t blkno,void*blk){
-		return m_subgset.read(vtxno,blkno,(Block*)blk);
+	void* read(uint32_t vtxno,uint32_t blkno,void*blk,uint32_t& targetip,uint32_t localip){
+		targetip=which_host(vtxno);
+		if (likely(targetip==localip)){
+			return m_subgset.read(vtxno,blkno,(Block*)blk);		
+		}else{
+			return NULL;
+		}
 	}
 
 	bool read_cache(uint32_t vtxno,uint32_t blkno,void*blk){
@@ -78,5 +102,6 @@ private:
 	unordered_map<uint32_t,uint32_t> m_shardMap;
 	//mutual exclusively access m_shardMap;
 };
+WriteOp Graph::write_ops[]={&Graph::unshift,&Graph::shift,&Graph::push,&Graph::pop};
 }}
 #endif
