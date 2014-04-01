@@ -105,10 +105,10 @@ public:
 	size_t get_data_size(){
 		return imsg[ASK_DATA].size();
 	}
-	void ans(bool ok,const void* data,size_t size){
+	void ans(uint8_t status,const void* data,size_t size){
 		zmq::message_t omsg[ANS_SIZE];	
 		omsg[ANS_STATUS].rebuild(sizeof(uint8_t));
-		*(uint8_t*)omsg[ANS_STATUS].data()=ok?STATUS_OK:STATUS_ERR;
+		*(uint8_t*)omsg[ANS_STATUS].data()=status;
 		omsg[ANS_DATA].rebuild(size);
 		memcpy(omsg[ANS_DATA].data(),data,size);
 
