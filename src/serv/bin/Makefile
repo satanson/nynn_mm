@@ -14,7 +14,7 @@ BIN=$(basename $(SRC))
 
 default:$(BIN_DOT_A)
 	ls *.a|xargs -I{} echo '{}' |perl -ne 'chomp;$$i=$$_;s/\..*//g;rename $$i,$$_'
-	mv -f $(BIN) ../../../bin/bin
+	mv -f $(BIN) ../../../bin/
 
 %.a:%.o
 	g++ $(CXXFLAGS) -o $@ $^ 

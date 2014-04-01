@@ -11,6 +11,8 @@ using namespace nynn;
 using namespace nynn::mm;
 
 static pthread_key_t flag_key;
+static pthread_t mainid;
+
 unique_ptr<GraphTable> graphtable;
 void* func(void*args){
 	int i=(intptr_t)args;
@@ -50,7 +52,10 @@ void* switcher(void*args){
 }
 
 
-void* worker(void*args){
+void* worker(void*args)
+{
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socketNum=parse_int(getenv("NYNN_MM_NAMESERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
@@ -107,6 +112,10 @@ void* worker(void*args){
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);
 	}
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+		pthread_kill(mainid,SIGQUIT);
+	}
 	log_i("work terminated normally");
 }
 
@@ -114,8 +123,8 @@ void* worker(void*args){
 int main(){
 
 	//initialization
-	uint32_t replica=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
-	graphtable.reset(new GraphTable(replica));
+	uint32_t replicas_num=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
+	graphtable.reset(new GraphTable(replicas_num));
 
 
 	add_signal_handler(SIGTERM,&kill_thread);

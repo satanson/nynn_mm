@@ -1,4 +1,0 @@
-#!/bin/bash
-. ./nynn_mm_env
-./bin/nynn_mm_dataserv
-

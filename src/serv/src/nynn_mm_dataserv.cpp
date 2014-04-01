@@ -9,6 +9,7 @@ using namespace nynn;
 
 static unique_ptr<Graph> graph;
 static pthread_t talkerid;
+static pthread_t mainid;
 
 static pthread_key_t flag_key;
 void* func(void*args){
@@ -48,7 +49,10 @@ void* switcher(void*args){
 	return NULL;
 }
 
-void* worker(void*args){
+void* worker(void*args)
+{
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socket_num=parse_int(getenv("NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
@@ -108,11 +112,17 @@ void* worker(void*args){
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);
 	}
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+		pthread_kill(mainid,SIGQUIT);
+	}
 	log_i("work terminated normally");
 }
 
 void* talker(void* args)
 {
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	zmq::socket_t namesock(ctx,ZMQ_REQ);
 	uint32_t name_node=host2ip(getenv("NYNN_MM_NAMESERV_HOST"));
@@ -159,10 +169,16 @@ void* talker(void* args)
 	close(efd);
 	close(sfd);
 	close(tfd);
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+		pthread_kill(mainid,SIGQUIT);
+	}
 	log_i("work terminated normally");
 }
 
 int main(){
+
+	mainid=pthread_self();
 
 	add_signal_handler(SIGTERM,&kill_thread);
 	add_signal_handler(SIGINT,SIG_IGN);
