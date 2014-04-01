@@ -72,12 +72,13 @@ time_t string2time(string const& str)
 }
 
 inline uint32_t parse_int(const char* s,uint32_t value){
-	if (s==NULL){
-		log_w("s shouldn't be NULL");
+	if (s==NULL||s[0]=='\0'){
+		log_w("s shouldn't be NULL or empty string");
 		return value;
 	}
-	uint32_t value2=strtoul(s,NULL,0);
-	if (value2==0||value2==ULONG_MAX){
+	char *endptr;
+	uint32_t value2=strtoul(s,&endptr,0);
+	if (endptr[0]!='\0'){
 		log_w("fail to convert %s to uint32_t",s);
 		return value;
 	}

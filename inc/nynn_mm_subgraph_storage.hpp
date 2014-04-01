@@ -86,7 +86,7 @@ public:
 		}
 		
 		uint32_t getMinVtxno()const { return m_data->m_vertices[0].getSource(); }
-		uint32_t getMaxVtxno()const { return getMinVtxno()+VERTEX_INTERVAL_WIDTH-1;}
+		uint32_t getMaxVtxno()const { return getMinVtxno()+VERTEX_INTERVAL_WIDTH;}
 
 		bool containVertex(uint32_t vtxno)
 		{
@@ -207,7 +207,7 @@ public:
 		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
 
 		uint32_t blkno=requireAllocated();
-		return blkno==INVALID_BLOCKNO?requireUnallocated():blkno;
+		return blkno!=INVALID_BLOCKNO?blkno:requireUnallocated();
 	}
 
 	void release(uint32_t blkno)
@@ -310,18 +310,22 @@ private:
 	:m_basedir(basedir),m_superblk(superblk),m_volume(volume)
 	{
 
+		//initialize memory allocation structure.
 		m_superblk.resetNumberOfFreeBlks();
 		m_superblk.setHeadBlkno(INVALID_BLOCKNO);
 		m_superblk.setSupBlkno(OVERFLOW_BLOCKNO_MIN);
-		//blkno=0:HEAD_BLKNO;
-		//blkno=1:TAIL_BLKNO;
-		for (uint32_t i=OVERFLOW_BLOCKNO_MIN-1;i>1;i--)release(i);//reserve blk 0
-		//for (uint32_t i=OVERFLOW_BLOCKNO_MIN;i>0;i--)release(i)-1;
+		for (uint32_t i=OVERFLOW_BLOCKNO_MIN;i>0;i--)release(i-1);
 
+		//initialize all vertex
 		const char *path=basedir.c_str();
 		const char *strMinVtxno=path+strlen(path)-strlen("0xffff0000");
 		uint32_t minVtxno=strtoul(strMinVtxno,NULL,16);
 		m_superblk.setMinVtxno(minVtxno);
+		for (uint32_t vtxno=m_superblk.getMinVtxno();vtxno<m_superblk.getMaxVtxno();vtxno++){
+			m_superblk.getVertex(vtxno)->setHeadBlkno(INVALID_BLOCKNO);
+			m_superblk.getVertex(vtxno)->setTailBlkno(INVALID_BLOCKNO);
+			m_superblk.getVertex(vtxno)->setSource(vtxno);
+		}
 
 		cout<<"format subgraph:"<<endl;
 		cout<<"blocksz:("<<BLOCKSZ<<")"<<endl;
@@ -415,6 +419,9 @@ private:
 	uint32_t requireUnallocated()
 	{
 		uint32_t supBlkno=m_superblk.getSupBlkno();
+		if(unlikely(supBlkno&~OVERFLOW_BLOCKNO_MASK==~OVERFLOW_BLOCKNO_MASK)){
+			throw_nynn_exception(0,"subgraph's blkno space is hausted");
+		}
 		string path=makeOverflowPath(supBlkno);
 		MmapFile mf(path.c_str(),OVERFLOW_BLOCKSZ);
 		void* overflowBlk=mf.getBaseAddress();

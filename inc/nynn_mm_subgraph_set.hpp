@@ -196,6 +196,7 @@ public:
 
 	Block* read(uint32_t vtxno,uint32_t blkno,Block *blk)	
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return NULL;
 		switch(blkno){
 			case HEAD_BLOCKNO:
 				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
@@ -233,11 +234,13 @@ public:
 
 	uint32_t getSize(uint32_t vtxno)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return 0;
 		return getSubgraph(vtxno)->getVertex(vtxno)->size();
 	}		
 
 	uint32_t insertPrev(uint32_t vtxno,uint32_t nextBlkno, Block* blk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 
@@ -271,6 +274,7 @@ public:
 
 	uint32_t insertNext(uint32_t vtxno,uint32_t prevBlkno,Block* blk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 
@@ -304,6 +308,7 @@ public:
 
 	uint32_t remove(uint32_t vtxno,uint32_t blkno)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		
 		Vertex *vtx=subgraph->getVertex(vtxno);
@@ -338,6 +343,7 @@ public:
 	
 	uint32_t unshift(uint32_t vtxno,Block*newHeadBlk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
 		BlockContent *newHeadBlkContent=*newHeadBlk;
@@ -366,6 +372,7 @@ public:
 
 	uint32_t shift(uint32_t vtxno,Block*_blk=NULL)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldHeadBlkno=vtx->getHeadBlkno();
@@ -394,6 +401,7 @@ public:
 
 	uint32_t push(uint32_t vtxno,Block*newTailBlk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
 		BlockContent *newTailBlkContent=*newTailBlk;
@@ -423,6 +431,7 @@ public:
 
 	uint32_t pop(uint32_t vtxno,Block*_blk=NULL)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldTailBlkno=vtx->getTailBlkno();

@@ -13,12 +13,15 @@ int main(int argc,char**argv){
 	string text_ip=argv[1];
 	string text_port=argv[2];
 	uint32_t vtxno=parse_int(argv[3],~0ul);
-	uint32_t fstblkno=parse_int(argv[4],0);
+	string actid=argv[4];
 	assert(vtxno!=~0ul);
-	assert(fstblkno==0||fstblkno==1);
+	assert(actid=="pop"||actid=="shift");
 	log_i("vtxno=%u",vtxno);
-	Next nexts[2]={&Block::BlockHeader::getNext,&Block::BlockHeader::getPrev};
-	Next next=nexts[fstblkno];
+	Next next = actid=="pop"?
+				&Block::BlockHeader::getPrev
+				:
+				&Block::BlockHeader::getNext;
+
 	zmq::context_t ctx;
 	zmq::socket_t sock(ctx,ZMQ_REQ);
 	string serv_endpoint="tcp://"+text_ip+":"+text_port;
@@ -27,7 +30,11 @@ int main(int argc,char**argv){
 	prot::Requester req(sock);
 	Block blk;
 	CharContent *cctt=blk;
-	uint32_t blkno=fstblkno;
+	uint32_t blkno = actid=="pop"?
+					 TAIL_BLOCKNO
+					 :
+					 HEAD_BLOCKNO;
+
 	while(blkno!=INVALID_BLOCKNO){
 		read(req,vtxno,blkno,&blk);
 		blkno=(blk.getHeader()->*next)();
