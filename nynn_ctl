@@ -44,12 +44,12 @@ function nynn_run(){
 	pushd "${project_root}/bin"
 	bin="`pwd 2>/dev/null`/$1";shift
 
-	pid=`ps h -C $bin -o pid`  && 
+	pid=`ps h -C $1 -o pid`  && 
 	echo $pid |grep "^[0-9]*$" 1>/dev/null 2>&1 
 	if [ $? -eq 0 ]
 	then
 		echo "$1 is already running..."
-		return
+		return 1
 	fi
 
 	if [ -f $bin ]
