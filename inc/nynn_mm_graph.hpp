@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	bool rea_cache(uint32_t vtxno,uint32_t blkno,void*blk){
+	bool read_cache(uint32_t vtxno,uint32_t blkno,void*blk){
 		return m_cache.read(vtxno,blkno,(Block*)blk);
 	}
 
