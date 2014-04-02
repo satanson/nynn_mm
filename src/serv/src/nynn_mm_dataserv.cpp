@@ -78,7 +78,7 @@ void* worker(void*args)
 		if (hosts[i]==localhost)continue;
 		uint32_t ip=host2ip(hosts[i]);
 		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(data_port);
-		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REP));
+		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
 		datasocks[ip]->connect(data_endpoint.c_str());
 	}
 
