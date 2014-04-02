@@ -42,7 +42,7 @@ void handle_submit(prot::Replier& rep,GraphTable& gt,Monitor& gtlk){
 	mfspinsync<void>(gtlk,gt,ptr2mf,sbmtopts->ip,sbmtopts.begin(),sbmtopts.end());
 	rep.ans(prot::STATUS_OK,NULL,0);
 }
-void hello(prot::Requester& req,Graph& g,RWLock& glk){
+void hello(prot::Requester& req,Graph& g,RWLock& glk,uint32_t localip){
 	HelloOptions& hlopts=*HelloOptions::make(0);
 	unique_ptr<void> just_for_auto_delete(&hlopts);
 	req.ask(prot::CMD_HELLO,&hlopts,hlopts.size(),NULL,0);
@@ -52,7 +52,7 @@ void hello(prot::Requester& req,Graph& g,RWLock& glk){
 	}
 	//g.merge_shard_table((ShardTable*)req.get_data());
 	auto ptr2mf=&Graph::merge_shard_table;
-	mfsyncw<void>(glk,g,ptr2mf,req.get_data());
+	mfsyncw<void>(glk,g,ptr2mf,req.get_data(),localip);
 	
 }
 void notify(ZMQSockMap& datasocks){

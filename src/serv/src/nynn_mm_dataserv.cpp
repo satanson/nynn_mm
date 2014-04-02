@@ -158,6 +158,7 @@ void* talker(void* args)
 	ev.events=EPOLLIN;
 	epoll_ctl(efd,EPOLL_CTL_ADD,tfd,&ev);
 	char buff[sizeof(struct signalfd_siginfo)];
+	uint32_t localip=get_ip();
 	
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
@@ -166,7 +167,7 @@ void* talker(void* args)
 		for(int i=0;i<2;i++){
 			if(ready_events[i].events&EPOLLIN){
 				read(ready_events[i].data.fd,buff,sizeof(buff));
-				hello(req,*graph.get(),glock);
+				hello(req,*graph.get(),glock,localip);
 				//auto p2hello=hello;
 				//syncw<void>(glock,p2hello,req,*graph.get());
 			}
