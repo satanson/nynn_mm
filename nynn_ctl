@@ -4,8 +4,7 @@ export repo_host="blade4"
 export deploy_hosts="blade4 blade5 blade7 blade8"
 export project_root="/root/nynn_mm"
 export user="root"
-export data_dir="/root/subgraphset"
-
+export data_dir="/root/graph"
 #deploy host->repo host
 function handin(){
 	pushd ${project_root}
@@ -31,7 +30,7 @@ function sync_github(){
 
 #build project_root
 function build(){
-	for makefile in `find ${project_root} -type f -name "Makefile"`;do
+	for makefile in `find ${project_root}/src -type f -name "Makefile"`;do
 		makefile_dir=`dirname ${makefile}`
 		pushd ${makefile_dir}
 		make $@
@@ -40,19 +39,43 @@ function build(){
 }
 
 #start bins
-function start_bin(){
+function nynn_run(){
 	pushd "${project_root}/bin"
-	bin="`pwd 2>/dev/null`/$1";shift
-	echo ${bin} $@
-	${bin} $@ 
+	bin=$1
+	absbin="`pwd 2>/dev/null`/$bin";shift
+	pid=`ps h -C $bin -o pid`  && 
+	echo $pid |grep "^[0-9]*$" 1>/dev/null 2>&1 
+	if [ $? -eq 0 ]
+	then
+		echo "$absbin is already running..."
+		return 1
+	fi
+
+	if [ -f $absbin ]
+	then
+		. `dirname $absbin`/nynn_mm_env
+		echo ${absbin} $@
+		${absbin}  $@
+	else
+		echo "$absbin not exists!"
+	fi
 	popd
 }
 
 #stop bins()
-function stop_bin()
+function nynn_stop()
 {
 	bin=$1
-	kill -9 `ps h -C $bin -o pid`
+	pid=`ps h -C $bin -o pid`  && 
+	echo $pid |grep "^[0-9]*$" 1>/dev/null 2>&1 
+	if [ $? -eq 0 ]
+	then
+		echo "kill -s SIGQUIT $pid"
+		kill -s SIGKILL $pid
+		return 0
+	else
+		echo "$bin is not running!"
+	fi
 }
 
 function clean_data(){
@@ -83,11 +106,11 @@ case ${cmd} in
   "build")
   build $@
   ;;
-  "start_bin")
-  start_bin $@
+  "nynn_run")
+  nynn_run $@
   ;;
-  "stop_bin")
-  stop_bin $@
+  "nynn_stop")
+  nynn_stop $@
   ;;
   "stop_iptables")
   stop_iptables $@

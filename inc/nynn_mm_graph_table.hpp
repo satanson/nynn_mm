@@ -89,12 +89,11 @@ public:
 		m_shardMap.erase(sgkey);
 	}
 
-	template<typename Iterator>
-	void submit_sgkeys(uint32_t ip,Iterator begin,Iterator end)
+	void submit_sgkeys(uint32_t ip,uint32_t* begin,uint32_t* end)
 	{
 		m_sloadMap[ip]=end-begin;
 		m_aloadMap[ip]=0;
-		for (Iterator it=begin;it!=end;it++){
+		for (auto it=begin;it!=end;it++){
 			m_replicasMap[*it].insert(ip);
 			refresh(*it);
 		}
@@ -125,6 +124,19 @@ public:
 			it1->ip=it->second;
 			it1++;
 		}
+	}
+	ShardTable* create_shard_table(){
+		ShardTable& st=*ShardTable::make(get_shard_table_size());
+		get_shard_table(st.begin(),st.end());
+		return &st;
+	}
+	WriteOptions* createWriteOptions(uint32_t vtxno,int& already_exists){
+		uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
+		already_exists=exists(sgkey);
+		if (!already_exists)create(sgkey);
+		WriteOptions& wrtopts=*WriteOptions::make(get_replicas_num(sgkey));
+		get_replicas_hosts(sgkey,wrtopts.begin(),wrtopts.end());
+		return &wrtopts;
 	}
 	//debug
 	ostream& dump(ostream& out){

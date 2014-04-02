@@ -3,7 +3,7 @@ export repo_host="blade4"
 export deploy_hosts="blade4 blade5 blade7 blade8"
 export project_root="/root/nynn_mm"
 export user="root"
-export data_dir="/root/subgraphset"
+export data_dir="/root/graph"
 export nynn_ctl="${project_root}/nynn_ctl"
 
 #deploy host->repo host
@@ -32,17 +32,17 @@ function build(){
 }
 
 #start bins
-function start_bin(){
+function nynn_run(){
 	for host in ${deploy_hosts};do
-		ssh ${user}@${host} ${nynn_ctl} start_bin $@ &
+		ssh ${user}@${host} ${nynn_ctl} nynn_run $@ &
 	done
 }
 
 #stop bins()
-function stop_bin()
+function nynn_stop()
 {
 	for host in ${deploy_hosts};do
-		ssh ${user}@${host} ${nynn_ctl} stop_bin $@
+		ssh ${user}@${host} ${nynn_ctl} nynn_stop $@
 	done
 }
 
@@ -78,11 +78,11 @@ case ${cmd} in
   "build")
   build $@
   ;;
-  "start_bin")
-  start_bin $@
+  "nynn_run")
+  nynn_run $@
   ;;
-  "stop_bin")
-  stop_bin $@
+  "nynn_stop")
+  nynn_stop $@
   ;;
   "stop_iptables")
   stop_iptables $@

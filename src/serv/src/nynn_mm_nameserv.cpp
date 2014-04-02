@@ -9,9 +9,11 @@
 using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
-
 static pthread_key_t flag_key;
+
 unique_ptr<GraphTable> graphtable;
+Monitor gtlock;
+
 void* func(void*args){
 	int i=(intptr_t)args;
 	
@@ -50,7 +52,10 @@ void* switcher(void*args){
 }
 
 
-void* worker(void*args){
+void* worker(void*args)
+{
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socketNum=parse_int(getenv("NYNN_MM_NAMESERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
@@ -66,7 +71,7 @@ void* worker(void*args){
 	}
 	//initialize datasocks
 	ZMQSockMap datasocks;
-	istringstream iss(getenv("NYNN_MM_DATASERV_LIST"));
+	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
 	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
@@ -79,7 +84,7 @@ void* worker(void*args){
 
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
-	uint32_t replics_num=parse_int(getenv("NYNN_MM_REPLICAS_NUM"),3);
+	uint32_t replics_num=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
 	while(flag){
 		zmq::poll(items.get(),socketNum,-1);
 		for (int i=0;i<socketNum;i++){
@@ -87,15 +92,21 @@ void* worker(void*args){
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
 				switch(rep.get_cmd()){
-				case prot::CMD_SUBMIT:
-					handle_submit(rep,*graphtable.get());
-					break;
-				case prot::CMD_WRITE:
-					handle_write(rep,*graphtable.get(),datasocks);
-					break;
-				case prot::CMD_HELLO:
-					handle_hello(rep,*graphtable.get());
-					break;
+				case prot::CMD_SUBMIT:{
+					handle_submit(rep,*graphtable.get(),gtlock);
+					//auto p2h_submit=handle_submit;
+					//spinsync<void>(gtlock,p2h_submit,rep,*graphtable.get());
+					break;}
+				case prot::CMD_WRITE:{
+					handle_write_gt(rep,*graphtable.get(),gtlock,datasocks);
+					//auto p2h_write=handle_write_gt;
+					//spinsync<void>(gtlock,p2h_write,rep,*graphtable.get(),datasocks);
+					break;}
+				case prot::CMD_HELLO:{
+					handle_hello(rep,*graphtable.get(),gtlock);
+					//auto p2h_hello=handle_hello;
+					//spinsync<void>(gtlock,p2h_hello,rep,*graphtable.get());
+					break;}
 				default:
 					break;
 				}
@@ -107,6 +118,9 @@ void* worker(void*args){
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);
 	}
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+	}
 	log_i("work terminated normally");
 }
 
@@ -114,8 +128,8 @@ void* worker(void*args){
 int main(){
 
 	//initialization
-	uint32_t replica=parse_int(getenv("NYNN_MM_REPLICAS"),3);
-	graphtable.reset(new GraphTable(replica));
+	uint32_t replicas_num=parse_int(getenv("NYNN_MM_DATA_REPLICAS_NUM"),3);
+	graphtable.reset(new GraphTable(replicas_num));
 
 
 	add_signal_handler(SIGTERM,&kill_thread);

@@ -8,9 +8,11 @@ using namespace std;
 using namespace nynn;
 
 static unique_ptr<Graph> graph;
+static RWLock glock;
 static pthread_t talkerid;
 
 static pthread_key_t flag_key;
+
 void* func(void*args){
 	int i=(intptr_t)args;
 	
@@ -48,9 +50,12 @@ void* switcher(void*args){
 	return NULL;
 }
 
-void* worker(void*args){
+void* worker(void*args)
+{
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
-	int socket_num=parse_int(getenv("NYNN_MM_SERV_SOCKET_NUM_PER_WORKER"),10);
+	int socket_num=parse_int(getenv("NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER"),10);
 	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
 	sockets.reset(new unique_ptr<zmq::socket_t>[socket_num]);
 	unique_ptr<zmq::pollitem_t[]> items;
@@ -65,7 +70,7 @@ void* worker(void*args){
 	
 	//initialize datasocks
 	ZMQSockMap datasocks;
-	istringstream iss(getenv("NYNN_MM_DATASERV_LIST"));
+	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
 	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
@@ -87,18 +92,23 @@ void* worker(void*args){
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
 				switch(rep.get_cmd()){
-				case prot::CMD_WRITE:
-					handle_write(rep,*graph.get(),datasocks);
-					break;
-				case prot::CMD_READ:
-					handle_read(rep,*graph.get(),localip,datasocks);
-					break;
-				case prot::CMD_NOTIFY:
+				case prot::CMD_WRITE:{
+					handle_write_g(rep,*graph.get(),glock,datasocks);
+					//auto p2h_write=handle_write_g;
+					//syncw<void>(glock,p2h_write,rep,*graph.get(),datasocks);
+					break;}
+				case prot::CMD_READ:{
+					handle_read(rep,*graph.get(),glock,localip,datasocks);
+					//auto p2h_read=handle_read;
+					//syncr<void>(glock,p2h_read,rep,*graph.get(),localip,datasocks);
+					break;}
+				case prot::CMD_NOTIFY:{
 					handle_notify(rep,talkerid);
-					break;
-				default:
+					//auto p2h_notity=handle_notify;
+					break;}
+				default:{
 					log_w("ignore invalid request cmd");
-					break;
+					break;}
 				};
 			}
 			if (items[i].revents&ZMQ_POLLERR){
@@ -108,20 +118,25 @@ void* worker(void*args){
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);
 	}
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+	}
 	log_i("work terminated normally");
 }
 
 void* talker(void* args)
 {
+	try
+	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
-	zmq::socket_t namesock(ctx,ZMQ_REP);
+	zmq::socket_t namesock(ctx,ZMQ_REQ);
 	uint32_t name_node=host2ip(getenv("NYNN_MM_NAMESERV_HOST"));
 	uint16_t name_port=parse_int(getenv("NYNN_MM_NAMESERV_PORT"),40002);
 	string name_endpoint=string("tcp://")+ip2string(name_node)+":"+to_string(name_port);
 	namesock.connect(name_endpoint.c_str());
 	prot::Requester req(namesock);
 
-	submit(req,*graph.get());
+	submit(req,*graph.get(),glock);
 	//periodically pull ShardTable from namenode or be notified 
 	//by namenode to pull fresh shard table from namenode.
 	
@@ -151,7 +166,9 @@ void* talker(void* args)
 		for(int i=0;i<2;i++){
 			if(ready_events[i].events&EPOLLIN){
 				read(ready_events[i].data.fd,buff,sizeof(buff));
-				hello(req,*graph.get());
+				hello(req,*graph.get(),glock);
+				//auto p2hello=hello;
+				//syncw<void>(glock,p2hello,req,*graph.get());
 			}
 		}
 		flag=(intptr_t)pthread_getspecific(flag_key);
@@ -159,6 +176,9 @@ void* talker(void* args)
 	close(efd);
 	close(sfd);
 	close(tfd);
+	}catch(zmq::error_t& err){
+		log_w(err.what());
+	}
 	log_i("work terminated normally");
 }
 
@@ -166,6 +186,7 @@ int main(){
 
 	add_signal_handler(SIGTERM,&kill_thread);
 	add_signal_handler(SIGINT,SIG_IGN);
+	add_signal_handler(SIGABRT,SIG_IGN);
 	thread_key_t create(&flag_key,NULL);
 	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR")));
 	//creating switcher,logger,worker_thds threads.
@@ -173,7 +194,7 @@ int main(){
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
 	zmq::socket_t dispatcher(ctx,ZMQ_DEALER);
 	
-	uint32_t port=parse_int(getenv("NYNN_MM_SERV_PORT"),40001);
+	uint32_t port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
 	string collector_endpoint=string("tcp://")+ ip2string(get_ip())+ ":"+to_string(port); 
 	log_i("collector endpoint: %s",collector_endpoint.c_str());
 
@@ -185,7 +206,7 @@ int main(){
 	switcher_thd.start();
 
 	//create worker_thds
-	uint32_t workerNum=parse_int(getenv("NYNN_MM_SERV_WORER_NUM"),3);
+	uint32_t workerNum=parse_int(getenv("NYNN_MM_DATASERV_WORKER_NUM"),3);
 	unique_ptr<thread_t> *worker_thds=new unique_ptr<thread_t>[workerNum];
 	for (int i=0;i<workerNum;i++)worker_thds[i].reset(new thread_t(worker,&ctx));
 	for (int i=0;i<workerNum;i++)worker_thds[i]->start();

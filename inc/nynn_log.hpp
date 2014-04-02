@@ -157,21 +157,21 @@ inline void vlog(
 	const char* logs[6]={"INFO","WARN","ERROR","ASSERT","DEBUG","EXCEPTION"};
 	stringstream pack;
 	string s;
-	char abspath[VSNPRINTF_BUFF_SIZE];
-	realpath(file,abspath);
+	//char abspath[VSNPRINTF_BUFF_SIZE];
+	//realpath(file,abspath);
 	char what[VSNPRINTF_BUFF_SIZE];
 	vsnprintf(what,VSNPRINTF_BUFF_SIZE,fmt,ap);
 	what[VSNPRINTF_BUFF_SIZE-1]='\0'; 
 
 	pack<<"{ "<<"\""<<logs[level]<<"\":{ "
 		<<"\"time\":"<<"\""<<now()<<"\", "
-		<<"\"file\":"<<"\""<<abspath<<"\", "
+		<<"\"file\":"<<"\""<<file<<"\", "
 		<<"\"line\":"<<"\""<<line<<"\", "
 		<<"\"func\":"<<"\""<<func<<"\", "
 		<<"\"errno\":"<<"\""<<errnum<<"\", "
 		<<"\"err\":"<<"\""<<err(errnum)<<"\", "
-		<<"\"what\":"<<"\""<<what<<"\" }}"<<endl<<endl;
-	out<<pack.str()<<endl;
+		<<"\"what\":"<<"\""<<what<<"\" }}";
+	out<<pack.str()<<endl<<endl;
 }
 }
 #endif

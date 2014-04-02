@@ -1,0 +1,4 @@
+#!/bin/bash
+for i in `eval "echo {0..$((2**10-1))}"`;do
+	./cli_readvtx 192.168.1.11 40001 $i pop 1>/dev/null 2>&1
+done

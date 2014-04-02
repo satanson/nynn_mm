@@ -196,6 +196,7 @@ public:
 
 	Block* read(uint32_t vtxno,uint32_t blkno,Block *blk)	
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return NULL;
 		switch(blkno){
 			case HEAD_BLOCKNO:
 				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
@@ -206,7 +207,12 @@ public:
 			default:
 				break;
 		}
-		return getSubgraph(vtxno)->readBlock(blkno,blk);
+		Block *retblk=getSubgraph(vtxno)->readBlock(blkno,blk);
+		if (unlikely(retblk!=NULL && vtxno!=retblk->getHeader()->getSource())){
+			throw_nynn_exception(0,"specified block not belongs to specified vtx");
+		}else{
+			return retblk;
+		}
 	}
 
 	void readn(uint32_t vtxno,uint32_t blkno,int32_t n, vector<int8_t>& xblk)
@@ -233,11 +239,13 @@ public:
 
 	uint32_t getSize(uint32_t vtxno)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return 0;
 		return getSubgraph(vtxno)->getVertex(vtxno)->size();
 	}		
 
 	uint32_t insertPrev(uint32_t vtxno,uint32_t nextBlkno, Block* blk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 
@@ -271,6 +279,7 @@ public:
 
 	uint32_t insertNext(uint32_t vtxno,uint32_t prevBlkno,Block* blk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 
@@ -304,6 +313,7 @@ public:
 
 	uint32_t remove(uint32_t vtxno,uint32_t blkno)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		
 		Vertex *vtx=subgraph->getVertex(vtxno);
@@ -338,6 +348,7 @@ public:
 	
 	uint32_t unshift(uint32_t vtxno,Block*newHeadBlk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
 		BlockContent *newHeadBlkContent=*newHeadBlk;
@@ -366,6 +377,7 @@ public:
 
 	uint32_t shift(uint32_t vtxno,Block*_blk=NULL)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldHeadBlkno=vtx->getHeadBlkno();
@@ -389,11 +401,12 @@ public:
 			memcpy(_blk,oldHeadBlk,sizeof(Block));
 		}
 		subgraph->release(oldHeadBlkno);
-		return oldHeadBlkno;
+		return newHeadBlkno;
 	}
 
 	uint32_t push(uint32_t vtxno,Block*newTailBlk)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
 		BlockContent *newTailBlkContent=*newTailBlk;
@@ -418,12 +431,12 @@ public:
 		}
 
 		subgraph->writeBlock(newTailBlkno,newTailBlk);
-//		log_i("push vtxno=%d blkno=%d",vtxno,newTailBlkno);/g
 		return newTailBlkno;
 	}
 
 	uint32_t pop(uint32_t vtxno,Block*_blk=NULL)
 	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex *vtx=subgraph->getVertex(vtxno);
 		uint32_t oldTailBlkno=vtx->getTailBlkno();
@@ -448,7 +461,7 @@ public:
 			memcpy(_blk,oldTailBlk,sizeof(Block));
 		}
 		subgraph->release(oldTailBlkno);
-		return oldTailBlkno;
+		return newTailBlkno;
 	}
 
 	bool exists(uint32_t sgkey){
