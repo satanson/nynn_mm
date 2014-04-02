@@ -89,7 +89,15 @@ public:
 		}
 	}
 
-	Graph(const string& path) :m_subgset(path){ }
+	Graph(const string& path,uint32_t localip) :m_subgset(path){
+		SubmitOptions& sbmtopts=*SubmitOptions::make(get_sgkey_num());
+		unique_ptr<void> just_for_auto_delete(&sbmtopts);
+		get_sgkeys(sbmtopts.begin(),sbmtopts.end());
+		while(sbmtopts){
+			m_shardMap[sbmtopts[-1]]=localip;
+			sbmtopts.shrink(1);
+		}
+	}
 
 
 private:

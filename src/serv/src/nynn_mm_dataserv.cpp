@@ -189,7 +189,7 @@ int main(){
 	add_signal_handler(SIGINT,SIG_IGN);
 	add_signal_handler(SIGABRT,SIG_IGN);
 	thread_key_t create(&flag_key,NULL);
-	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR")));
+	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR"),get_ip()));
 	//creating switcher,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
