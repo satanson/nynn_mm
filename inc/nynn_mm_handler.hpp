@@ -157,7 +157,7 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 	//write to next datanode,if it's not last write operation.
 	if (wrtopts){
 		prot::Requester req(*datasocks[wrtopts[-1]].get());
-		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),req.get_data(),sizeof(Block));
+		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),data,sizeof(Block));
 		req.parse_ans();
 		if (unlikely(req.get_status()!=prot::STATUS_OK)){
 			throw_nynn_exception(0,"can't write to next datanode");

@@ -18,6 +18,7 @@ function handin(){
 #repo host->deploy host
 function handout(){
 	pushd ${project_root}
+	git checkout -- *
 	git pull repo master
 	popd
 }
