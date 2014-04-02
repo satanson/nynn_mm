@@ -80,10 +80,12 @@ public:
 		m_cache.write(vtxno,blkno,(Block*)blk);
 	}
 
-	void merge_shard_table(void* data){
+	void merge_shard_table(void* data,uint32_t localip){
 		ShardTable& st=*(ShardTable*)data;
 		for (int i=0;i<st.length();i++){
-			m_shardMap[st[i].sgkey]=st[i].ip;
+			uint32_t sgkey=st[i].sgkey;
+			uint32_t targetip=st[i].ip;
+			if (m_shardMap[sgkey]!=localip)m_shardMap[sgkey]=targetip;
 		}
 	}
 

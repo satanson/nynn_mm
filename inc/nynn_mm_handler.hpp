@@ -230,7 +230,7 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 	//vtx non-exists in local cache,request data from remote host
 	}else{
 		prot::Requester req(*datasocks[targetip].get());
-		req.ask(prot::CMD_READ,&rdopts,sizeof(rdopts),NULL,0);
+		req.ask(prot::CMD_READ,&rdopts,rdopts.size(),NULL,0);
 		req.parse_ans();
 		//successfully
 		if (likely(req.get_status()==prot::STATUS_OK)){
