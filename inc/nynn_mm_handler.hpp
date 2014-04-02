@@ -12,8 +12,6 @@ using namespace nynn::mm;
 namespace nynn{namespace mm{
 
 enum{WRITE_UNSHIFT,WRITE_SHIFT,WRITE_PUSH,WRITE_POP,WRITE_OP_NUM};
-typedef uint32_t (Graph::*WriteOp)(uint32_t,uint32_t,void*);
-WriteOp write_ops[]={&Graph::unshift,&Graph::shift,&Graph::push,&Graph::pop};
 
 typedef unordered_map<uint32_t,shared_ptr<zmq::socket_t> > ZMQSockMap;
 typedef ZMQSockMap::iterator ZMQSockMapIter;
