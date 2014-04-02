@@ -156,6 +156,9 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 	wrtopts.shrink(1);
 	//write to next datanode,if it's not last write operation.
 	if (wrtopts){
+		uint32_t nextip=wrtopts[-1];
+		log_i("nextip=%s",to_string(nextip).c_str());
+		log_i("datasocks.count(%d)=%d",nextip,datasocks.count(nextip));
 		prot::Requester req(*datasocks[wrtopts[-1]].get());
 		//pipeline writing
 		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),data,sizeof(Block));
