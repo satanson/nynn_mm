@@ -7,6 +7,10 @@
 using namespace std;
 using namespace nynn;
 
+typedef unique_ptr<zmq::socket_t> ZMQSock;
+typedef unique_ptr<ZMQSock[]> ZMQSockArray;
+typedef unique_ptr<unique_ptr<thread_t>[]> ThreadArray;
+
 static pthread_key_t flag_key;
 
 class thread_key_t{
@@ -27,6 +31,7 @@ typedef struct{
 	zmq::socket_t *frontend;
 	zmq::socket_t *backend;
 }X;
+
 void* switcher(void*args){
 	X& x=*(X*)args;
 	zmq::proxy((void*)*x.frontend,(void*)*x.backend,NULL);
@@ -39,18 +44,23 @@ void* worker(void*args)
 	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socket_num=parse_int(getenv("NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER"),10);
-	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
-	sockets.reset(new unique_ptr<zmq::socket_t>[socket_num]);
-	unique_ptr<zmq::pollitem_t[]> items;
-	items.reset(new zmq::pollitem_t[socket_num]);
+	ZMQSockArray sockets(new ZMQSock[socket_num]);
+	unique_ptr<zmq::pollitem_t[]> items(new zmq::pollitem_t[socket_num]);
 
+	uint32_t port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
+	uint32_t port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50010);
 	for (int i=0;i<socket_num;i++){
 		sockets[i].reset(new zmq::socket_t(ctx,ZMQ_REP));
-		sockets[i]->connect("inproc://dispatcher.inproc");
+		string suffix=to_string(rand_range(port_range_min,port_range_max));
+		string endpoint=("inproc://scatter.")+suffix;
+		log_i("worker:%s",endpoint.c_str());
+		sockets[i]->connect(endpoint.c_str());
 		items[i].socket=(void*)*sockets[i].get();
 		items[i].events=ZMQ_POLLIN|ZMQ_POLLERR;
 	}
 	
+	uint32_t MMU=parse_int(getenv("NYNN_MM_DATASERV_MMU"),512); 
+	vector<char> data(MMU,0);
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
 	while(flag){
@@ -59,8 +69,7 @@ void* worker(void*args)
 			if (items[i].revents&ZMQ_POLLIN){
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
-				char data[1<<16];
-				rep.ans(prot::STATUS_OK,data,1<<16);
+				rep.ans(prot::STATUS_OK,&data[0],data.size());
 			}
 			if (items[i].revents&ZMQ_POLLERR){
 				pthread_setspecific(flag_key,(void*)0);
@@ -85,27 +94,36 @@ int main(){
 	zmq::context_t ctx;//ctx(io_threads)
 	zmq_ctx_set(ctx,ZMQ_IO_THREADS,10);
 	zmq_ctx_set(ctx,ZMQ_MAX_SOCKETS,4096);
-	zmq::socket_t collector(ctx,ZMQ_ROUTER);
-	zmq::socket_t dispatcher(ctx,ZMQ_DEALER);
-	
-	uint32_t port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
-	string collector_endpoint=string("tcp://")+ ip2string(get_ip())+ ":"+to_string(port); 
-	string collector_endpoint_local=string("ipc://")+getenv("NYNN_MM_DATASERV_IPC");
-	log_i("collector endpoint: %s",collector_endpoint.c_str());
 
-	//create switcher
-	collector.bind(collector_endpoint.c_str());
-	collector.bind(collector_endpoint_local.c_str());
-	dispatcher.bind("inproc://dispatcher.inproc");
-	X x={&collector,&dispatcher};
-	thread_t switcher_thd(switcher,&x);
-	switcher_thd.start();
+	uint32_t port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
+	uint32_t port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50010);
+	uint32_t port_range_num=port_range_max-port_range_min;
+	
+	ZMQSockArray gathers(new ZMQSock[port_range_min]);
+	ZMQSockArray scatters(new ZMQSock[port_range_min]);
+	ThreadArray switcher_thds(new unique_ptr<thread_t>[port_range_num]);
+
+	for( uint32_t i=0;i<port_range_num;i++){
+		uint32_t port=port_range_min+i;
+		string gather_endpoint=string("tcp://")+ip2string(get_ip())+":"+to_string(port);
+		string scatter_endpoint=string("inproc://scatter.")+to_string(port);
+		log_i("switcher%d:gather:%s",i,gather_endpoint.c_str());
+		log_i("switcher%d:scatter:%s",i,scatter_endpoint.c_str());
+		gathers[i].reset(new zmq::socket_t(ctx,ZMQ_ROUTER));
+		gathers[i]->bind(gather_endpoint.c_str());
+		scatters[i].reset(new zmq::socket_t(ctx,ZMQ_DEALER));
+		scatters[i]->bind(scatter_endpoint.c_str());
+		X x={gathers[i].get(),scatters[i].get()};
+		switcher_thds[i].reset(new thread_t(switcher,&x));
+		switcher_thds[i]->start();
+	}
+	log_i("create %d switcher for serv port from %d to %d",port_range_num,port_range_min,port_range_max);
 
 	//create worker_thds
-	uint32_t workerNum=parse_int(getenv("NYNN_MM_DATASERV_WORKER_NUM"),3);
-	unique_ptr<thread_t> *worker_thds=new unique_ptr<thread_t>[workerNum];
-	for (int i=0;i<workerNum;i++)worker_thds[i].reset(new thread_t(worker,&ctx));
-	for (int i=0;i<workerNum;i++)worker_thds[i]->start();
+	uint32_t worker_num=parse_int(getenv("NYNN_MM_DATASERV_WORKER_NUM"),3);
+	ThreadArray worker_thds(new unique_ptr<thread_t>[worker_num]);
+	for (int i=0;i<worker_num;i++)worker_thds[i].reset(new thread_t(worker,&ctx));
+	for (int i=0;i<worker_num;i++)worker_thds[i]->start();
 
 
 	sigset_t sigs;
@@ -117,26 +135,32 @@ int main(){
 	cout<<"process terminated by 'SIGQUIT'"<<endl;
 
 	//shutdown all worker_thds gracefully.
-	for (int i=0;i<workerNum;i++){
+	for (int i=0;i<worker_num;i++){
 		nanosleep_for(5000);
 		if (worker_thds[i]->is_alive())worker_thds[i]->kill(SIGTERM);
 	}
 	nanosleep_for(5000);
 	/*
-	for (int i=0;i<workerNum;i++){
+	for (int i=0;i<worker_num;i++){
 		if (worker_thds[i]->is_alive())worker_thds[i]->stop();
 	}
 	*/
-	for (int i=0;i<workerNum;i++){worker_thds[i]->join();}
-	log_i("all worker_thds are shutdown");
+	for (int i=0;i<worker_num;i++){worker_thds[i]->join();}
+	log_i("all workers are shutdown");
 	
 	//shutdown switcher gracefully.
-	collector.close();
-	dispatcher.close();
+	for (int i=0;i<port_range_num;i++){
+		gathers[i]->close();
+		scatters[i]->close();
+	}
 	nanosleep_for(5000);
-	if (switcher_thd.is_alive())switcher_thd.kill(SIGTERM);
+	for (int i=0;i<port_range_num;i++){
+		if (switcher_thds[i]->is_alive())switcher_thds[i]->kill(SIGTERM);
+	}
 	nanosleep_for(5000);
-	if (switcher_thd.is_alive())switcher_thd.stop();
-	switcher_thd.join();
-	log_i("switcher is shutdown");
+	for (int i=0;i<port_range_num;i++){
+		if (switcher_thds[i]->is_alive())switcher_thds[i]->stop();
+		switcher_thds[i]->join();
+	}
+	log_i("are switchers are shutdown");
 }

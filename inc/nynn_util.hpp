@@ -29,7 +29,7 @@ void set_signal_handler(int signum,void(*handler)(int));
 void nanosleep_for(uint32_t ns);
 void rand_nanosleep();
 
-int rand_int();
+uint32_t rand_range(uint32_t min,uint32_t max);
 
 bool file_exist(const string& path);
 
@@ -85,6 +85,12 @@ inline uint32_t parse_int(const char* s,uint32_t value){
 	return value2;
 }
 
+uint32_t rand_range(uint32_t min,uint32_t max){
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC,&ts);
+	uint32_t val=(uint32_t)rand_r((uint32_t*)&ts.tv_nsec);
+	return min+val%(max-min);
+}
 inline void nanosleep_for(uint32_t ns){
 	struct timespec ts;
 	ts.tv_sec=0;
