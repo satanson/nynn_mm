@@ -39,9 +39,9 @@ public:
 			}
 			for (uint32_t  i=0;i<g.gl_pathc;i++) {
 				uint32_t subgraphKey=makeSubgraphKey(g.gl_pathv[i]);
-
+				attachSubgraph(subgraphKey);
 				//dynamic attach/detach subgraph.
-				m_subgraphMap[subgraphKey];
+				//m_subgraphMap[subgraphKey];
 				//static attach/detach subgraph.
 				//string subgraphBasedir=makeSubgraphPath(subgraphKey);
 				//m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir)));
@@ -96,7 +96,7 @@ public:
 	{
 		ExclusiveSynchronization es(&m_subgraphMapRWLock);
 		try{
-			if (m_subgraphMap[subgraphKey].get()==NULL){
+			if (m_subgraphMap.count(subgraphKey)==0){
 				string subgraphBasedir=makeSubgraphPath(subgraphKey);
 				m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir));
 			}

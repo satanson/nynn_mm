@@ -12,7 +12,7 @@ typedef uint32_t (*Act)(prot::Requester&,uint32_t,uint32_t,Block*);
 int main(int argc,char**argv){
 	string text_ip=argv[1];
 	string text_port=argv[2];
-	uint32_t vtxno=parse_int(argv[3],~0ul);
+	uint32_t vtxno=parse_int(argv[3],~0u);
 	string actid=argv[4];
 	map<string,Act> actMap;
 	actMap["shift"]=shift;

@@ -1,0 +1,5 @@
+#!/bin/bash
+for i in `eval "echo {0..$1}"`;do
+	echo ./cli_framework 192.168.255.114 $((60000+$i%$2)) $3;
+	./cli_framework 192.168.255.114 $((60000+$i%$2)) $3 &
+done

@@ -11,11 +11,12 @@ int main(int argc,char**argv)
 {
 	string text_ip=argv[1];
 	string text_port=argv[2];
-	uint32_t vtxno_begin=parse_int(argv[3],~0ul);
-	uint32_t vtxno_end=parse_int(argv[4],~0ul);
+	uint32_t vtxno_begin=parse_int(argv[3],~0u);
+	uint32_t vtxno_end=parse_int(argv[4],~0u);
 	string actid=argv[5];
-	assert(vtxno_begin!=~0ul);
-	assert(vtxno_end!=~0ul);
+	uint32_t loop=parse_int(argv[6],~0u);
+	assert(vtxno_begin!=~0u);
+	assert(vtxno_end!=~0u);
 	assert(actid=="pop"||actid=="shift");
 
 	Next next = actid=="pop"?
@@ -45,6 +46,7 @@ int main(int argc,char**argv)
 					 HEAD_BLOCKNO;
 
 	gettimeofday(&beg_tv,NULL);
+	for (int i=0;i<loop;i++)
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
 		uint32_t blkno=firstblkno;
 		while(blkno!=INVALID_BLOCKNO){
@@ -56,5 +58,5 @@ int main(int argc,char**argv)
 	t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-(beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;
 	cout<<"write vtxno("<<vtxno_end-vtxno_begin<<"): ["<<vtxno_begin<<","<<vtxno_end<<")"<<endl;
 	cout<<"time usage:"<<t<<"s"<<endl;
-	cout<<"vtxno per second="<<(vtxno_end-vtxno_begin)/t<<endl;
+	cout<<"vtxno per second="<<loop*(vtxno_end-vtxno_begin)/t<<endl;
 }

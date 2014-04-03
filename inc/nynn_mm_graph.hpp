@@ -80,14 +80,24 @@ public:
 		m_cache.write(vtxno,blkno,(Block*)blk);
 	}
 
-	void merge_shard_table(void* data){
+	void merge_shard_table(void* data,uint32_t localip){
 		ShardTable& st=*(ShardTable*)data;
 		for (int i=0;i<st.length();i++){
-			m_shardMap[st[i].sgkey]=st[i].ip;
+			uint32_t sgkey=st[i].sgkey;
+			uint32_t targetip=st[i].ip;
+			if (m_shardMap[sgkey]!=localip)m_shardMap[sgkey]=targetip;
 		}
 	}
 
-	Graph(const string& path) :m_subgset(path){ }
+	Graph(const string& path,uint32_t localip) :m_subgset(path){
+		SubmitOptions& sbmtopts=*SubmitOptions::make(get_sgkey_num());
+		unique_ptr<void> just_for_auto_delete(&sbmtopts);
+		get_sgkeys(sbmtopts.begin(),sbmtopts.end());
+		while(sbmtopts){
+			m_shardMap[sbmtopts[-1]]=localip;
+			sbmtopts.shrink(1);
+		}
+	}
 
 
 private:

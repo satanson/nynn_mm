@@ -9,12 +9,6 @@ struct Vertex;
 struct Edge;
 template <uint32_t BLOCKSZ> union BlockType;
 
-#if not defined __x86_64__
-static uint32_t const INVALID_BLOCKNO=~0UL;
-static uint32_t const TAIL_BLOCKNO=INVALID_BLOCKNO-1;
-static uint32_t const HEAD_BLOCKNO=INVALID_BLOCKNO-2;
-static uint32_t const INVALID_VERTEXNO=~0UL;
-#endif
 static uint32_t const INVALID_BLOCKNO=~0U;
 static uint32_t const TAIL_BLOCKNO=INVALID_BLOCKNO-1;
 static uint32_t const HEAD_BLOCKNO=INVALID_BLOCKNO-2;

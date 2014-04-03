@@ -12,8 +12,6 @@ using namespace nynn::mm;
 namespace nynn{namespace mm{
 
 enum{WRITE_UNSHIFT,WRITE_SHIFT,WRITE_PUSH,WRITE_POP,WRITE_OP_NUM};
-typedef uint32_t (Graph::*WriteOp)(uint32_t,uint32_t,void*);
-WriteOp write_ops[]={&Graph::unshift,&Graph::shift,&Graph::push,&Graph::pop};
 
 typedef unordered_map<uint32_t,shared_ptr<zmq::socket_t> > ZMQSockMap;
 typedef ZMQSockMap::iterator ZMQSockMapIter;
@@ -44,7 +42,7 @@ void handle_submit(prot::Replier& rep,GraphTable& gt,Monitor& gtlk){
 	mfspinsync<void>(gtlk,gt,ptr2mf,sbmtopts->ip,sbmtopts.begin(),sbmtopts.end());
 	rep.ans(prot::STATUS_OK,NULL,0);
 }
-void hello(prot::Requester& req,Graph& g,RWLock& glk){
+void hello(prot::Requester& req,Graph& g,RWLock& glk,uint32_t localip){
 	HelloOptions& hlopts=*HelloOptions::make(0);
 	unique_ptr<void> just_for_auto_delete(&hlopts);
 	req.ask(prot::CMD_HELLO,&hlopts,hlopts.size(),NULL,0);
@@ -54,7 +52,7 @@ void hello(prot::Requester& req,Graph& g,RWLock& glk){
 	}
 	//g.merge_shard_table((ShardTable*)req.get_data());
 	auto ptr2mf=&Graph::merge_shard_table;
-	mfsyncw<void>(glk,g,ptr2mf,req.get_data());
+	mfsyncw<void>(glk,g,ptr2mf,req.get_data(),localip);
 	
 }
 void notify(ZMQSockMap& datasocks){
@@ -158,8 +156,12 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 	wrtopts.shrink(1);
 	//write to next datanode,if it's not last write operation.
 	if (wrtopts){
+		uint32_t nextip=wrtopts[-1];
+		log_i("nextip=%s",ip2string(nextip).c_str());
+		log_i("datasocks.count(%d)=%d",nextip,datasocks.count(nextip));
 		prot::Requester req(*datasocks[wrtopts[-1]].get());
-		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),req.get_data(),sizeof(Block));
+		//pipeline writing
+		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),data,sizeof(Block));
 		req.parse_ans();
 		if (unlikely(req.get_status()!=prot::STATUS_OK)){
 			throw_nynn_exception(0,"can't write to next datanode");
@@ -228,7 +230,7 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 	//vtx non-exists in local cache,request data from remote host
 	}else{
 		prot::Requester req(*datasocks[targetip].get());
-		req.ask(prot::CMD_READ,&rdopts,sizeof(rdopts),NULL,0);
+		req.ask(prot::CMD_READ,&rdopts,rdopts.size(),NULL,0);
 		req.parse_ans();
 		//successfully
 		if (likely(req.get_status()==prot::STATUS_OK)){

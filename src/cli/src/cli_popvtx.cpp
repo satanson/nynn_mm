@@ -11,7 +11,7 @@ using namespace nynn::mm;
 int main(int argc,char**argv){
 	string text_ip=argv[1];
 	string text_port=argv[2];
-	uint32_t vtxno=parse_int(argv[3],~0ul);
+	uint32_t vtxno=parse_int(argv[3],~0u);
 
 	zmq::context_t ctx;
 	zmq::socket_t sock(ctx,ZMQ_REQ);

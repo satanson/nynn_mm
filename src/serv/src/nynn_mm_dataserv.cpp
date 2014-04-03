@@ -78,7 +78,7 @@ void* worker(void*args)
 		if (hosts[i]==localhost)continue;
 		uint32_t ip=host2ip(hosts[i]);
 		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(data_port);
-		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REP));
+		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
 		datasocks[ip]->connect(data_endpoint.c_str());
 	}
 
@@ -158,6 +158,7 @@ void* talker(void* args)
 	ev.events=EPOLLIN;
 	epoll_ctl(efd,EPOLL_CTL_ADD,tfd,&ev);
 	char buff[sizeof(struct signalfd_siginfo)];
+	uint32_t localip=get_ip();
 	
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
@@ -166,7 +167,7 @@ void* talker(void* args)
 		for(int i=0;i<2;i++){
 			if(ready_events[i].events&EPOLLIN){
 				read(ready_events[i].data.fd,buff,sizeof(buff));
-				hello(req,*graph.get(),glock);
+				hello(req,*graph.get(),glock,localip);
 				//auto p2hello=hello;
 				//syncw<void>(glock,p2hello,req,*graph.get());
 			}
@@ -188,7 +189,7 @@ int main(){
 	add_signal_handler(SIGINT,SIG_IGN);
 	add_signal_handler(SIGABRT,SIG_IGN);
 	thread_key_t create(&flag_key,NULL);
-	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR")));
+	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR"),get_ip()));
 	//creating switcher,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
