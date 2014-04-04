@@ -1,0 +1,32 @@
+time elapse:9.158s
+nbytes:5120000B
+concurrency:1091.94
+throughput:0.533175 MB/s
+time elapse:9.168s
+nbytes:5120000B
+concurrency:1090.75
+throughput:0.532593 MB/s
+time elapse:10.102s
+nbytes:5120000B
+concurrency:989.903
+throughput:0.483351 MB/s
+time elapse:10.214s
+nbytes:5120000B
+concurrency:979.048
+throughput:0.478051 MB/s
+time elapse:10.325s
+nbytes:5120000B
+concurrency:968.523
+throughput:0.472912 MB/s
+time elapse:10.346s
+nbytes:5120000B
+concurrency:966.557
+throughput:0.471952 MB/s
+time elapse:10.489s
+nbytes:5120000B
+concurrency:953.38
+throughput:0.465517 MB/s
+time elapse:10.586s
+nbytes:5120000B
+concurrency:944.644
+throughput:0.461252 MB/s

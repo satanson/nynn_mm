@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+%a=();
+%b=();
+while(<>){
+	chomp;
+	if (/^([\w\s]+):\D*((\d+\.)?\d+)\D*$/) {
+		$a{$1}+=$2;
+		$b{$1}++;
+	}
+}
+foreach $k (keys %a ){
+	$a{$k}/=$b{$k}+0.0;
+}
+
+print join "\n",map {"$_:$a{$_}"} keys %a,"\n";

@@ -101,6 +101,9 @@ int main(){
 	uint32_t hwm=parse_int(getenv("NYNN_MM_DATASERV_HWM"),2000);
 	uint32_t buffsz=parse_int(getenv("NYNN_MM_DATASERV_BUFFSZ"),1<<16);
 	uint64_t affinity=parse_int(getenv("NYNN_MM_DATASERV_AFFINITY"),0);
+	log_i("hwm=%d",hwm);
+	log_i("buffsz=%d",buffsz);
+	log_i("affinity=%d",affinity);
 	
 	ZMQSockArray gathers(new ZMQSock[port_range_min]);
 	ZMQSockArray scatters(new ZMQSock[port_range_min]);
