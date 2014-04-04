@@ -100,7 +100,7 @@ int main(){
 	uint32_t port_range_num=port_range_max-port_range_min;
 	uint32_t hwm=parse_int(getenv("NYNN_MM_DATASERV_HWM"),2000);
 	uint32_t buffsz=parse_int(getenv("NYNN_MM_DATASERV_BUFFSZ"),1<<16);
-	uint32_t affinity=parse_int(getenv("NYNN_MM_DATASERV_AFFINITY"),0);
+	uint64_t affinity=parse_int(getenv("NYNN_MM_DATASERV_AFFINITY"),0);
 	
 	ZMQSockArray gathers(new ZMQSock[port_range_min]);
 	ZMQSockArray scatters(new ZMQSock[port_range_min]);
