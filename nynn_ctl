@@ -25,7 +25,7 @@ function handout(){
 #repo_host->github
 function sync_github(){
 	pushd ${project_root}
-	git branch -d blade
+	#git branch -d blade
 	git checkout -b blade
 	git push github blade
 	git checkout master
