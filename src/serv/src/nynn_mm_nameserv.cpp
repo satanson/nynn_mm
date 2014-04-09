@@ -163,9 +163,10 @@ int main(){
 	log_i("buf=%d",buf);
 	log_i("affinity=%d",affinity);
 	
-	ZMQSockArray gathers(new ZMQSock[port_range_min]);
-	ZMQSockArray scatters(new ZMQSock[port_range_min]);
+	ZMQSockArray gathers(new ZMQSock[port_range_num]);
+	ZMQSockArray scatters(new ZMQSock[port_range_num]);
 	ThreadArray switcher_thds(new unique_ptr<thread_t>[port_range_num]);
+	unique_ptr<X[]> xs(new X[port_range_num]);
 
 	for( uint32_t i=0;i<port_range_num;i++){
 		uint32_t port=port_range_min+i;
@@ -188,8 +189,9 @@ int main(){
 		//scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
 		//scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
 		//scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
-		X x={gathers[i].get(),scatters[i].get()};
-		switcher_thds[i].reset(new thread_t(switcher,&x));
+		xs[i].frontend=gathers[i].get();
+		xs[i].backend=scatters[i].get();	
+		switcher_thds[i].reset(new thread_t(switcher,&xs[i]));
 		switcher_thds[i]->start();
 	}
 	log_i("create %d switcher for serv port from %d to %d",port_range_num,port_range_min,port_range_max);

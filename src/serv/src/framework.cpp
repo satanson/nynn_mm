@@ -105,8 +105,8 @@ int main(){
 	log_i("buffsz=%d",buffsz);
 	log_i("affinity=%d",affinity);
 	
-	ZMQSockArray gathers(new ZMQSock[port_range_min]);
-	ZMQSockArray scatters(new ZMQSock[port_range_min]);
+	ZMQSockArray gathers(new ZMQSock[port_range_num]);
+	ZMQSockArray scatters(new ZMQSock[port_range_num]);
 	ThreadArray switcher_thds(new unique_ptr<thread_t>[port_range_num]);
 
 	for( uint32_t i=0;i<port_range_num;i++){
