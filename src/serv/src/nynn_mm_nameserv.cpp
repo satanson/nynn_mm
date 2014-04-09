@@ -87,9 +87,9 @@ void* worker(void*args)
 	for (int i=0;i<hosts.size();i++){
 		uint32_t ip=host2ip(hosts[i]);
 		uint32_t port=rand_range(data_port_range_min,data_port_range_max);
-		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(port);
+		string endpoint="tcp://"+ip2string(ip)+":"+to_string(port);
 		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
-		datasocks[ip]->connect(data_endpoint.c_str());
+		datasocks[ip]->connect(endpoint.c_str());
 	}
 
 	pthread_setspecific(flag_key,(void*)1);
@@ -101,6 +101,7 @@ void* worker(void*args)
 			if (items[i].revents&ZMQ_POLLIN){
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
+				log_i("comes a req,cmd=%d",get_cmd());
 				switch(rep.get_cmd()){
 				case prot::CMD_SUBMIT:{
 					handle_submit(rep,*graphtable.get(),gtlock);
@@ -174,19 +175,19 @@ int main(){
 		log_i("switcher%d:scatter:%s",i,scatter_endpoint.c_str());
 		gathers[i].reset(new zmq::socket_t(ctx,ZMQ_ROUTER));
 		gathers[i]->bind(gather_endpoint.c_str());
-		gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
-		gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
-		gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
-		gathers[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
-		gathers[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+		//gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		//gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		//gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		//gathers[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		//gathers[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
 		
 		scatters[i].reset(new zmq::socket_t(ctx,ZMQ_DEALER));
 		scatters[i]->bind(scatter_endpoint.c_str());
-		scatters[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
-		scatters[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
-		scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
-		scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
-		scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+		//scatters[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		//scatters[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		//scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		//scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		//scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
 		X x={gathers[i].get(),scatters[i].get()};
 		switcher_thds[i].reset(new thread_t(switcher,&x));
 		switcher_thds[i]->start();
