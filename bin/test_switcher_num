@@ -1,0 +1,8 @@
+#!/bin/bash
+for log2_work_num in {3..11};do
+	work_num=$((2**$log2_work_num));
+	echo "--work_num=$work_num--------------------------"
+	./test_framework $work_num $1 10000 192.168.255.115 2>/dev/null |./util1 
+	echo "----------------------------------------------"
+	echo 
+done 
