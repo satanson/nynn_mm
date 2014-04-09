@@ -25,6 +25,7 @@ function handout(){
 #repo_host->github
 function sync_github(){
 	pushd ${project_root}
+	git branch -d branch
 	git push github master
 	popd
 }
