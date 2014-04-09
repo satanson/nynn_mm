@@ -165,7 +165,7 @@ int main(){
 	for (int i=0;i<worker_num;i++){worker_thds[i]->join();}
 	log_i("all workers are shutdown");
 	
-	//shutdown switcher gracefully.
+	//shutdown switchers gracefully.
 	for (int i=0;i<port_range_num;i++){
 		gathers[i]->close();
 		scatters[i]->close();

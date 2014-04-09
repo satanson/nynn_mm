@@ -7,6 +7,10 @@
 using namespace std;
 using namespace nynn;
 
+typedef unique_ptr<zmq::socket_t> ZMQSock;
+typedef unique_ptr<ZMQSock[]> ZMQSockArray;
+typedef unique_ptr<unique_ptr<thread_t>[]> ThreadArray;
+
 static unique_ptr<Graph> graph;
 static RWLock glock;
 static pthread_t talkerid;
@@ -56,14 +60,17 @@ void* worker(void*args)
 	{
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	int socket_num=parse_int(getenv("NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER"),10);
-	unique_ptr<unique_ptr<zmq::socket_t>[]> sockets;
-	sockets.reset(new unique_ptr<zmq::socket_t>[socket_num]);
-	unique_ptr<zmq::pollitem_t[]> items;
-	items.reset(new zmq::pollitem_t[socket_num]);
+	ZMQSockArray sockets(new ZMQSock[socket_num]);
+	unique_ptr<zmq::pollitem_t[]> items(new zmq::pollitem_t[socket_num]);
 
+	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),60000);
+	uint32_t port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),60008);
 	for (int i=0;i<socket_num;i++){
 		sockets[i].reset(new zmq::socket_t(ctx,ZMQ_REP));
-		sockets[i]->connect("inproc://dispatcher.inproc");
+		string suffix=to_string(rand_range(port_range_min,port_range_max));
+		string endpoint=("inproc://scatter.")+suffix;
+		log_i("worker:%s",endpoint.c_str());
+		sockets[i]->connect(endpoint.c_str());
 		items[i].socket=(void*)*sockets[i].get();
 		items[i].events=ZMQ_POLLIN|ZMQ_POLLERR;
 	}
@@ -73,11 +80,14 @@ void* worker(void*args)
 	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
-	uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),40001);
+	//uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),50000);
+	uint32_t data_port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
+	uint32_t data_port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50008);
 	for (int i=0;i<hosts.size();i++){
 		if (hosts[i]==localhost)continue;
 		uint32_t ip=host2ip(hosts[i]);
-		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(data_port);
+		uint32_t port=rand_range(data_port_range_min,data_port_range_max);
+		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(port);
 		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
 		datasocks[ip]->connect(data_endpoint.c_str());
 	}
@@ -131,7 +141,9 @@ void* talker(void* args)
 	zmq::context_t& ctx=*(zmq::context_t*)args;
 	zmq::socket_t namesock(ctx,ZMQ_REQ);
 	uint32_t name_node=host2ip(getenv("NYNN_MM_NAMESERV_HOST"));
-	uint16_t name_port=parse_int(getenv("NYNN_MM_NAMESERV_PORT"),40002);
+	uint32_t name_port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),60000);
+	uint32_t name_port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),60008);
+	uint32_t name_port=rand_range(name_port_range_min,name_port_range_max);
 	string name_endpoint=string("tcp://")+ip2string(name_node)+":"+to_string(name_port);
 	namesock.connect(name_endpoint.c_str());
 	prot::Requester req(namesock);
@@ -192,6 +204,51 @@ int main(){
 	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR"),get_ip()));
 	//creating switcher,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
+	zmq_ctx_set(ctx,ZMQ_IO_THREADS,16);
+	zmq_ctx_set(ctx,ZMQ_MAX_SOCKETS,4096);
+
+	uint32_t port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
+	uint32_t port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50008);
+	uint32_t port_range_num=port_range_max-port_range_min;
+	uint32_t hwm=parse_int(getenv("NYNN_MM_DATASERV_HWM"),1<<11);
+	uint32_t buf=parse_int(getenv("NYNN_MM_DATASERV_BUF"),1<<16);
+	uint64_t affinity=parse_int(getenv("NYNN_MM_DATASERV_AFFINITY"),(1<<2)-1);
+
+	log_i("hwm=%d",hwm);
+	log_i("buf=%d",buf);
+	log_i("affinity=%d",affinity);
+	
+	ZMQSockArray gathers(new ZMQSock[port_range_min]);
+	ZMQSockArray scatters(new ZMQSock[port_range_min]);
+	ThreadArray switcher_thds(new unique_ptr<thread_t>[port_range_num]);
+
+	for( uint32_t i=0;i<port_range_num;i++){
+		uint32_t port=port_range_min+i;
+		string gather_endpoint=string("tcp://")+ip2string(get_ip())+":"+to_string(port);
+		string scatter_endpoint=string("inproc://scatter.")+to_string(port);
+		log_i("switcher%d:gather:%s",i,gather_endpoint.c_str());
+		log_i("switcher%d:scatter:%s",i,scatter_endpoint.c_str());
+		gathers[i].reset(new zmq::socket_t(ctx,ZMQ_ROUTER));
+		gathers[i]->bind(gather_endpoint.c_str());
+		gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		gathers[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		gathers[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+		
+		scatters[i].reset(new zmq::socket_t(ctx,ZMQ_DEALER));
+		scatters[i]->bind(scatter_endpoint.c_str());
+		scatters[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		scatters[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+		X x={gathers[i].get(),scatters[i].get()};
+		switcher_thds[i].reset(new thread_t(switcher,&x));
+		switcher_thds[i]->start();
+	}
+	log_i("create %d switcher for serv port from %d to %d",port_range_num,port_range_min,port_range_max);
+#if 0
 	zmq::socket_t collector(ctx,ZMQ_ROUTER);
 	zmq::socket_t dispatcher(ctx,ZMQ_DEALER);
 	
@@ -205,7 +262,7 @@ int main(){
 	X x={&collector,&dispatcher};
 	thread_t switcher_thd(switcher,&x);
 	switcher_thd.start();
-
+#endif 
 	//create worker_thds
 	uint32_t workerNum=parse_int(getenv("NYNN_MM_DATASERV_WORKER_NUM"),3);
 	unique_ptr<thread_t> *worker_thds=new unique_ptr<thread_t>[workerNum];
@@ -239,6 +296,23 @@ int main(){
 	for (int i=0;i<workerNum;i++){worker_thds[i]->join();}
 	log_i("all worker_thds are shutdown");
 	
+	//shutdown switchers gracefully.
+	for (int i=0;i<port_range_num;i++){
+		gathers[i]->close();
+		scatters[i]->close();
+	}
+	nanosleep_for(5000);
+	for (int i=0;i<port_range_num;i++){
+		if (switcher_thds[i]->is_alive())switcher_thds[i]->kill(SIGTERM);
+	}
+	nanosleep_for(5000);
+	for (int i=0;i<port_range_num;i++){
+		if (switcher_thds[i]->is_alive())switcher_thds[i]->stop();
+		switcher_thds[i]->join();
+	}
+	log_i("are switchers are shutdown");
+
+#if 0	
 	//shutdown switcher gracefully.
 	collector.close();
 	dispatcher.close();
@@ -253,4 +327,5 @@ int main(){
 	nanosleep_for(5000);
 	if (talker_thd.is_alive())talker_thd.stop();
 	talker_thd.join();
+#endif
 }
