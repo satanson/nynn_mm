@@ -66,8 +66,8 @@ void* worker(void*args)
 	ZMQSockArray sockets(new ZMQSock[socket_num]);
 	unique_ptr<zmq::pollitem_t[]> items(new zmq::pollitem_t[socket_num]);
 
-	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),60000);
-	uint32_t port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),60008);
+	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),50000);
+	uint32_t port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),50008);
 	for (int i=0;i<socket_num;i++){
 		sockets[i].reset(new zmq::socket_t(ctx,ZMQ_REP));
 		string suffix=to_string(rand_range(port_range_min,port_range_max));
@@ -82,8 +82,8 @@ void* worker(void*args)
 	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
-	uint32_t data_port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
-	uint32_t data_port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50008);
+	uint32_t data_port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),60000);
+	uint32_t data_port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),60008);
 	for (int i=0;i<hosts.size();i++){
 		uint32_t ip=host2ip(hosts[i]);
 		uint32_t port=rand_range(data_port_range_min,data_port_range_max);
