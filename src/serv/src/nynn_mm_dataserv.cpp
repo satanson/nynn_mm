@@ -79,18 +79,17 @@ void* worker(void*args)
 	ZMQSockMap datasocks;
 	istringstream iss(getenv("NYNN_MM_DATASERV_HOST_LIST"));
 	vector<string> hosts=get_a_line_of_words(iss);
-	string localhost=get_host();
+	uint32_t localip=get_ip();
 	//uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),50000);
 	for (int i=0;i<hosts.size();i++){
-		if (hosts[i]==localhost)continue;
 		uint32_t ip=host2ip(hosts[i]);
+		if (ip==localip)continue;
 		uint32_t port=rand_range(data_port_range_min,data_port_range_max);
 		string data_endpoint="tcp://"+ip2string(ip)+":"+to_string(port);
 		datasocks[ip].reset(new zmq::socket_t(ctx,ZMQ_REQ));
 		datasocks[ip]->connect(data_endpoint.c_str());
 	}
 
-	uint32_t localip=get_ip();
 	pthread_setspecific(flag_key,(void*)1);
 	int flag=1;
 	while(flag){
