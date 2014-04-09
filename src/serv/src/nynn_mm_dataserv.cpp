@@ -63,11 +63,11 @@ void* worker(void*args)
 	ZMQSockArray sockets(new ZMQSock[socket_num]);
 	unique_ptr<zmq::pollitem_t[]> items(new zmq::pollitem_t[socket_num]);
 
-	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),60000);
-	uint32_t port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),60008);
+	uint32_t data_port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),60000);
+	uint32_t data_port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),60008);
 	for (int i=0;i<socket_num;i++){
 		sockets[i].reset(new zmq::socket_t(ctx,ZMQ_REP));
-		string suffix=to_string(rand_range(port_range_min,port_range_max));
+		string suffix=to_string(rand_range(data_port_range_min,data_port_range_max));
 		string endpoint=("inproc://scatter.")+suffix;
 		log_i("worker:%s",endpoint.c_str());
 		sockets[i]->connect(endpoint.c_str());
@@ -81,8 +81,6 @@ void* worker(void*args)
 	vector<string> hosts=get_a_line_of_words(iss);
 	string localhost=get_host();
 	//uint32_t data_port=parse_int(getenv("NYNN_MM_DATASERV_PORT"),50000);
-	uint32_t data_port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
-	uint32_t data_port_range_max=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MAX"),50008);
 	for (int i=0;i<hosts.size();i++){
 		if (hosts[i]==localhost)continue;
 		uint32_t ip=host2ip(hosts[i]);
@@ -218,9 +216,10 @@ int main(){
 	log_i("buf=%d",buf);
 	log_i("affinity=%d",affinity);
 	
-	ZMQSockArray gathers(new ZMQSock[port_range_min]);
-	ZMQSockArray scatters(new ZMQSock[port_range_min]);
+	ZMQSockArray gathers(new ZMQSock[port_range_num]);
+	ZMQSockArray scatters(new ZMQSock[port_range_num]);
 	ThreadArray switcher_thds(new unique_ptr<thread_t>[port_range_num]);
+	unique_ptr<X[]> xs(new X[port_range_num]);
 
 	for( uint32_t i=0;i<port_range_num;i++){
 		uint32_t port=port_range_min+i;
@@ -230,21 +229,23 @@ int main(){
 		log_i("switcher%d:scatter:%s",i,scatter_endpoint.c_str());
 		gathers[i].reset(new zmq::socket_t(ctx,ZMQ_ROUTER));
 		gathers[i]->bind(gather_endpoint.c_str());
-		gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
-		gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
-		gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
-		gathers[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
-		gathers[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+		//gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		//gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		//gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		//gathers[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		//gathers[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
 		
 		scatters[i].reset(new zmq::socket_t(ctx,ZMQ_DEALER));
 		scatters[i]->bind(scatter_endpoint.c_str());
-		scatters[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
-		scatters[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
-		scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
-		scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
-		scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
-		X x={gathers[i].get(),scatters[i].get()};
-		switcher_thds[i].reset(new thread_t(switcher,&x));
+		//scatters[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
+		//scatters[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
+		//scatters[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
+		//scatters[i]->setsockopt(ZMQ_RCVBUF,&buf,sizeof(buf));
+		//scatters[i]->setsockopt(ZMQ_AFFINITY,&affinity,sizeof(affinity));
+
+		xs[i].frontend=gathers[i].get();
+		xs[i].backend=scatters[i].get();	
+		switcher_thds[i].reset(new thread_t(switcher,&xs[i]));
 		switcher_thds[i]->start();
 	}
 	log_i("create %d switcher for serv port from %d to %d",port_range_num,port_range_min,port_range_max);

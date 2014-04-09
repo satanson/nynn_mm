@@ -66,11 +66,11 @@ void* worker(void*args)
 	ZMQSockArray sockets(new ZMQSock[socket_num]);
 	unique_ptr<zmq::pollitem_t[]> items(new zmq::pollitem_t[socket_num]);
 
-	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),50000);
-	uint32_t port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),50008);
+	uint32_t name_port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),50000);
+	uint32_t name_port_range_max=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MAX"),50008);
 	for (int i=0;i<socket_num;i++){
 		sockets[i].reset(new zmq::socket_t(ctx,ZMQ_REP));
-		string suffix=to_string(rand_range(port_range_min,port_range_max));
+		string suffix=to_string(rand_range(name_port_range_min,name_port_range_max));
 		string endpoint=("inproc://scatter.")+suffix;
 		log_i("worker:%s",endpoint.c_str());
 		sockets[i]->connect(endpoint.c_str());
