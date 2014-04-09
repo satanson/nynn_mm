@@ -223,21 +223,18 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 		rep.ans(prot::STATUS_ERR,NULL,0);
 		return;
 	}
-#if 0
 	//vtx has been pre-cached in local cache,look up cache first
 	if (g.read_cache(vtxno,blkno,&blk)){
 		rep.ans(prot::STATUS_OK,&blk,sizeof(Block));
 		return;
 	//vtx non-exists in local cache,request data from remote host
-	}
-#endif
-	else{
+	}else{
 		prot::Requester req(*datasocks[targetip].get());
 		req.ask(prot::CMD_READ,&rdopts,rdopts.size(),NULL,0);
 		req.parse_ans();
 		//successfully
 		if (likely(req.get_status()==prot::STATUS_OK)){
-			//g.write_cache(rdopts->vtxno,rdopts->blkno,&blk);
+			g.write_cache(rdopts->vtxno,rdopts->blkno,req.get_data());
 			rep.ans(prot::STATUS_OK,req.get_data(),sizeof(Block));
 			return;
 		//failed to fetch data from remote host
