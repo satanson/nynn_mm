@@ -101,7 +101,7 @@ void* worker(void*args)
 			if (items[i].revents&ZMQ_POLLIN){
 				prot::Replier rep(*sockets[i].get());
 				rep.parse_ask();
-				log_i("comes a req,cmd=%d",rep.get_cmd());
+				//log_i("comes a req,cmd=%d",rep.get_cmd());
 				switch(rep.get_cmd()){
 				case prot::CMD_SUBMIT:{
 					handle_submit(rep,*graphtable.get(),gtlock);
