@@ -1,32 +1,48 @@
-time elapse:9.158s
-nbytes:5120000B
-concurrency:1091.94
-throughput:0.533175 MB/s
-time elapse:9.168s
-nbytes:5120000B
-concurrency:1090.75
-throughput:0.532593 MB/s
-time elapse:10.102s
-nbytes:5120000B
-concurrency:989.903
-throughput:0.483351 MB/s
-time elapse:10.214s
-nbytes:5120000B
-concurrency:979.048
-throughput:0.478051 MB/s
-time elapse:10.325s
-nbytes:5120000B
-concurrency:968.523
-throughput:0.472912 MB/s
-time elapse:10.346s
-nbytes:5120000B
-concurrency:966.557
-throughput:0.471952 MB/s
-time elapse:10.489s
-nbytes:5120000B
-concurrency:953.38
-throughput:0.465517 MB/s
-time elapse:10.586s
-nbytes:5120000B
-concurrency:944.644
-throughput:0.461252 MB/s
+tbegin:4945879.602301
+tend:4945887.700756
+t:8.098454
+nbytes:8388608
+ave_concurrency:2023.102071
+ave_throughput:0.987843
+tbegin:4945879.600525
+tend:4945887.851498
+t:8.250974
+nbytes:8388608
+ave_concurrency:1985.705067
+ave_throughput:0.969583
+tbegin:4945879.601072
+tend:4945887.935675
+t:8.334603
+nbytes:8388608
+ave_concurrency:1965.780467
+ave_throughput:0.959854
+tbegin:4945879.602813
+tend:4945887.990859
+t:8.388046
+nbytes:8388608
+ave_concurrency:1953.255965
+ave_throughput:0.953738
+tbegin:4945879.602091
+tend:4945888.000818
+t:8.398727
+nbytes:8388608
+ave_concurrency:1950.771754
+ave_throughput:0.952525
+tbegin:4945879.601596
+tend:4945888.019631
+t:8.418035
+nbytes:8388608
+ave_concurrency:1946.297516
+ave_throughput:0.950341
+tbegin:4945879.601402
+tend:4945888.210081
+t:8.608679
+nbytes:8388608
+ave_concurrency:1903.195630
+ave_throughput:0.929295
+tbegin:4945879.602559
+tend:4945888.456233
+t:8.853674
+nbytes:8388608
+ave_concurrency:1850.531285
+ave_throughput:0.903580

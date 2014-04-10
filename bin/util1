@@ -1,15 +1,23 @@
 #!/usr/bin/perl
-%a=();
-%b=();
+use List::Util qw(sum max min);
+my %input=();
+my %output=();
 while(<>){
 	chomp;
-	if (/^([\w\s]+):\D*((\d+\.)?\d+)\D*$/) {
-		$a{$1}+=$2;
-		$b{$1}++;
+	if (/^([\w]+):\D*((\d+\.)?\d+)\D*$/) {
+		push @{$input{$1}}, $2
 	}
 }
-foreach $k (keys %a ){
-	$a{$k}/=$b{$k}+0.0;
-}
+@ave_concurrency_array=@{$input{ave_concurrency}};
+@ave_throughput_array=@{$input{ave_throughput_array}};
+@concurrency_array=@{$input{concurrency}};
+@throughput_array=@{$input{throughput}};
+@tbegin_array=@{$input{tbegin}};
+@tend_array=@{$input{tend}};
 
-print join "\n",map {"$_:$a{$_}"} keys %a,"\n";
+$output{ave_concurrency}=sum @ave_concurrency_array/@ave_concurrency_array;
+$output{ave_throughput}=sum @ave_throughput_array/@ave_throughput_array;
+$output{total_concurrency}=sum @concurrency_array/(max @tend_array - min @tbegin_array);
+$output{total_throughput}=sum @throughput_array/(max @tend_array - min @tbegin_array);
+
+print join " ",map {"$_:$output{$_}\n"} keys %output,"\n";

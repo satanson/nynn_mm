@@ -66,6 +66,8 @@ int main(int argc,char**argv)
 	cout<<"tend:"<<tend<<endl;
 	cout<<"t:"<<t<<endl;
 	cout<<"nbytes:"<<nbytes<<endl;
+	cout<<"concurrency:"<<concurrency<<endl;
+	cout<<"throughput:"<<nbytes/1024.0/1024.0<<endl;
 	cout<<"ave_concurrency:"<<concurrency/t<<endl;
 	cout<<"ave_throughput:"<<nbytes/t/1024.0/1024.0<<endl;
 }
