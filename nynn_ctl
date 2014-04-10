@@ -58,9 +58,9 @@ function nynn_run(){
 
 	if [ -f $absbin ]
 	then
-		. `dirname $absbin`/nynn_mm_env
-		echo ${absbin} $@
-		${absbin}  $@
+		. `dirname $absbin`/nynn_mm_env $@
+		echo ${absbin}
+		${absbin} 
 	else
 		echo "$absbin not exists!"
 	fi
