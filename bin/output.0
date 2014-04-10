@@ -1,0 +1,9 @@
+tbegin:4948911.597819
+tend:4948921.076681
+t:9.478862
+nbytes:8388608
+concurrency:16384
+throughput:8.000000
+ave_concurrency:1728.477571
+ave_throughput:0.843983
+DONE
