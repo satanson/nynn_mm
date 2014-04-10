@@ -61,6 +61,7 @@ int main(int argc,char**argv)
 	tbegin=begin_ts.tv_sec+begin_ts.tv_nsec/1.0e9;
 	tend=end_ts.tv_sec+end_ts.tv_nsec/1.0e9;
 	t=tend-tbegin;
+	cout.setf(ios::fixed);
 	cout<<"tbegin:"<<tbegin<<endl;
 	cout<<"tend:"<<tend<<endl;
 	cout<<"t:"<<t<<endl;
