@@ -46,7 +46,7 @@ int main(int argc,char**argv)
 
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
-	clock_gettime(CLOCK_REALTIME,&begin_ts);
+	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 	for (int i=0;i<loop;i++)
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
 		uint32_t blkno=firstblkno;
@@ -57,7 +57,7 @@ int main(int argc,char**argv)
 			nbytes+=sizeof(Block);
 		}
 	}
-	clock_gettime(CLOCK_REALTIME,&end_ts);
+	clock_gettime(CLOCK_MONOTONIC,&end_ts);
 	tbegin=begin_ts.tv_sec+begin_ts.tv_nsec/1.0e9;
 	tend=end_ts.tv_sec+end_ts.tv_nsec/1.0e9;
 	t=tend-tbegin;
