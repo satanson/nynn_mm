@@ -11,4 +11,5 @@ for i in `eval "echo {${log2_cli_num_min}..${log2_cli_num_max}}"`;do
 done
 wait
 ./quadtuples output
+rm -fr output*
 echo DONE
