@@ -3,7 +3,11 @@ ifdef dbg
 DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
 endif
 
-CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG)
+ifdef read_without_abuse_copys 
+READ_WITHOUT_ABUSE_COPYS:=-DREAD_WITHOUT_ABUSE_COPYS
+endif
+
+CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
 
 SRC = sg_write.cpp sg_read.cpp sg_readvtx.cpp
 		  

@@ -213,7 +213,7 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 
 	if (likely(targetip==localip)){
 		if (likely(retblk!=NULL)){
-			rep.ans(prot::STATUS_OK,&blk,sizeof(Block));
+			rep.ans(prot::STATUS_OK,retblk,sizeof(Block));
 			return;
 		}else{
 			rep.ans(prot::STATUS_ERR,NULL,0);

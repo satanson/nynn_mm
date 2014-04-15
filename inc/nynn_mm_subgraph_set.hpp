@@ -209,7 +209,8 @@ public:
 		}
 		Block *retblk=getSubgraph(vtxno)->readBlock(blkno,blk);
 		if (unlikely(retblk!=NULL && vtxno!=retblk->getHeader()->getSource())){
-			throw_nynn_exception(0,"specified block not belongs to specified vtx");
+			log_w("specified block not belongs to specified vtx");
+			return NULL;
 		}else{
 			return retblk;
 		}

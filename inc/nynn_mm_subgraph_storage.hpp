@@ -238,16 +238,39 @@ public:
 
 	Block* readBlock(uint32_t blkno,Block*blk)
 	{
+#ifndef READ_WITHOUT_ABUSE_COPYS
 		if (unlikely(blkno==INVALID_BLOCKNO))return NULL;
 		SharedSynchronization ss(&m_superblkRWLock);
 		unique_ptr<Synchronization> s;
 		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
 		Block *srcBlk=getBlock(blkno);
-		if (unlikely(srcBlk==NULL))throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
+		if (unlikely(srcBlk==NULL)){
+			log_w("required block is in overflow, but it not exists!");
+			return NULL;
+		}
 
 		memcpy(blk,srcBlk,sizeof(Block));
 		return blk;
+#else
+		if (unlikely(blkno==INVALID_BLOCKNO))return NULL;
+		SharedSynchronization ss(&m_superblkRWLock);
+		unique_ptr<Synchronization> s;
+		Block *srcBlk=NULL;
+		if (unlikely(isOverflow(blkno))){
+			Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+			Block *srcBlk=getBlock(blkno);
+			if (likely(srcBlk!=NULL)){
+				memcpy(blk,srcBlk,sizeof(Block));
+				return blk;
+			}else{ 
+				log_w("required block is in overflow, but it not exists!");
+				return NULL;
+			}
+		}else{
+			return getBlock(blkno);
+		}
+#endif
 	}
 
 	BlockHeader* readBlockHeader(uint32_t blkno, BlockHeader *header)

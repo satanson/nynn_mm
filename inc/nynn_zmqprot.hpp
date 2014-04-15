@@ -105,17 +105,23 @@ public:
 	size_t get_data_size(){
 		return imsg[ASK_DATA].size();
 	}
-	void ans(uint8_t status,const void* data,size_t size){
+	void ans(uint8_t status,void* data,size_t size){
 		zmq::message_t omsg[ANS_SIZE];	
 		omsg[ANS_STATUS].rebuild(sizeof(uint8_t));
 		*(uint8_t*)omsg[ANS_STATUS].data()=status;
+#ifndef READ_WITHOUT_ABUSE_COPYS
 		omsg[ANS_DATA].rebuild(size);
 		memcpy(omsg[ANS_DATA].data(),data,size);
-
+#else
+		omsg[ANS_DATA].rebuild(data,size,NULL,NULL);
+#endif
 		int i=0;
 		while(i<ANS_SIZE-1)sock.send(omsg[i++],ZMQ_SNDMORE);
 		sock.send(omsg[i],0);
 	}
+	//void ans_begin()
+	//void ans_more()
+	//void ans_end()
 private:
 	zmq::socket_t& sock;
 	zmq::message_t imsg[ASK_SIZE];
