@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+@quad=();
+while(<>){
+	push @quad, $1 if /(\d+\.\d+)/;
+	if (@quad==4){
+		print join ",",@quad;
+		print "\n";
+		@quad=();
+	}
+}
+

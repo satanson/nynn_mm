@@ -1,4 +1,9 @@
 #!/bin/bash
+<<<<<<< HEAD
 for i in `eval "echo {0..$((2**10-1))}"`;do
 	./cli_fillvtx 192.168.1.11 40002 $i push <poet.txt
+=======
+for i in `eval "echo {$1..$((2**$2-1))}"`;do
+	./cli_fillvtx 192.168.255.114 50000 $i push <poet.txt
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 done

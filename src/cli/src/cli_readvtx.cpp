@@ -12,9 +12,15 @@ typedef uint32_t (Block::BlockHeader::*Next)();
 int main(int argc,char**argv){
 	string text_ip=argv[1];
 	string text_port=argv[2];
+<<<<<<< HEAD
 	uint32_t vtxno=parse_int(argv[3],~0ul);
 	string actid=argv[4];
 	assert(vtxno!=~0ul);
+=======
+	uint32_t vtxno=parse_int(argv[3],~0u);
+	string actid=argv[4];
+	assert(vtxno!=~0u);
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 	assert(actid=="pop"||actid=="shift");
 	log_i("vtxno=%u",vtxno);
 	Next next = actid=="pop"?

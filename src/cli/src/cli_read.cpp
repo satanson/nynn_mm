@@ -35,9 +35,14 @@ int main(int argc,char**argv)
 					 :
 					 HEAD_BLOCKNO;
 
+<<<<<<< HEAD
 	struct timeval beg_tv,end_tv;
 	double t;
 	
+=======
+	struct timespec begin_ts,end_ts;
+	double tbegin,tend,t;
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 	Block blk;
 	CharContent *cctt=blk;
 	uint32_t firstblkno = actid=="pop"?
@@ -45,13 +50,20 @@ int main(int argc,char**argv)
 					 :
 					 HEAD_BLOCKNO;
 
+<<<<<<< HEAD
 	gettimeofday(&beg_tv,NULL);
+=======
+	uint64_t concurrency=0;
+	uint64_t nbytes=0;
+	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 	for (int i=0;i<loop;i++)
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
 		uint32_t blkno=firstblkno;
 		while(blkno!=INVALID_BLOCKNO){
 			if(!read(req,vtxno,blkno,&blk))break;
 			blkno=(blk.getHeader()->*next)();
+<<<<<<< HEAD
 		}
 	}
 	gettimeofday(&end_tv,NULL);
@@ -59,4 +71,23 @@ int main(int argc,char**argv)
 	cout<<"write vtxno("<<vtxno_end-vtxno_begin<<"): ["<<vtxno_begin<<","<<vtxno_end<<")"<<endl;
 	cout<<"time usage:"<<t<<"s"<<endl;
 	cout<<"vtxno per second="<<loop*(vtxno_end-vtxno_begin)/t<<endl;
+=======
+			concurrency++;
+			nbytes+=sizeof(Block);
+		}
+	}
+	clock_gettime(CLOCK_MONOTONIC,&end_ts);
+	tbegin=begin_ts.tv_sec+begin_ts.tv_nsec/1.0e9;
+	tend=end_ts.tv_sec+end_ts.tv_nsec/1.0e9;
+	t=tend-tbegin;
+	cout.setf(ios::fixed);
+	cout<<"tbegin:"<<tbegin<<endl;
+	cout<<"tend:"<<tend<<endl;
+	cout<<"t:"<<t<<endl;
+	cout<<"nbytes:"<<nbytes<<endl;
+	cout<<"concurrency:"<<concurrency<<endl;
+	cout<<"throughput:"<<nbytes/1024.0/1024.0<<endl;
+	cout<<"ave_concurrency:"<<concurrency/t<<endl;
+	cout<<"ave_throughput:"<<nbytes/t/1024.0/1024.0<<endl;
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 }

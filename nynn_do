@@ -1,7 +1,7 @@
 #!/bin/bash
-export repo_host="centos1"
-export deploy_hosts="centos1 centos2 centos3"
-export project_root="/root/src/nynn/nynn_mm"
+export repo_host="blade4"
+export deploy_hosts="blade4 blade5 blade7 blade8"
+export project_root="/root/nynn_mm"
 export user="root"
 export data_dir="/root/graph"
 export nynn_ctl="${project_root}/nynn_ctl"

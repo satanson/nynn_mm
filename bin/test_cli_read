@@ -1,0 +1,15 @@
+#!/bin/bash
+log2_cli_num_min=$1
+log2_cli_num_max=$(($2-1))
+for i in `eval "echo {${log2_cli_num_min}..${log2_cli_num_max}}"`;do
+	echo "----------log2_cli_num=$i------------"
+	echo 
+	./concurrency_cli_read $3 $4 $5 0 1024 1 $i 
+	./util1 output.$i.* >>output
+	echo "--------------------------------------"
+	echo
+done
+wait
+./quadtuples output
+rm -fr output*
+echo DONE

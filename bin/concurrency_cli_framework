@@ -1,0 +1,12 @@
+#!/bin/bash
+ip=$1
+port_range_min=$2
+port_range_max=$3
+switcher_num=$(($3-$2))
+loop=$4
+log2_cli_num=$5
+for i in `eval "echo {0..$((2**${log2_cli_num}-1))}"`;do
+	./cli_framework ${ip} $((${port_range_min}+$i%${switcher_num})) ${loop} 1>output.${log2_cli_num}.${i} 2>/dev/null &
+done
+wait
+echo DONE

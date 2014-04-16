@@ -9,10 +9,17 @@ struct Vertex;
 struct Edge;
 template <uint32_t BLOCKSZ> union BlockType;
 
+<<<<<<< HEAD:inc/nynn_mm_types.hpp
 static uint32_t const INVALID_BLOCKNO=~0UL;
 static uint32_t const TAIL_BLOCKNO=INVALID_BLOCKNO-1;
 static uint32_t const HEAD_BLOCKNO=INVALID_BLOCKNO-2;
 static uint32_t const INVALID_VERTEXNO=~0UL;
+=======
+static uint32_t const INVALID_BLOCKNO=~0U;
+static uint32_t const TAIL_BLOCKNO=INVALID_BLOCKNO-1;
+static uint32_t const HEAD_BLOCKNO=INVALID_BLOCKNO-2;
+static uint32_t const INVALID_VERTEXNO=~0U;
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310:inc/nynn_mm_types.hpp
 
 struct Vertex{
 private:

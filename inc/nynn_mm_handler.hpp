@@ -157,8 +157,13 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 	//write to next datanode,if it's not last write operation.
 	if (wrtopts){
 		uint32_t nextip=wrtopts[-1];
+<<<<<<< HEAD
 		log_i("nextip=%s",ip2string(nextip).c_str());
 		log_i("datasocks.count(%d)=%d",nextip,datasocks.count(nextip));
+=======
+		//log_i("nextip=%s",ip2string(nextip).c_str());
+		//log_i("datasocks.count(%d)=%d",nextip,datasocks.count(nextip));
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 		prot::Requester req(*datasocks[wrtopts[-1]].get());
 		//pipeline writing
 		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),data,sizeof(Block));
@@ -234,7 +239,11 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 		req.parse_ans();
 		//successfully
 		if (likely(req.get_status()==prot::STATUS_OK)){
+<<<<<<< HEAD
 			g.write_cache(rdopts->vtxno,rdopts->blkno,&blk);
+=======
+			g.write_cache(rdopts->vtxno,rdopts->blkno,req.get_data());
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 			rep.ans(prot::STATUS_OK,req.get_data(),sizeof(Block));
 			return;
 		//failed to fetch data from remote host

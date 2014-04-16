@@ -1,0 +1,24 @@
+7
+111 112 113
+114 115 116
+117
+
+submit_sgkeys 111 0
+submit_sgkeys 112 0
+submit_sgkeys 113 0
+submit_sgkeys 114 0
+submit_sgkeys 115 0
+submit_sgkeys 116 0
+submit_sgkeys 117 0
+
+create 1
+create 2
+exists 1
+get_shard_table
+destroy 1
+exists 1
+exists 2
+get_replicas_hosts 1
+get_replicas_hosts 2
+get_shard_table
+

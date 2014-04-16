@@ -12,7 +12,11 @@ typedef uint32_t (*Act)(prot::Requester&,uint32_t,uint32_t,Block*);
 int main(int argc,char**argv){
 	string text_ip=argv[1];
 	string text_port=argv[2];
+<<<<<<< HEAD
 	uint32_t vtxno=parse_int(argv[3],~0ul);
+=======
+	uint32_t vtxno=parse_int(argv[3],~0u);
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 	string actid=argv[4];
 	map<string,Act> actMap;
 	actMap["unshift"]=unshift;

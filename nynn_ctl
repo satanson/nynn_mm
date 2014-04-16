@@ -1,11 +1,14 @@
 #!/bin/bash
 #set -x
-export repo_host="centos1"
-export deploy_hosts="centos1 centos2 centos3"
-export project_root="/root/src/nynn/nynn_mm"
+export repo_host="blade4"
+export deploy_hosts="blade4 blade5 blade7 blade8"
+export project_root="/root/nynn_mm"
 export user="root"
 export data_dir="/root/graph"
+<<<<<<< HEAD
 
+=======
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 #deploy host->repo host
 function handin(){
 	pushd ${project_root}
@@ -26,7 +29,11 @@ function handout(){
 #repo_host->github
 function sync_github(){
 	pushd ${project_root}
-	git push github master
+	#git branch -d blade
+	git checkout -b blade
+	git push github blade
+	git checkout master
+	git branch -d blade
 	popd
 }
 
@@ -55,9 +62,15 @@ function nynn_run(){
 
 	if [ -f $absbin ]
 	then
+<<<<<<< HEAD
 		. `dirname $absbin`/nynn_mm_env
 		echo ${absbin} $@
 		${absbin}  $@
+=======
+		. `dirname $absbin`/nynn_mm_env $@
+		echo ${absbin}
+		${absbin} 
+>>>>>>> cef92da064ff2f8989a949b4ef422acc4d7d2310
 	else
 		echo "$absbin not exists!"
 	fi
