@@ -1,7 +1,6 @@
 #!/bin/bash
 
-source /root/nynn_mm/nynn_env
-
+source ./nynn_env
 #deploy host->repo host
 function handin(){
 	host=$1;shift

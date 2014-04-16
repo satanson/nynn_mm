@@ -1,6 +1,6 @@
 #!/bin/bash
 #set -x
-source /root/nynn_mm/nynn_env
+source ./nynn_env
 #deploy host->repo host
 function handin(){
 	pushd ${project_root}

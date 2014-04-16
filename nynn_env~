@@ -1,0 +1,7 @@
+#!/bin/bash
+export repo_host=`hostname`
+export deploy_hosts="centos1 centos2 centos3"
+export project_root=`pwd`
+export user="$USER"
+export data_dir="$HOME/graph"
+export nynn_ctl="${project_root}/nynn_ctl"
