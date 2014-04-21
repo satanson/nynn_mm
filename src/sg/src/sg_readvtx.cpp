@@ -23,8 +23,7 @@ int main(int argc,char**argv)
 		exit(0);
 	}
 
-	Block blk;
-	CharContent *content=blk; 
+	Block blk,*retblk;
 	SubgraphSet sgs(basedir);
 	vector<int32_t> sgkeys(sgs.get_sgkey_num(),0);
 	sgs.get_sgkeys(sgkeys.begin(),sgkeys.end());
@@ -33,8 +32,10 @@ int main(int argc,char**argv)
 	}
 	uint32_t blkno=firstBlkno;
 	while (blkno!=INVALID_BLOCKNO){
-		sgs.read(vtxno,blkno,&blk);
-		blkno=(blk.getHeader()->*next)();
+		retblk=sgs.read(vtxno,blkno,&blk);
+		if (unlikely(retblk==NULL))return 0;
+		CharContent *content=*retblk; 
+		blkno=(retblk->getHeader()->*next)();
 		string  line(content->begin(),content->end());
 		cout<<line<<endl;
 	}

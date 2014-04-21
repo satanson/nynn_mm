@@ -18,6 +18,6 @@ GetOptions(
 	"thdsz=s"=>\$thdsz,
 	"loop=s"=>\$loop,
 ) or die "failed to parse options";
-
 `./cli_read_multithread $ip $port_min $port_max $vtx_beg $vtx_end $thdsz $loop`;
-`./util1 output.*|./quadtuples`
+system "./util1 output.*|./quadtuples";
+system "rm -fr output.*";
