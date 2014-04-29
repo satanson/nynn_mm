@@ -49,7 +49,7 @@ public:
 			m_sloadMap[ip]++;
 			pop_heap(v.begin(),v.end(),loadMore);
 			v.pop_back();
-		}while(ips.size()<m_replicasNum);
+		}while(!v.empty() && ips.size()<m_replicasNum);
 		return ips;
 
 	}
