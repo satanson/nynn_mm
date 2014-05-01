@@ -8,7 +8,7 @@ endif
 
 CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
 
-SRC = cli_fillvtx2.cpp cli_readvtx2.cpp
+SRC = cli_fillvtx2.cpp cli_readvtx2.cpp cli_read2.cpp cli_read_multithread2.cpp
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))

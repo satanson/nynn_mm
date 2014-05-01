@@ -11,48 +11,93 @@ using namespace nynn::mm;
 using namespace std;
 
 namespace nynn{namespace cli{
-class nynn_cli{
+class nynn_ncli{
 public:
-	static uint32_t const firstblkno=HEAD_BLOCKNO;
-	static uint32_t const lastblkno=TAIL_BLOCKNO;
-	nynn_cli(string nhost,uint16_t nport,string dhost,uint16_t dport):
-		_nsock(_ctx,ZMQ_REQ),_dsock(_ctx,ZMQ_REQ),_nreq(_dsock),_dreq(_nsock)
+	nynn_ncli(zmq::context_t& ctx,string const& naddr)
+	try:_ctx(ctx),_nsock(_ctx,ZMQ_REQ),_nreq(_nsock)
+	{
+		string name_endpoint="tcp://"+naddr;
+		_nsock.connect(name_endpoint.c_str());
+	}catch(...){
+		throw_nynn_exception(0,"failed to initializing name server client");
+	}
+
+	nynn_ncli(zmq::context_t& ctx,string nhost,uint16_t nport)
+	try:_ctx(ctx),_nsock(_ctx,ZMQ_REQ),_nreq(_nsock)
 	{
 		string name_endpoint="tcp://"+nhost+":"+to_string(nport);
-		string data_endpoint="tcp://"+dhost+":"+to_string(dport);
 		_nsock.connect(name_endpoint.c_str());
-		_dsock.connect(data_endpoint.c_str());
+	}catch(...){
+		throw_nynn_exception(0,"failed to initializing name server client");
 	}
-	bool read(uint32_t vtxno,uint32_t blkno,Block* blk){
-		return nynn::mm::read(_dreq,vtxno,blkno,blk);
-	}
-	bool readfirst(uint32_t vtxno,Block* blk){
-		return nynn::mm::read(_dreq,vtxno,firstblkno,blk);
-	}
-	bool readlast(uint32_t vtxno,Block* blk){
-		return nynn::mm::read(_dreq,vtxno,lastblkno,blk);
-	}
+	
 	uint32_t unshift(uint32_t vtxno,Block* blk){
+		Synchronization get(&_nlock);
 		return nynn::mm::unshift(_nreq,vtxno,0,blk);
 	}	
 	uint32_t shift(uint32_t vtxno,Block* blk){
+		Synchronization get(&_nlock);
 		return nynn::mm::shift(_nreq,vtxno,0,blk);
 	}	
 	uint32_t push(uint32_t vtxno,Block* blk){
+		Synchronization get(&_nlock);
 		return nynn::mm::push(_nreq,vtxno,0,blk);
 	}	
 	uint32_t pop(uint32_t vtxno,Block* blk){
+		Synchronization get(&_nlock);
 		return nynn::mm::pop(_nreq,vtxno,0,blk);
 	}	
 private:
-	nynn_cli(nynn_cli const& rhs);
-	nynn_cli& operator=(nynn_cli const& rhs);
+	nynn_ncli(nynn_ncli const& rhs);
+	nynn_ncli& operator=(nynn_ncli const& rhs);
 
-	zmq::context_t _ctx;
+	zmq::context_t& _ctx;
 	zmq::socket_t _nsock;
-	zmq::socket_t _dsock;
 	prot::Requester _nreq;
+	Monitor _nlock;
+};
+
+class nynn_dcli{
+public:
+
+	nynn_dcli(zmq::context_t& ctx,string const& daddr)
+	try:_ctx(ctx),_dsock(_ctx,ZMQ_REQ),_dreq(_dsock)
+	{
+		string data_endpoint="tcp://"+daddr;
+		_dsock.connect(data_endpoint.c_str());
+	}catch(...){
+		throw_nynn_exception(0,"failed to initializing data server client");
+	}
+
+	nynn_dcli(zmq::context_t& ctx,string dhost,uint16_t dport)
+	try:_ctx(ctx),_dsock(_ctx,ZMQ_REQ),_dreq(_dsock)
+	{
+		string data_endpoint="tcp://"+dhost+":"+to_string(dport);
+		_dsock.connect(data_endpoint.c_str());
+	}catch(...){
+		throw_nynn_exception(0,"failed to initializing data server client");
+	}
+	
+	bool read(uint32_t vtxno,uint32_t blkno,Block* blk){
+		Synchronization get(&_dlock);
+		return nynn::mm::read(_dreq,vtxno,blkno,blk);
+	}
+	string get_sgsdir(){
+		Synchronization get(&_dlock);
+		return nynn::mm::get_sgsdir(_dreq);
+	}
+	string get_remote(uint32_t vtxno){
+		Synchronization get(&_dlock);
+		return nynn::mm::get_remote(_dreq,vtxno);
+	}
+private:
+	nynn_dcli(nynn_dcli const& rhs);
+	nynn_dcli& operator=(nynn_dcli const& rhs);
+
+	zmq::context_t& _ctx;
+	zmq::socket_t _dsock;
 	prot::Requester _dreq;
+	Monitor _dlock;
 };
 }}
 #endif

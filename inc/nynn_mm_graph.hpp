@@ -98,8 +98,8 @@ public:
 			sbmtopts.shrink(1);
 		}
 	}
-
-
+	
+	SubgraphSet& get_sgs(){return m_subgset;}
 private:
 	Graph(const Graph&);
 	Graph& operator=(const Graph&);

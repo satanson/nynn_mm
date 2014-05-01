@@ -1,20 +1,26 @@
-#include<nynn_cli.hpp>
+#include<nynn_fs.hpp>
+#include<nynn_file.hpp>
 using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
 using namespace nynn::cli;
+typedef uint32_t (nynn_file::*Perform)(Block*);
+typedef map<string,Perform> PerformMap;
 
 int main(int argc,char**argv){
 
-	string nhost=argv[1];
-	uint32_t nport=parse_int(argv[2],~0);
-	string dhost=argv[3];
-	uint32_t dport=parse_int(argv[4],~0);
+	string naddr=argv[1];
+	string daddr=argv[2];
+	uint32_t vtxno=parse_int(argv[3],~0u);
+	string p=argv[4];
 
-	uint32_t vtxno=parse_int(argv[5],~0u);
-	nynn_cli cli(nhost,nport,dhost,dport);
+	PerformMap pmap;
+	pmap["push"]=&nynn_file::push;
+	pmap["unshift"]=&nynn_file::unshift;
+	Perform perform=pmap[p];
 
-	
+	nynn_fs fs(naddr,daddr);
+	nynn_file f(fs,vtxno,true);
 	Block blk;
 	CharContent *cctt=blk;
 	string line;
@@ -22,6 +28,6 @@ int main(int argc,char**argv){
 		if (line.size()>CharContent::CONTENT_CAPACITY)line.resize(CharContent::CONTENT_CAPACITY);
 		cctt->resize(line.size());
 		std::copy(line.begin(),line.end(),cctt->begin());
-		cli.push(vtxno,&blk);
+		(f.*perform)(&blk);
 	}
 }

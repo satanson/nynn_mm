@@ -10,8 +10,8 @@ struct Edge;
 template <uint32_t BLOCKSZ> union BlockType;
 
 static uint32_t const INVALID_BLOCKNO=~0U;
-static uint32_t const TAIL_BLOCKNO=INVALID_BLOCKNO-1;
-static uint32_t const HEAD_BLOCKNO=INVALID_BLOCKNO-2;
+static uint32_t const TAIL_BLOCKNO=~0U-1;
+static uint32_t const HEAD_BLOCKNO=~0u-2;
 static uint32_t const INVALID_VERTEXNO=~0U;
 
 struct Vertex{
@@ -228,6 +228,9 @@ typedef Varied<ReadOptionsFixed,JustPadding> ReadOptions;
 typedef Varied<SubmitOptionsFixed,uint32_t> SubmitOptions;
 typedef Varied<HelloOptionsFixed,JustPadding> HelloOptions;
 typedef Varied<JustPadding,JustPadding> NotifyOptions;
+typedef Varied<JustPadding,JustPadding> NullOptions;
 typedef Varied<JustPadding,STEntry> ShardTable;
+typedef Varied<JustPadding,char> VarString;
+typedef Varied<JustPadding,uint32_t> VtxOptions;
 }}
 #endif

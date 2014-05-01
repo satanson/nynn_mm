@@ -488,6 +488,9 @@ public:
 	}
 	static uint32_t VTXNO2SGKEY(uint32_t vtxno) { return vtxno&~(VERTEX_INTERVAL_WIDTH-1); }
 	static uint32_t VTXNO2RWLOCK(uint32_t vtxno){ return vtxno%VERTEX_RWLOCK_NUM;}
+
+	string get_sgsdir(){return m_subgraphSetBasedir;}
+	bool vtx_exists(uint32_t vtxno){ return exists(VTXNO2SGKEY(vtxno)); }
 private:
 	string m_subgraphSetBasedir;
 	RWLock m_vertexRWLocks[VERTEX_RWLOCK_NUM];

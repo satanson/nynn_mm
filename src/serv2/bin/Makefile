@@ -8,7 +8,7 @@ endif
 
 CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
 
-SRC = nynn_mm_nameserv.cpp nynn_mm_dataserv.cpp framework.cpp
+SRC = nynn_mm_nameserv2.cpp nynn_mm_dataserv2.cpp 
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))

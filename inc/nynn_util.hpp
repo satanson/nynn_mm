@@ -215,6 +215,16 @@ inline char* chop(const char ch,const char *src,char *dest)
 	}
 	return dest;
 }
+inline string rchop(const char ch,const string& src)
+{
+	if (src.size()==0){ return string(); }
+	else { return src.substr(0,src.find_first_of(ch));}
+}
+inline string lchop(const char ch,const string& src){
+	string reverse_src(src.rbegin(),src.rend());
+	string reverse_chopped=rchop(ch,reverse_src);
+	return string(reverse_chopped.rbegin(),reverse_chopped.rend());
+}
 
 inline vector<string> get_a_line_of_words(istream &inputstream)
 {

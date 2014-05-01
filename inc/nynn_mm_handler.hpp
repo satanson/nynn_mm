@@ -244,5 +244,61 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 		}
 	}
 }
+string get_sgsdir(prot::Requester& req){
+	NullOptions& nullopts=*NullOptions::make(0);
+	unique_ptr<void> just_for_auto_delete(&nullopts);
+	req.ask(prot::CMD_GET_SGSDIR,&nullopts,nullopts.size(),NULL,0);
+	req.parse_ans();
+	if (likely(req.get_status()==prot::STATUS_OK)){
+		VarString &vs=*(VarString*)req.get_data();
+		return string(vs.begin(),vs.end());
+	}else{
+		return "";
+	}
+}
+void handle_get_sgsdir(prot::Replier& rep,Graph& g){
+	string sgsdir=g.get_sgs().get_sgsdir();
+	VarString& vs=*VarString::make(sgsdir.size());
+	unique_ptr<void> just_for_auto_delete(&vs);
+	std::copy(sgsdir.begin(),sgsdir.end(),vs.begin());
+	rep.ans(prot::STATUS_OK,&vs,vs.size());
+}
+bool vtx_exists(prot::Requester& req,uint32_t vtxno){
+	req.ask(prot::CMD_VTX_EXISTS,&vtxno,sizeof(uint32_t),NULL,0);
+	req.parse_ans();
+	if (unlikely(req.get_status()==prot::STATUS_OK))return true;
+	else return false;
+}
+void handle_vtx_exists(prot::Replier& rep,Graph& g){
+	uint32_t vtxno=*(uint32_t*)rep.get_options();
+	if (unlikely(g.get_sgs().vtx_exists(vtxno)))rep.ans(prot::STATUS_OK,NULL,0);
+	else rep.ans(prot::STATUS_ERR,NULL,0);
+}
+string get_remote(prot::Requester& req,uint32_t vtxno){
+	VtxOptions vtxopts=*VtxOptions::make(1);
+	unique_ptr<void> just_for_auto_delete(&vtxopts);
+	vtxopts[0]=vtxno;
+
+	req.ask(prot::CMD_GET_REMOTE,&vtxopts,vtxopts.size(),NULL,0);
+	req.parse_ans();
+	if (likely(req.get_status()==prot::STATUS_OK)){
+		VarString &vs=*(VarString*)req.get_data();
+		return string(vs.begin(),vs.end());
+	}else{
+		return "";
+	}
+}
+
+void handle_get_remote(prot::Replier& rep,Graph& g,RWLock& glk,uint16_t dport){
+	VtxOptions& vtxopts=*(VtxOptions*)rep.get_options();
+	uint32_t vtxno=vtxopts[0];
+	auto ptr2mf=&Graph::which_host;
+	uint32_t ip=mfsyncr<uint32_t>(glk,g,ptr2mf,vtxno);
+	string daddr=ip2string(ip)+":"+to_string(dport);
+	VarString& vs=*VarString::make(daddr.size());
+	unique_ptr<void> just_for_auto_delete(&vs);
+	std::copy(daddr.begin(),daddr.end(),vs.begin());
+	rep.ans(prot::STATUS_OK,&vs,vs.size());
+}
 }}
 #endif
