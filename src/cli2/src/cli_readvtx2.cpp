@@ -26,7 +26,7 @@ int main(int argc,char**argv){
 	CharContent *cctt=blk;
 
 	//uint32_t blkno = (p=="pop"?(nynn_file::tailblkno):(nynn_file::headblkno));
-	uint32_t blkno=invalidblkno;
+	uint32_t blkno=nynn_file::invalidblkno;
 	if (p=="pop")blkno=nynn_file::tailblkno;
 	else blkno=nynn_file::headblkno;
 	while(blkno!=nynn_file::invalidblkno){
