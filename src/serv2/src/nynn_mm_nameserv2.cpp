@@ -149,7 +149,7 @@ int main(){
 	
 	//creating switcher_thd,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
-	zmq_ctx_set(ctx,ZMQ_IO_THREADS,16);
+	//zmq_ctx_set(ctx,ZMQ_IO_THREADS,16);
 	zmq_ctx_set(ctx,ZMQ_MAX_SOCKETS,4096);
 
 	uint32_t port_range_min=parse_int(getenv("NYNN_MM_NAMESERV_PORT_RANGE_MIN"),50000);

@@ -211,7 +211,7 @@ int main(){
 	graph.reset(new Graph(getenv("NYNN_MM_DATA_DIR"),get_ip()));
 	//creating switcher,logger,worker_thds threads.
 	zmq::context_t ctx;//ctx(io_threads)
-	zmq_ctx_set(ctx,ZMQ_IO_THREADS,16);
+	//zmq_ctx_set(ctx,ZMQ_IO_THREADS,16);
 	zmq_ctx_set(ctx,ZMQ_MAX_SOCKETS,4096);
 
 	uint32_t port_range_min=parse_int(getenv("NYNN_MM_DATASERV_PORT_RANGE_MIN"),50000);
