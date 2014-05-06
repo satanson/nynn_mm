@@ -6,7 +6,7 @@ ifdef read_without_abuse_copys
 READ_WITHOUT_ABUSE_COPYS:=-DREAD_WITHOUT_ABUSE_COPYS
 endif
 
-CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
+CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
 
 SRC = cli_fillvtx2.cpp cli_readvtx2.cpp cli_read2.cpp cli_read_multithread2.cpp
 		  

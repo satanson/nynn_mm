@@ -208,8 +208,8 @@ private:
 		char* taddr=static_cast<char*>(addr);
 		char* tbase=static_cast<char*>(m_base);
 
-		m_length += ((size_t)taddr)%pagesize;
-		taddr  -= ((size_t)taddr)%pagesize;
+		m_length += ((uintptr_t)taddr)%pagesize;
+		taddr  -= ((uintptr_t)taddr)%pagesize;
 		addr=static_cast<void*>(taddr);
 
 		// check [addr,addr+m_length] in [m_base,m_base+m_length]
@@ -227,8 +227,8 @@ private:
 };
 
 struct ShmAllocator{
-	void* operator new(size_t size,void*buff){return buff;}
-	void  operator delete(void*buff,size_t size){ }
+	static void* operator new(size_t size,void*buff){return buff;}
+	static void  operator delete(void*buff,size_t size){ }
 };
 struct Semid0{
 
@@ -306,8 +306,8 @@ private:
 	Lockop(const Lockop&);
 	Lockop& operator=(const Lockop&);
 	//disallow created on free store(heap);
-	void*operator new(size_t);
-	void*operator new(size_t,void*);
+	static void*operator new(size_t);
+	static void*operator new(size_t,void*);
 	int semid;
 	int slot;
 };
