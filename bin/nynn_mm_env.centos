@@ -1,5 +1,5 @@
 #!/bin/bash
-export NYNN_MM_NAMESERV_HOST="blade4"
+export NYNN_MM_NAMESERV_HOST="centos1"
 export NYNN_MM_NAMESERV_WORKER_NUM=$((2**${5:-2}))
 export NYNN_MM_NAMESERV_SOCKET_NUM_PER_WORKER=$((2**${6:-0}))
 
@@ -10,7 +10,7 @@ export NYNN_MM_NAMESERV_HWM=$((2**${2:-11}))
 export NYNN_MM_NAMESERV_BUF=$((2**${3:-16}))
 export NYNN_MM_NAMESERV_AFFINITY=$((2**${4:-0}-1))
 
-export NYNN_MM_DATASERV_HOST_LIST="blade4 blade5 blade7 blade8"
+export NYNN_MM_DATASERV_HOST_LIST="centos1 centos2 centos3"
 export NYNN_MM_DATASERV_WORKER_NUM=$((2**${5:-2}))
 export NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER=$((2**${6:-0}))
 

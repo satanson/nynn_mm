@@ -1,4 +1,22 @@
-#!/bin/bash
-for i in `eval "echo {$1..$(($2-1))}"`;do
-	./cli_fillvtx 192.168.1.11 50000 $i push <poet.txt
-done
+#!/usr/bin/perl -w
+use strict;
+use Getopt::Long;
+use SelectSaver;
+use Carp qw(carp croak confess cluck);
+use IPC::Open3;
+my ($naddr,$vbegin,$vend,$input,$act);
+$act="push";
+GetOptions(
+	"naddr=s"=>\$naddr,
+	"vbegin=s"=>\$vbegin,
+	"vend=$""=>\$vend,
+	"input=s"=>\$input,
+	"act=s"=>\$act,
+) or croak "Something wrong with GetOptions";
+my($host,$port)=split /\s+/, $naddr;
+foreach ($vbegin..$vend-1){
+
+	print qq(./cli_fillvtx $host $port $_ $act <poet.txt)."\n";
+	qx(./cli_fillvtx $host $port $_ $act <poet.txt);
+}
+

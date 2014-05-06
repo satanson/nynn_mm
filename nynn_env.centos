@@ -1,6 +1,6 @@
 #!/bin/bash
 export repo_host=`hostname`
-export deploy_hosts="blade4 blade5 blade7 blade8"
+export deploy_hosts="centos1 centos2 centos3"
 export project_root="$HOME/nynn_mm"
 export user="$USER"
 export data_dir="$HOME/graph"
