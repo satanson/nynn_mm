@@ -134,7 +134,9 @@ public:
 		uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
 		already_exists=exists(sgkey);
 		if (!already_exists)create(sgkey);
-		WriteOptions& wrtopts=*WriteOptions::make(get_replicas_num(sgkey));
+		uint32_t replicas=get_replicas_num(sgkey);
+		WriteOptions& wrtopts=*WriteOptions::make(replicas);
+		wrtopts->replicas=replicas;
 		get_replicas_hosts(sgkey,wrtopts.begin(),wrtopts.end());
 		return &wrtopts;
 	}

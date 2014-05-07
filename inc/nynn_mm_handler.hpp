@@ -85,16 +85,20 @@ uint32_t write(prot::Requester& req,uint32_t op,uint32_t vtxno,uint32_t blkno,Bl
 	wrtopts->op=op;
 	wrtopts->vtxno=vtxno;
 	wrtopts->blkno=blkno;
-	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),blk,blk==NULL?0:sizeof(Block));
+
+	if (likely(wrtopts->op==WRITE_UNSHIFT || wrtopts->op==WRITE_PUSH))
+		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),blk,sizeof(Block));
+	else
+		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),NULL,0);
+
 	req.parse_ans();
-	if (req.get_status()!=prot::STATUS_OK){
-		string errinfo=string()+"failet to write into system:"
-					  +"op="+to_string(op)+","
-					  +"vtxno="+to_string(vtxno)+","
-					  +"blkno="+to_string(blkno);
-		throw_nynn_exception(0,errinfo.c_str());
+	
+	uint32_t rc=req.get_status();
+	if (blk && rc!=INVALID_BLOCKNO && (wrtopts->op==WRITE_SHIFT || wrtopts->op==WRITE_POP)){
+		memcpy(blk,req.get_data(),req.get_data_size());
 	}
-	return *(uint32_t*)req.get_data();
+
+	return rc;
 }
 
 uint32_t unshift(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
@@ -112,17 +116,6 @@ uint32_t pop(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block*blk){
 void handle_write_gt(prot::Replier& rep,GraphTable& gt,Monitor& gtlk,ZMQSockMap& datasocks){
 	WriteOptions& old_wrtopts=*(WriteOptions*)rep.get_options();
 
-	//uint32_t vtxno=old_wrtopts->vtxno;
-	//uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
-	//bool already_exists=gt.exists(sgkey);
-	//if (!already_exists)gt.create(sgkey);
-
-	//uint32_t replicas_num=gt.get_replicas_num(sgkey);
-	//WriteOptions& wrtopts=*WriteOptions::make(replicas_num);
-	//unique_ptr<void> just_for_auto_delete(&wrtopts);
-	//memcpy(&wrtopts,&old_wrtopts,sizeof(WriteOptions::FixedType));
-	//gt.get_replicas_hosts(sgkey,wrtopts.begin(),wrtopts.end());
-
 	int already_exists=0;
 	int vtxno=old_wrtopts->vtxno;
 	auto ptr2mf=&GraphTable::createWriteOptions;
@@ -133,25 +126,33 @@ void handle_write_gt(prot::Replier& rep,GraphTable& gt,Monitor& gtlk,ZMQSockMap&
 	wrtopts->blkno=old_wrtopts->blkno;
 
 	prot::Requester req(*datasocks[wrtopts[-1]]);
-	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),rep.get_data(),sizeof(Block));
+	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),rep.get_data(),rep.get_data_size());
 	req.parse_ans();
 	rep.ans(req.get_status(),req.get_data(),req.get_data_size());
 	if (!already_exists)notify(datasocks);
 }
+
 void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasocks){
 	WriteOptions& wrtopts=*(WriteOptions*)rep.get_options();
-	//uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(wrtopts->vtxno);
-	//if (!g.exists(sgkey)){
-	//	g.create(sgkey);
-	//}
-	//uint32_t rc=(g.*write_ops[wrtopts->op])(wrtopts->vtxno,wrtopts->blkno,rep.get_data());
+
 	int op=wrtopts->op;
 	uint32_t vtxno=wrtopts->vtxno;
 	uint32_t blkno=wrtopts->blkno;
-	void *data=rep.get_data();
 
 	auto ptr2mf=&Graph::write;
-	uint32_t rc=mfsyncw<uint32_t>(glk,g,ptr2mf,op,vtxno,blkno,data);
+	Block blk;
+	uint32_t rc=INVALID_BLOCKNO;
+
+	bool firstreplicas=wrtopts->replicas==wrtopts.length();
+	if(firstreplicas){
+		if (wrtopts->op==WRITE_UNSHIFT || wrtopts->op==WRITE_PUSH){
+			rc=mfsyncw<uint32_t>(glk,g,ptr2mf,op,vtxno,blkno,rep.get_data());
+		}else {
+			rc=mfsyncw<uint32_t>(glk,g,ptr2mf,op,vtxno,blkno,&blk);
+		}
+	}else{
+		rc=mfsyncw<uint32_t>(glk,g,ptr2mf,op,vtxno,blkno,rep.get_data());
+	}
 
 	wrtopts.shrink(1);
 	//write to next datanode,if it's not last write operation.
@@ -161,14 +162,21 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 		//log_i("datasocks.count(%d)=%d",nextip,datasocks.count(nextip));
 		prot::Requester req(*datasocks[wrtopts[-1]].get());
 		//pipeline writing
-		req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),data,sizeof(Block));
-		req.parse_ans();
-		if (unlikely(req.get_status()!=prot::STATUS_OK)){
-			throw_nynn_exception(0,"can't write to next datanode");
+		if (wrtopts->op==WRITE_UNSHIFT || wrtopts->op==WRITE_PUSH){
+			req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),rep.get_data(),rep.get_data_size());
+		}else {
+			req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),NULL,0);
 		}
-		assert(rc==*(uint32_t*)req.get_data());
+
+		req.parse_ans();
+		assert(rc==req.get_status());
 	}
-	rep.ans(prot::STATUS_OK,&rc,sizeof(rc));
+	
+	if (firstreplicas && (wrtopts->op==WRITE_SHIFT||wrtopts->op==WRITE_POP)){
+		rep.ans(rc,&blk,sizeof(Block));
+	}else {
+		rep.ans(rc,&blk,sizeof(Block));
+	}
 }
 void *read(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block* blk){
 	ReadOptions& rdopts=*ReadOptions::make(0);

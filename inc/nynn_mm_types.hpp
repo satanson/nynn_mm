@@ -205,6 +205,7 @@ struct WriteOptionsFixed{
 	uint32_t op;
 	uint32_t vtxno;
 	uint32_t blkno;
+	uint32_t replicas;
 };
 struct ReadOptionsFixed{
 	uint32_t vtxno;

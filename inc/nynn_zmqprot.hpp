@@ -1,9 +1,10 @@
 #ifndef NYNN_ZMQPROT_HPP_BY_SATANSON
 #define NYNN_ZMQPROT_HPP_BY_SATANSON
 
+#include<zmq.hpp>
 #include<linuxcpp.hpp>
 #include<nynn_common.hpp>
-#include<zmq.hpp>
+#include<nynn_mm_config.hpp>
 using namespace std;
 using namespace nynn;
 namespace nynn{namespace prot{
@@ -12,7 +13,9 @@ enum{VERSION_NO=0x02000000ul};
 enum{ASK_VERSION,ASK_CMD,ASK_OPTIONS,ASK_DATA,ASK_SIZE};
 enum{CMD_INVALID,CMD_SUBMIT,CMD_NOTIFY,CMD_HELLO,CMD_WRITE,CMD_READ,CMD_GET_SGSDIR,CMD_VTX_EXISTS,CMD_GET_REMOTE};
 enum{ANS_STATUS,ANS_DATA,ANS_SIZE};
-enum{STATUS_OK,STATUS_ERR};
+
+static uint32_t const STATUS_OK=0;
+static uint32_t const STATUS_ERR=INVALID_BLOCKNO;
 
 static string v2s(uint32_t version_no){
 	return ip2string(version_no);
@@ -51,11 +54,12 @@ public:
 		}
 		return true;
 	}
-	uint8_t get_status(){
-		return *(uint8_t*)imsg[ANS_STATUS].data();
+	uint32_t get_status(){
+		return *(uint32_t*)imsg[ANS_STATUS].data();
 	}
 	void* get_data(){
-		return imsg[ANS_DATA].data();
+		if(likely(get_data_size()))return imsg[ANS_DATA].data();
+		else return NULL;
 	}
 	size_t get_data_size(){
 		return imsg[ANS_DATA].size();
@@ -100,21 +104,19 @@ public:
 		return imsg[ASK_OPTIONS].size();
 	}
 	void* get_data(){
-		return imsg[ASK_DATA].data();
+		if (likely(get_data_size()))return imsg[ASK_DATA].data();
+		else return NULL;
 	}
 	size_t get_data_size(){
 		return imsg[ASK_DATA].size();
 	}
-	void ans(uint8_t status,void* data,size_t size){
+	void ans(uint32_t status,void* data,size_t size){
 		zmq::message_t omsg[ANS_SIZE];	
-		omsg[ANS_STATUS].rebuild(sizeof(uint8_t));
-		*(uint8_t*)omsg[ANS_STATUS].data()=status;
-//#ifndef READ_WITHOUT_ABUSE_COPYS
+		omsg[ANS_STATUS].rebuild(sizeof(uint32_t));
+		*(uint32_t*)omsg[ANS_STATUS].data()=status;
 		omsg[ANS_DATA].rebuild(size);
 		memcpy(omsg[ANS_DATA].data(),data,size);
-//#else
-//		omsg[ANS_DATA].rebuild(data,size,NULL,NULL);
-//#endif
+
 		int i=0;
 		while(i<ANS_SIZE-1)sock.send(omsg[i++],ZMQ_SNDMORE);
 		sock.send(omsg[i],0);
