@@ -27,6 +27,6 @@ int main(int argc,char**argv){
 	log_i("connected to %s",serv_endpoint.c_str());
 	prot::Requester req(sock);
 	
-	while((*act)(req,vtxno,0,&blk)!=INVALID_BLOCKNO);
+	while((*act)(req,vtxno,0,NULL)!=INVALID_BLOCKNO);
 	sock.close();
 }
