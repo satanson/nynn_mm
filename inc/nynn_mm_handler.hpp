@@ -85,7 +85,7 @@ uint32_t write(prot::Requester& req,uint32_t op,uint32_t vtxno,uint32_t blkno,Bl
 	wrtopts->op=op;
 	wrtopts->vtxno=vtxno;
 	wrtopts->blkno=blkno;
-	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),blk,sizeof(Block));
+	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),blk,blk==NULL?0:sizeof(Block));
 	req.parse_ans();
 	if (req.get_status()!=prot::STATUS_OK){
 		string errinfo=string()+"failet to write into system:"

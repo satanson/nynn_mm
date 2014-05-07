@@ -9,7 +9,7 @@ $act="push";
 GetOptions(
 	"naddr=s"=>\$naddr,
 	"vbegin=s"=>\$vbegin,
-	"vend=$""=>\$vend,
+	"vend=s"=>\$vend,
 	"input=s"=>\$input,
 	"act=s"=>\$act,
 ) or croak "Something wrong with GetOptions";

@@ -27,11 +27,6 @@ int main(int argc,char**argv){
 	log_i("connected to %s",serv_endpoint.c_str());
 	prot::Requester req(sock);
 	
-	Block blk;
-	CharContent *cctt=blk;
-	while((*act)(req,vtxno,0,&blk)!=INVALID_BLOCKNO){
-		string s(cctt->begin(),cctt->end());
-		cout<<s<<endl;
-	}
+	while((*act)(req,vtxno,0,&blk)!=INVALID_BLOCKNO);
 	sock.close();
 }
