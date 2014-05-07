@@ -1,0 +1,22 @@
+#!/bin/bash
+log2_cli_num_min=$1
+log2_cli_num_max=$(($2-1))
+naddr=${3:-"192.168.255.114:50000"}
+daddr=${4:-"192.168.255.114:60000"}
+vbegin=${5:-0}
+vend=${6:-1024}
+act=${7:-"shift"}
+loop=${7:-1024}
+
+for i in `eval "echo {${log2_cli_num_min}..${log2_cli_num_max}}"`;do
+	echo "----------log2_cli_num=$i------------"
+	echo 
+	./concurrency_cli_read2 ${naddr} ${daddr} ${vbegin} ${vend} ${act} ${loop} $i 
+	./util1 output.$i.* >>output
+	echo "--------------------------------------"
+	echo
+done
+wait
+./quadtuples output
+rm -fr output*
+echo DONE

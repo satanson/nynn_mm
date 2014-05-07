@@ -1,0 +1,13 @@
+#!/bin/bash
+naddr=$1
+daddr=$2
+vbegin=$3
+vend=$4
+act=$5
+loop=$6
+log2_cli_num=$7
+for i in `eval "echo {0..$((2**${log2_cli_num}-1))}"`;do
+	./cli_read2 ${naddr} ${daddr} ${vbegin} ${vend} ${act} ${loop}  1>output.${log2_cli_num}.${i} 2>/dev/null & 
+done
+wait
+echo DONE
