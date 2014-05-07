@@ -80,7 +80,7 @@ function nynn_stop()
 }
 
 function clean_data(){
-	rm -fr "${data_dir}/*"
+	rm -fr `eval "echo ${data_dir}/*"`
 }
 
 function stop_iptables()
