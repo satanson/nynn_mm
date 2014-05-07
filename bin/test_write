@@ -13,7 +13,7 @@ GetOptions(
 	"input=s"=>\$input,
 	"act=s"=>\$act,
 ) or croak "Something wrong with GetOptions";
-my($host,$port)=split /\s+/, $naddr;
+my($host,$port)=split /:/, $naddr;
 foreach ($vbegin..$vend-1){
 
 	print qq(./cli_fillvtx $host $port $_ $act <poet.txt)."\n";
