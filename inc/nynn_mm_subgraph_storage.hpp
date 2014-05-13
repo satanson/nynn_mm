@@ -240,7 +240,10 @@ public:
 	{
 #ifndef READ_WITHOUT_ABUSE_COPYS
 		if (unlikely(blkno==INVALID_BLOCKNO))return NULL;
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
 		SharedSynchronization ss(&m_superblkRWLock);
+#endif
 		unique_ptr<Synchronization> s;
 		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
@@ -254,7 +257,10 @@ public:
 		return blk;
 #else
 		if (unlikely(blkno==INVALID_BLOCKNO))return NULL;
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
 		SharedSynchronization ss(&m_superblkRWLock);
+#endif
 		unique_ptr<Synchronization> s;
 		Block *srcBlk=NULL;
 		if (unlikely(isOverflow(blkno))){

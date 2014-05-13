@@ -1,21 +1,19 @@
 #!/usr/bin/perl -w
 use strict;
 use Getopt::Long;
-my $naddr="192.168.255.114:50000";
-my $daddr="192.168.255.114:60000";
+my $sgsdir="/root/graph";
 my $vbegin="0";
 my $vend="1024";
 my $thdsz="16";
-my $loop="16";
+my $loop="1024";
 
 GetOptions(
-	"naddr=s"=>\$naddr,
-	"daddr=s"=>\$daddr,
+	"sgsdir=s"=>\$sgsdir,
 	"vbegin=s"=>\$vbegin,
 	"vend=s"=>\$vend,
 	"thdsz=s"=>\$thdsz,
 	"loop=s"=>\$loop,
 ) or die "failed to parse options";
-`./cli_read_multithread2 $naddr $daddr $vbegin $vend $thdsz $loop`;
+`./sg_read_multithread $sgsdir $vbegin $vend $thdsz $loop`;
 system "./util1 output.*|./quadtuples";
 system "rm -fr output.*";

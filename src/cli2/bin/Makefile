@@ -2,13 +2,25 @@ vpath %.cpp ../src
 ifdef dbg
 DEBUG:=-DDEBUG -g -ggdb3 -rdynamic
 endif
+
 ifdef read_without_abuse_copys 
 READ_WITHOUT_ABUSE_COPYS:=-DREAD_WITHOUT_ABUSE_COPYS
 endif
 
-CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
+ifdef log
+LOG:=-DLOG
+endif
+ifdef lockfree
+LOCKFREE:=-DLOCKFREE
+endif
 
-SRC = cli_fillvtx2.cpp cli_readvtx2.cpp cli_read2.cpp cli_read_multithread2.cpp
+ifdef sched
+SCHED:=-DSCHED
+endif
+
+CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS) $(LOG) $(LOCKFREE) $(SCHED)
+
+SRC = cli2_fillvtx.cpp cli2_read.cpp cli2_read_multithread.cpp cli2_readvtx.cpp
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))

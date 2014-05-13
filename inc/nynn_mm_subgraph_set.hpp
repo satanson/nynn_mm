@@ -107,7 +107,10 @@ public:
 	
 	shared_ptr<SubgraphStorageT>& getSubgraph(uint32_t vtxno)
 	{
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
 		SharedSynchronization ss(&m_subgraphMapRWLock);
+#endif
 		uint32_t subgraphKey=VTXNO2SGKEY(vtxno);
 		if (m_subgraphMap.find(subgraphKey)!=m_subgraphMap.end()){
 			shared_ptr<SubgraphStorageT>& subgraph=m_subgraphMap[subgraphKey];

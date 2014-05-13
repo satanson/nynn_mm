@@ -25,11 +25,11 @@ int main(int argc,char**argv)
 
 	Block blk,*retblk;
 	SubgraphSet sgs(basedir);
-	vector<int32_t> sgkeys(sgs.get_sgkey_num(),0);
-	sgs.get_sgkeys(sgkeys.begin(),sgkeys.end());
-	for (int i=0;i<sgkeys.size();i++){
-		sgs.attachSubgraph(sgkeys[i]);
-	}
+	//vector<int32_t> sgkeys(sgs.get_sgkey_num(),0);
+	//sgs.get_sgkeys(sgkeys.begin(),sgkeys.end());
+	//for (int i=0;i<sgkeys.size();i++){
+	//	sgs.attachSubgraph(sgkeys[i]);
+	//}
 	uint32_t blkno=firstBlkno;
 	while (blkno!=INVALID_BLOCKNO){
 		retblk=sgs.read(vtxno,blkno,&blk);

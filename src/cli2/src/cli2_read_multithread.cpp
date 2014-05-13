@@ -60,15 +60,49 @@ int main(int argc,char**argv)
 
 	assert(vtxno_beg!=~0u);
 	assert(vtxno_end!=~0u);
+#ifdef SCHED
+#pragma message "sched_setscheduler"
+	int num_cpus=sysconf(_SC_NPROCESSORS_ONLN);
+	log_i("num_cpus=%i",num_cpus);
+
+	struct sched_param param;
+	param.sched_priority=sched_get_priority_max(SCHED_RR);
+	if(sched_setscheduler(0,SCHED_RR,&param))
+		throw_nynn_exception(errno,"failed to sched_setscheduler");
+
+	cpu_set_t *cpuset=CPU_ALLOC(num_cpus);
+	size_t cpusetsz=CPU_ALLOC_SIZE(num_cpus);
+	CPU_ZERO_S(cpusetsz,cpuset);
+	CPU_SET_S(0,cpusetsz,cpuset);
+	if(sched_setaffinity(0,cpusetsz,cpuset))
+		throw_nynn_exception(errno,"failed to sched_setaffinity");
+	CPU_FREE(cpuset);
+#endif
 
 	nynn_fs fs(naddr,daddr);
 
 	ThreadArray threads(new Thread[thdsz]);
 	for(int i=0;i<thdsz;i++){
+#ifdef SCHED
+#pragma message "sched_setscheduler"
+		struct sched_param param;
+		param.sched_priority=sched_get_priority_max(SCHED_RR);
+		int rc=0;
+		rc=pthread_setschedparam(threads[i]->thread_id(),SCHED_RR,&param);
+		if (rc)throw_nynn_exception(rc,"failed to pthread_setschedparam");
+		cpu_set_t *cpuset=CPU_ALLOC(num_cpus);
+		size_t cpusetsz=CPU_ALLOC_SIZE(num_cpus);
+		CPU_ZERO_S(cpusetsz,cpuset);
+		CPU_SET_S((i+1)%num_cpus,cpusetsz,cpuset);
+		rc=pthread_setaffinity_np(threads[i]->thread_id(),CPU_ALLOC_SIZE(num_cpus),cpuset);
+		if (rc)throw_nynn_exception(rc,"failed to pthread_setaffinity_np");
+		CPU_FREE(cpuset);
+#endif
 		threads[i].reset(new thread_t(reader,&fs));
 	}
 	sleep(1);
 	for (int i=0;i<thdsz;i++)threads[i]->start();
 	for (int i=0;i<thdsz;i++)threads[i]->join();
 	return 0;
+
 }
