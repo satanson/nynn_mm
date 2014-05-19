@@ -83,6 +83,7 @@ int main(int argc,char**argv)
 
 	ThreadArray threads(new Thread[thdsz]);
 	for(int i=0;i<thdsz;i++){
+		threads[i].reset(new thread_t(reader,&fs));
 #ifdef SCHED
 #pragma message "sched_setscheduler"
 		struct sched_param param;
@@ -98,7 +99,6 @@ int main(int argc,char**argv)
 		if (rc)throw_nynn_exception(rc,"failed to pthread_setaffinity_np");
 		CPU_FREE(cpuset);
 #endif
-		threads[i].reset(new thread_t(reader,&fs));
 	}
 	sleep(1);
 	for (int i=0;i<thdsz;i++)threads[i]->start();
