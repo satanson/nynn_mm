@@ -6,7 +6,12 @@ ifdef read_without_abuse_copys
 READ_WITHOUT_ABUSE_COPYS:=-DREAD_WITHOUT_ABUSE_COPYS
 endif
 
-CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS)
+ifdef lockfree
+LOCKFREE:=-DLOCKFREE
+endif
+
+
+CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS) $(LOCKFREE)
 
 SRC = nynn_mm_nameserv2.cpp nynn_mm_dataserv2.cpp 
 		  
