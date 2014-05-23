@@ -1,17 +1,28 @@
 #include<nynn_fs.hpp>
 #include<nynn_file.hpp>
 #include<sys/time.h>
+#include<pthread.h>
 using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
 using namespace nynn::cli;
-
+#define VTXNUM 1024
+#define THREADNUM 16
 //retun current time "ms"
 long getTime()
 {
 	struct timeval tv;
     gettimeofday(&tv,NULL);
     return tv.tv_sec*1000+tv.tv_usec/1000;
+}
+void * my_thread(void *arg){
+    int *n=(int *)arg;
+    int begin=n*1024;
+    int end=1024+n*1024;
+    for(int i=begin;i<end;i++){
+		
+    }    
+       
 }
 int main(int argc,char**argv){
   

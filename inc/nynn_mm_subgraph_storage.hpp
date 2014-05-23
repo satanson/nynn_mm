@@ -294,8 +294,13 @@ public:
 	
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
-		nynn::SharedSynchronization ss(&m_superblkRWLock);
-		nynn::Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
+		SharedSynchronization ss(&m_superblkRWLock);
+#endif
+		unique_ptr<Synchronization> s;
+		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+
 		Block *destBlk=getBlock(blkno);
 		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
 		memcpy(destBlk,blk,sizeof(Block));

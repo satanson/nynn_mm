@@ -4,19 +4,24 @@ use Getopt::Long;
 use SelectSaver;
 use Carp qw(carp croak confess cluck);
 use IPC::Open3;
-my ($naddr,$vbegin,$vend,$input,$act);
+my ($naddr,$daddr,$vbegin,$vend,$input,$act);
+$naddr="192.168.255.114:50000";
+$daddr="192.168.255.114:60000";
+$vbegin=0;
+$vend=1024;
 $act="push";
+$input="poet.txt";
 GetOptions(
 	"naddr=s"=>\$naddr,
+	"daddr=s"=>\$daddr,
 	"vbegin=s"=>\$vbegin,
 	"vend=s"=>\$vend,
 	"input=s"=>\$input,
 	"act=s"=>\$act,
 ) or croak "Something wrong with GetOptions";
-my($host,$port)=split /:/, $naddr;
+#my($host,$port)=split /:/, $naddr;
 foreach ($vbegin..$vend-1){
-
-	print qq(./cli2_fillvtx $host $port $_ $act <poet.txt)."\n";
-	qx(./cli2_fillvtx $host $port $_ $act <poet.txt);
+	print qq(./cli2_fillvtx $naddr $daddr  $_ $act <$input)."\n";
+	qx(./cli2_fillvtx $naddr $daddr  $_ $act <$input);
 }
 
