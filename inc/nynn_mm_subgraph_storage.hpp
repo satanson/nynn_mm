@@ -204,7 +204,11 @@ public:
 
 	uint32_t require()
 	{
-		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+		//nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
+		SharedSynchronization ss(&m_superblkRWLock);
+#endif
 
 		uint32_t blkno=requireAllocated();
 		return blkno!=INVALID_BLOCKNO?blkno:requireUnallocated();
@@ -212,7 +216,11 @@ public:
 
 	void release(uint32_t blkno)
 	{
-		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+		//nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+#ifndef LOCKFREE
+#pragma message "non-lockfree!"		
+		SharedSynchronization ss(&m_superblkRWLock);
+#endif
 		releaseRaw(blkno);
 	}
 
