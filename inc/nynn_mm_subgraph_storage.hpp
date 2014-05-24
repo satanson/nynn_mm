@@ -295,10 +295,7 @@ public:
 	
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
-#ifndef LOCKFREE
-#pragma message "non-lockfree!"		
 		SharedSynchronization ss(&m_superblkRWLock);
-#endif
 		unique_ptr<Synchronization> s;
 		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
