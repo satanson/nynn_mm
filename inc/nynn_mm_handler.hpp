@@ -287,7 +287,7 @@ void handle_vtx_exists(prot::Replier& rep,Graph& g){
 	else rep.ans(prot::STATUS_ERR,NULL,0);
 }
 string get_remote(prot::Requester& req,uint32_t vtxno){
-	VtxOptions vtxopts=*VtxOptions::make(1);
+	VtxOptions& vtxopts=*VtxOptions::make(1);
 	unique_ptr<void> just_for_auto_delete(&vtxopts);
 	vtxopts[0]=vtxno;
 

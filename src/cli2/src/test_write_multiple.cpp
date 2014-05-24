@@ -33,7 +33,7 @@ void*  my_thread(void *arg){
             j++;
         }
         vtxno++;
-        cout<<(*n)<<"->"<<vtxno<<"over ";
+      //  cout<<(*n)<<"->"<<vtxno<<"over ";
     }    
        
 }
