@@ -23,7 +23,7 @@ int main(int argc,char**argv){
 	CharContent *cctt=blk;
     int i=0,j;
     long time_pre=getTime();
-	while(i<1){
+	while(i<16){
         vtxno=0;
         while(vtxno<1024){
             j=0;

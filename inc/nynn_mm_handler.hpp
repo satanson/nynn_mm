@@ -124,11 +124,15 @@ void handle_write_gt(prot::Replier& rep,GraphTable& gt,Monitor& gtlk,ZMQSockMap&
 	wrtopts->op=old_wrtopts->op;
 	wrtopts->vtxno=old_wrtopts->vtxno;
 	wrtopts->blkno=old_wrtopts->blkno;
+	
+	//async mode
+	rep.ans(prot::STATUS_OK,NULL,0);
 
 	prot::Requester req(*datasocks[wrtopts[-1]]);
 	req.ask(prot::CMD_WRITE,&wrtopts,wrtopts.size(),rep.get_data(),rep.get_data_size());
 	req.parse_ans();
-	rep.ans(req.get_status(),req.get_data(),req.get_data_size());
+	//sync mode
+	//rep.ans(req.get_status(),req.get_data(),req.get_data_size());
 	if (!already_exists)notify(datasocks);
 }
 
