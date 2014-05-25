@@ -32,10 +32,10 @@ public:
 				}else{
 					//log_i("vtxno=%d required from %s",vtxno,_fs.get_daddr().c_str());
 					_local=false;
-					//_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
+					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
 					string dendpoint=string("tcp://")+remote;
-					log_i("vtxno=%d required from %s",vtxno,dendpoint.c_str());
-					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),dendpoint));
+					//log_i("vtxno=%d required from %s",vtxno,dendpoint.c_str());
+					//_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),dendpoint));
 				}
 			}
 		}else{
