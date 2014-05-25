@@ -204,16 +204,16 @@ public:
 
 	uint32_t require()
 	{
-		//nynn::ExclusiveSynchronization es(&m_superblkRWLock);
-		SharedSynchronization ss(&m_superblkRWLock);
+		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+		//SharedSynchronization ss(&m_superblkRWLock);
 		uint32_t blkno=requireAllocated();
 		return blkno!=INVALID_BLOCKNO?blkno:requireUnallocated();
 	}
 
 	void release(uint32_t blkno)
 	{
-		//nynn::ExclusiveSynchronization es(&m_superblkRWLock);
-		SharedSynchronization ss(&m_superblkRWLock);
+		nynn::ExclusiveSynchronization es(&m_superblkRWLock);
+		//SharedSynchronization ss(&m_superblkRWLock);
 		releaseRaw(blkno);
 	}
 
@@ -296,8 +296,9 @@ public:
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
 		SharedSynchronization ss(&m_superblkRWLock);
-		unique_ptr<Synchronization> s;
-		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+		Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+		//unique_ptr<Synchronization> s;
+		//if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
 		Block *destBlk=getBlock(blkno);
 		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
