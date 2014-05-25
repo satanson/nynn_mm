@@ -296,9 +296,9 @@ public:
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
 		SharedSynchronization ss(&m_superblkRWLock);
-		Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
-		//unique_ptr<Synchronization> s;
-		//if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+		//Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+		unique_ptr<Synchronization> s;
+	    if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
 
 		Block *destBlk=getBlock(blkno);
 		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
