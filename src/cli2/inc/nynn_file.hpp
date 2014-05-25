@@ -16,21 +16,29 @@ public:
 		:_fs(fs),_vtxno(vtxno),_writable(writable)
 	{
 		if(likely(!_writable)){
+			log_i("vtxno=%d readonly",vtxno);
 			if (likely(_fs.get_sgs().vtx_exists(vtxno))){
+				log_i("vtxno=%d in local",vtxno);
 				_local=true;
 			}else{
 				string remote=_fs.get_dcli().get_remote(vtxno);
+				log_i("vtxno=%d in remote %s",vtxno,remote.c_str());
 				string host=rchop(':',remote);
 				if (string2ip(host)==get_ip()){
+					log_i("vtxno=%d actually in local",vtxno);
 					_local=true;
 					uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
 					_fs.get_sgs().attachSubgraph(sgkey);
 				}else{
+					log_i("vtxno=%d required from %s",vtxno,_fs.get_daddr().c_str());
 					_local=false;
-					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
+					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr().c_str()));
 				}
 			}
 		}else{
+			log_i("vtxno=%d writable",vtxno);
+			log_i("vtxno=%d nameserv=%s",_fs.get_naddr().c_str());
+			log_i("vtxno=%d dataserv=%s",_fs.get_daddr().c_str());
 			_ncli_ptr.reset(new nynn_ncli(_fs.get_zmqctx(),_fs.get_naddr()));
 			_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
 		}
