@@ -236,9 +236,9 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 		return;
 	}
 	//vtx has been pre-cached in local cache,look up cache first
-	if (g.read_cache(vtxno,blkno,&blk)){
-		rep.ans(prot::STATUS_OK,&blk,sizeof(Block));
-		return;
+	//if (g.read_cache(vtxno,blkno,&blk)){
+	//	rep.ans(prot::STATUS_OK,&blk,sizeof(Block));
+	//	return;
 	//vtx non-exists in local cache,request data from remote host
 	}else{
 		prot::Requester req(*datasocks[targetip].get());
