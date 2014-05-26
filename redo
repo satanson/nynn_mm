@@ -4,5 +4,5 @@
 ./nynn_do handin blade4  "`date +%D:%T` $1"
 ./nynn_do handout
 ./nynn_do sync_github
-./nynn_do build -B lockfree=1 dbg=1
+./nynn_do build -B lockfree=1 
 ./nynn_do clean_data
