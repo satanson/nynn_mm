@@ -7,7 +7,7 @@ using namespace nynn;
 using namespace nynn::mm;
 using namespace nynn::cli;
 #define VTXNUM 1024
-#define THREADNUM 32
+#define THREADNUM 16
 nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 long getTime()
 {
@@ -26,7 +26,7 @@ void*  my_thread(void *arg){
     for(uint32_t vtxno=begin;vtxno<end;vtxno++){
         int j=0;
         nynn_file f(fs,vtxno,true);
-        while(j<16){
+        while(j<4){
 			cctt->resize(data.size());
 			std::copy(data.begin(),data.end(),cctt->begin());
 			f.push(&blk);
