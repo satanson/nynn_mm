@@ -3,5 +3,5 @@ export repo_host=`hostname`
 export deploy_hosts="blade4 blade5 blade7 blade8"
 export project_root="$HOME/nynn_mm"
 export user="$USER"
-export data_dir="$HOME/graph"
+export data_dir="/home/bsp/programer/nynn/graph"
 export nynn_ctl="${project_root}/nynn_ctl"
