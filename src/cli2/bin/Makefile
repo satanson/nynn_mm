@@ -20,7 +20,7 @@ endif
 
 CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS) $(LOG) $(LOCKFREE) $(SCHED)
 
-SRC = cli2_fillvtx.cpp cli2_read.cpp cli2_read_multithread.cpp cli2_readvtx.cpp read_single.cpp write_single.cpp test_write_single.cpp test_write_multiple.cpp
+SRC = cli2_fillvtx.cpp cli2_read.cpp cli2_read_multithread.cpp cli2_readvtx.cpp read_single.cpp write_single.cpp test_write_single.cpp test_write_multiple.cpp test_write_single_16.cpp test_write_multiple_16.cpp
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))
