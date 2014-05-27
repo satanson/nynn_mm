@@ -22,7 +22,7 @@ int main(int argc,char**argv){
     long time_pre=getTime();
     while(vtxno<1024){
    	    uint32_t blkno=nynn_file::headblkno;
-        nynn_file f(fs,vtxno,true);
+        nynn_file f(fs,vtxno,false);
         while(blkno!=nynn_file::invalidblkno){
 			if(!f.read(blkno,&blk)) break;
             blkno=(blk.getHeader()->getNext)();
