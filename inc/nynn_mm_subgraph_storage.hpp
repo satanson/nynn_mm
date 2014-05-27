@@ -246,7 +246,7 @@ public:
 		SharedSynchronization ss(&m_superblkRWLock);
 #endif
 		unique_ptr<Synchronization> s;
-		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+		if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]));
 
 		Block *srcBlk=getBlock(blkno);
 		if (unlikely(srcBlk==NULL)){
@@ -265,7 +265,7 @@ public:
 		unique_ptr<Synchronization> s;
 		Block *srcBlk=NULL;
 		if (unlikely(isOverflow(blkno))){
-			Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+			Synchronization s(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]);
 			Block *srcBlk=getBlock(blkno);
 			if (likely(srcBlk!=NULL)){
 				memcpy(blk,srcBlk,sizeof(Block));
@@ -284,7 +284,7 @@ public:
 	{
 		SharedSynchronization ss(&m_superblkRWLock);
 		unique_ptr<Synchronization> s;
-		if (isOverflow(blkno))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+		if (isOverflow(blkno))s.reset(new Synchronization(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]));
 
 		Block *blk=getBlock(blkno);
 		if (blk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
@@ -296,9 +296,9 @@ public:
 	void writeBlock(uint32_t blkno,Block*blk)
 	{
 		SharedSynchronization ss(&m_superblkRWLock);
-		//Synchronization s(&m_monitors[blkno%MONITOR_NUM]);
+		//Synchronization s(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]);
 		unique_ptr<Synchronization> s;
-	    if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[blkno%MONITOR_NUM]));
+	    if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]));
 
 		Block *destBlk=getBlock(blkno);
 		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
