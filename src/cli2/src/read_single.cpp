@@ -7,7 +7,7 @@ using namespace nynn::mm;
 using namespace nynn::cli;
 
 int main(int argc,char**argv){
-    uint32_t vtxno=20469;
+    uint32_t vtxno=0;
 	nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 	nynn_file f(fs,vtxno,false);
 
@@ -19,6 +19,6 @@ int main(int argc,char**argv){
 		if(!f.read(blkno,&blk))break;
 		blkno=(blk.getHeader()->getNext)();
 		string line(cctt->begin(),cctt->end());
-		cout<<line<<endl;
+		cout<<line;
 	}
 }
