@@ -16,6 +16,7 @@ GetOptions(
 	"thdsz=s"=>\$thdsz,
 	"loop=s"=>\$loop,
 ) or die "failed to parse options";
+print qq{./cli2_read_multithread $naddr $daddr $vbegin $vend $thdsz $loop}."\n";
 qx{./cli2_read_multithread $naddr $daddr $vbegin $vend $thdsz $loop};
 system "./util1 output.*|./quadtuples";
-system "rm -fr output.*";
+qx{rm -fr output.*}

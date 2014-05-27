@@ -1,6 +1,7 @@
 #ifndef NYNN_FILE_HPP_BY_SATANSON
 #define NYNN_FILE_HPP_BY_SATANSON
 #include<linuxcpp.hpp>
+#include<nynn_common.hpp>
 #include<nynn_mm_config.hpp>
 #include<nynn_fs.hpp>
 using namespace std;
@@ -15,6 +16,7 @@ public:
 	nynn_file(nynn_fs& fs,uint32_t vtxno,bool writable=false)
 		:_fs(fs),_vtxno(vtxno),_writable(writable)
 	{
+		try{
 		if(likely(!_writable)){
 			//log_i("vtxno=%d readonly",vtxno);
 			if (likely(_fs.get_sgs().vtx_exists(vtxno))){
@@ -24,7 +26,10 @@ public:
 				string remote=_fs.get_dcli().get_remote(vtxno);
 				//log_i("vtxno=%d in remote %s",vtxno,remote.c_str());
 				string host=rchop(':',remote);
-				if (string2ip(host)==get_ip()){
+				uint32_t remoteip=string2ip(host);
+				if (unlikely(remoteip==0)){
+					throw_nynn_exception(0,format("%d not exists!",vtxno).c_str());
+				}else if (remoteip==get_ip()){
 					//log_i("vtxno=%d actually in local",vtxno);
 					_local=true;
 					uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
@@ -32,10 +37,9 @@ public:
 				}else{
 					//log_i("vtxno=%d required from %s",vtxno,_fs.get_daddr().c_str());
 					_local=false;
-					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
-					string dendpoint=string("tcp://")+remote;
-					//log_i("vtxno=%d required from %s",vtxno,dendpoint.c_str());
-					//_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),dendpoint));
+					//_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
+					//log_i("vtxno=%d required from %s",vtxno,remote.c_str());
+					_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),remote));
 				}
 			}
 		}else{
@@ -44,6 +48,10 @@ public:
 			//log_i("vtxno=%d dataserv=%s",_fs.get_daddr().c_str());
 			_ncli_ptr.reset(new nynn_ncli(_fs.get_zmqctx(),_fs.get_naddr()));
 			_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
+		}
+		}catch(exception& err){
+			cerr<<err.what()<<endl;
+			throw_nynn_exception(0,format("fail to initialize nynn_file specified by %d",vtxno).c_str());
 		}
 	}
 	
