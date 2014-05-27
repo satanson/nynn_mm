@@ -6,7 +6,6 @@ using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
 using namespace nynn::cli;
-#define VTXNUM 1024
 #define THREADNUM 16
 nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 long getTime()
@@ -16,36 +15,27 @@ long getTime()
     return tv.tv_sec*1000+tv.tv_usec/1000;
 } 
 void*  my_thread(void *arg){
-    int *n=(int *)arg;
-    int begin=(*n)*VTXNUM;
-    int end=VTXNUM+(*n)*VTXNUM;
+    uint32_t vtxno=0;
  	Block blk;
-	CharContent *cctt=blk; 
-    string data;
-    data.resize(CharContent::CONTENT_CAPACITY);
-    for(uint32_t vtxno=begin;vtxno<end;vtxno++){
-        int j=0;
-        nynn_file f(fs,vtxno,true);
-        while(j<4){
-			cctt->resize(data.size());
-			std::copy(data.begin(),data.end(),cctt->begin());
-			f.push(&blk);
-            j++;
-        }
-        vtxno++;
-      //  cout<<(*n)<<"->"<<vtxno<<"over ";
-    }    
-       
+	CharContent *cctt=blk;
+    uint32_t blkno=nynn_file::headblkno;
+    while(vtxno<1024){
+         uint32_t blkno=nynn_file::headblkno;
+         nynn_file f(fs,vtxno,false);
+         while(blkno!=nynn_file::invalidblkno){
+            if(!f.read(blkno,&blk)) break;
+            blkno=(blk.getHeader()->getNext)();
+            string line(cctt->begin(),cctt->end());
+         }
+         vtxno++;
+    } 
 }
 int main(int argc,char**argv){
     int i=0,j;
     pthread_t threads[THREADNUM];
-    int args[THREADNUM];
     long time_pre=getTime();
-    for(int n=0;n<THREADNUM;n++){
-		args[n]=n;
-        pthread_create(&threads[n],NULL,my_thread,(void *)&args[n]);
-    }
+    for(int n=0;n<THREADNUM;n++)
+        pthread_create(&threads[n],NULL,my_thread,NULL);
     for(int n=0;n<THREADNUM;n++){
     	pthread_join(threads[n],NULL);
     }

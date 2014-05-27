@@ -42,11 +42,11 @@ int main(int argc,char**argv){
     int i=0,j;
     pthread_t threads[THREADNUM];
     int args[THREADNUM];
+    long time_pre=getTime();
     for(int n=0;n<THREADNUM;n++){
 		args[n]=n;
         pthread_create(&threads[n],NULL,my_thread,(void *)&args[n]);
     }
-    long time_pre=getTime();
     for(int n=0;n<THREADNUM;n++){
     	pthread_join(threads[n],NULL);
     }
