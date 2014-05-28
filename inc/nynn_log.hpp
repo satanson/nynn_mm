@@ -58,9 +58,10 @@ void log(
    		log(cerr,LOG_WARN,__FILE__,__LINE__,__FUNCTION__,0,(msg),##__VA_ARGS__);\
 	}while(0);
 
-#define log_e(errnum)\
+#define log_e(errnum,msg,...)\
 	do{\
-		log(cerr,LOG_ERROR,__FILE__,__LINE__,__FUNCTION__,errnum,NULL);\
+		log(cerr,LOG_ERROR,__FILE__,__LINE__,__FUNCTION__,errnum,(msg),##__VA_ARGS__);\
+		exit(0);\
 	}while(0);
 
 #define log_a(boolexpr,msg,...)\

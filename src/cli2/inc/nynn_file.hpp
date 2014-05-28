@@ -46,7 +46,11 @@ public:
 			//log_i("vtxno=%d writable",vtxno);
 			//log_i("vtxno=%d nameserv=%s",_fs.get_naddr().c_str());
 			//log_i("vtxno=%d dataserv=%s",_fs.get_daddr().c_str());
-			_ncli_ptr.reset(new nynn_ncli(_fs.get_zmqctx(),_fs.get_naddr()));
+			string naddr=_fs.get_naddr();
+			uint32_t nhost=string2ip(rchop(':',naddr));
+			string nport=lchop(':',naddr);
+			if (likely(nhost==get_ip()))naddr=string("ipc:///var/nynn/nameserv")+"."+nport;
+			_ncli_ptr.reset(new nynn_ncli(_fs.get_zmqctx(),naddr));
 			_dcli_ptr.reset(new nynn_dcli(_fs.get_zmqctx(),_fs.get_daddr()));
 		}
 		}catch(exception& err){

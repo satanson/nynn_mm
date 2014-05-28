@@ -21,10 +21,10 @@ public:
 			const int line,
 			const char *func,
 			const int errnum,
-			const char* msg)
+			const string& msg)
 	{
 		stringstream pack;
-		log(pack,LOG_EXCEPTION,file,line,func,errnum,msg);
+		log(pack,LOG_EXCEPTION,file,line,func,errnum,msg.c_str());
 		m_msg=pack.str();
 		m_framesize=backtrace(m_frames,BACKTRACE_FRAME_SIZE);
 	}

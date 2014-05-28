@@ -50,6 +50,7 @@ typedef struct{
 	zmq::socket_t *frontend;
 	zmq::socket_t *backend;
 }X;
+
 void* switcher(void*args){
 	X& x=*(X*)args;
 	zmq::proxy((void*)*x.frontend,(void*)*x.backend,NULL);
@@ -172,10 +173,12 @@ int main(){
 		uint32_t port=port_range_min+i;
 		string gather_endpoint=string("tcp://")+ip2string(get_ip())+":"+to_string(port);
 		string scatter_endpoint=string("inproc://scatter.")+to_string(port);
+		string ipc_endpoint=string("ipc:///var/nynn/nameserv")+"."+to_string(port);
 		log_i("switcher%d:gather:%s",i,gather_endpoint.c_str());
 		log_i("switcher%d:scatter:%s",i,scatter_endpoint.c_str());
 		gathers[i].reset(new zmq::socket_t(ctx,ZMQ_ROUTER));
 		gathers[i]->bind(gather_endpoint.c_str());
+		gathers[i]->bind(ipc_endpoint.c_str());
 		gathers[i]->setsockopt(ZMQ_SNDHWM,&hwm,sizeof(hwm));
 		gathers[i]->setsockopt(ZMQ_RCVHWM,&hwm,sizeof(hwm));
 		gathers[i]->setsockopt(ZMQ_SNDBUF,&buf,sizeof(buf));
