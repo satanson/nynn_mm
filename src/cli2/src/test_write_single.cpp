@@ -21,7 +21,7 @@ int main(int argc,char**argv){
     uint32_t vtxno=atoi(argv[1]);
     int vtxNum=atoi(argv[2]);
     int blkNum=atoi(argv[3]);
-    int vtxend=vtxno+vtxNum;
+    uint32_t vtxend=vtxno+vtxNum;
     int reply=atoi(argv[4]);
 	nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 	Block blk;
