@@ -21,3 +21,7 @@ $output{total_concurrency}=(sum @concurrency_array)/((max @tend_array) - (min @t
 $output{total_throughput}=(sum @throughput_array)/((max @tend_array) - (min @tbegin_array));
 
 print join "",map {"$_: $output{$_}\n"} keys %output;
+$t=(max @tend_array)-(min @tbegin_array);
+print "time usage:".$t."\n";
+print "bytes:".sum @throughput_array,"\n";
+print "bytes/perthread:".join "\n",@throughput_array,"\n";

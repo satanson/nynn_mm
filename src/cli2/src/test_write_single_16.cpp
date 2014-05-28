@@ -33,10 +33,9 @@ int main(int argc,char**argv){
 				std::copy(data.begin(),data.end(),cctt->begin());
 				f.push(&blk);
                 j++;
-            }
-           // cout<<vtxno<<"as"<<i<<" is over"<<endl;
+            } 
         	vtxno++;
-        }
+       }
        i++;
    }
    long time_next=getTime();

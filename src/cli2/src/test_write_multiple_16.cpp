@@ -33,7 +33,6 @@ void*  my_thread(void *arg){
 			f.push(&blk);
             j++;
         }
-        vtxno++;
       //  cout<<(*n)<<"->"<<vtxno<<"over ";
     }    
        
