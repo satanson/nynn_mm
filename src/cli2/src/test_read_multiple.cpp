@@ -15,11 +15,11 @@ long getTime()
     return tv.tv_sec*1000+tv.tv_usec/1000;
 } 
 void*  my_thread(void *arg){
-    uint32_t vtxno=0;
+    uint32_t vtxno=4096;
  	Block blk;
 	CharContent *cctt=blk;
     uint32_t blkno=nynn_file::headblkno;
-    while(vtxno<1024){
+    while(vtxno<5119){
          uint32_t blkno=nynn_file::headblkno;
          nynn_file f(fs,vtxno,false);
          while(blkno!=nynn_file::invalidblkno){

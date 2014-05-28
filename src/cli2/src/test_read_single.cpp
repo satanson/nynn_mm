@@ -14,13 +14,13 @@ long getTime()
     return tv.tv_sec*1000+tv.tv_usec/1000;
 }
 int main(int argc,char**argv){
-    uint32_t vtxno=0;
+    uint32_t vtxno=4096;
 	nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 	Block blk;
 	CharContent *cctt=blk;
     int i=0,j;
     long time_pre=getTime();
-    while(vtxno<1024){
+    while(vtxno<5119){
    	    uint32_t blkno=nynn_file::headblkno;
         nynn_file f(fs,vtxno,false);
         while(blkno!=nynn_file::invalidblkno){
