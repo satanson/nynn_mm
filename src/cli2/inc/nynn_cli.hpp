@@ -16,8 +16,13 @@ public:
 	nynn_ncli(zmq::context_t& ctx,string const& naddr)
 	try:_ctx(ctx),_nsock(_ctx,ZMQ_REQ),_nreq(_nsock)
 	{
-		string name_endpoint="tcp://"+naddr;
-		_nsock.connect(name_endpoint.c_str());
+		string protocol=naddr.substr(0,3);
+		if (likely(protocol=="ipc")){
+			_nsock.connect(naddr.c_str());
+		} else{
+			string name_endpoint="tcp://"+naddr;
+			_nsock.connect(name_endpoint.c_str());
+		}
 	}catch(...){
 		throw_nynn_exception(0,"failed to initializing name server client");
 	}
