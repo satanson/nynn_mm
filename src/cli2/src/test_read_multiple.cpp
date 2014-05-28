@@ -6,7 +6,7 @@ using namespace std;
 using namespace nynn;
 using namespace nynn::mm;
 using namespace nynn::cli;
-#define THREADNUM 16
+#define THREADNUM 32
 nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
 long getTime()
 {
