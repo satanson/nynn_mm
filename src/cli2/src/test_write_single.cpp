@@ -45,5 +45,5 @@ int main(int argc,char**argv){
        i++;
    }
    long time_next=getTime();
-   cout<<"time:"<<time_next-time_pre<<" datasize:"<<throughout<<"B throurhout:"<<throughout/1024/1024/(time_next-time_pre)/1000<<"MB/s"; 
+   cout<<"time:"<<time_next-time_pre<<"ms  datasize:"<<throughout<<"B  throurhout:"<<throughout/1024/1024/(time_next-time_pre)*1000<<"MB/s"; 
 }
