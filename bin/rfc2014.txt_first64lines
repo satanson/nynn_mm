@@ -1,0 +1,64 @@
+
+
+
+
+
+
+Network Working Group                                        A. Weinrib
+Request for Comments: 2014                            Intel Corporation
+BCP: 8                                                        J. Postel
+Category: Best Current Practice                                     ISI
+                                                           October 1996
+
+
+             IRTF Research Group Guidelines and Procedures
+
+Status of this Memo
+
+   This document specifies an Internet Best Current Practices for the
+   Internet Community, and requests discussion and suggestions for
+   improvements.  Distribution of this memo is unlimited.
+
+Abstract
+
+   The Internet Research Task Force (IRTF) has responsibility for
+   organizing groups to investigate research topics related to the
+   Internet protocols, applications, and technology. IRTF activities are
+   organized into Research Groups.  This document describes the
+   guidelines and procedures for formation and operation of IRTF
+   Research Groups.  It describes the relationship between IRTF
+   participants, Research Groups, the Internet Research Steering Group
+   (IRSG) and the Internet Architecture Board (IAB).  The basic duties
+   of IRTF participants, including the IRTF Chair, Research Group Chairs
+   and IRSG members are defined.
+
+1.   INTRODUCTION
+
+   This document defines guidelines and procedures for Internet Research
+   Task Force (IRTF) Research Groups.  The IRTF focuses on longer term
+   research issues related to the Internet while the parallel
+   organization, the Internet Engineering Task Force (IETF), focuses on
+   the shorter term issues of engineering and standards making.
+
+   The Internet is a loosely-organized international collaboration of
+   autonomous, interconnected networks; it supports host-to-host
+   communication through voluntary adherence to open protocols and
+   procedures defined by Internet Standards, a collection of which are
+   commonly known as "the TCP/IP protocol suite".  Development and
+   review of potential Internet Standards from all sources is conducted
+   by the Internet Engineering Task Force (IETF).  The Internet
+   Standards Process is defined in [1].
+
+
+
+
+
+
+
+Weinrib & Postel         Best Current Practice                  [Page 1]
+
+RFC 2014             IRTF Research Group Guidelines         October 1996
+
+
+   The IRTF is a composed of a number of focused, long-term, small
+   Research Groups.  These groups work on topics related to Internet
