@@ -43,7 +43,7 @@ int main(int argc,char**argv){
     threadNum=atoi(argv[1]);
     all_vtxno=atoi(argv[2]);
     vtxNum=atoi(argv[3]);
-    double countAll;
+    double countAll=0;
     pthread_t threads[threadNum];
     counts=new double[threadNum];
     int args[threadNum];
