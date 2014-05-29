@@ -45,8 +45,8 @@ class Synchronized;
 class MmapFile{
 public:
 	//create a shared mapping file for already existed file
-	explicit MmapFile(const string& m_path) throw(nynn_exception_t)
-		:m_path(m_path),m_offset(0),m_base(0)
+	explicit MmapFile(const string& path) throw(nynn_exception_t)
+		:m_path(path),m_offset(0),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR);
 		if (m_fd<0)
@@ -67,8 +67,8 @@ public:
 	}
 
 	//create a shared mapping file for already existed file
-	MmapFile(const string& m_path,size_t m_length,off_t m_offset)throw(nynn_exception_t)
-		:m_path(m_path),m_offset(m_offset),m_base(0)
+	MmapFile(const string& path,size_t length,off_t offset)throw(nynn_exception_t)
+		:m_path(path),m_length(length),m_offset(offset),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR);
 		if (m_fd<0)
@@ -89,8 +89,8 @@ public:
 	}
 
 	// create a private mapping file for a new file
-	MmapFile(const string& m_path,size_t m_length)throw(nynn_exception_t)
-		:m_path(m_path),m_length(m_length),m_offset(0),m_base(0)
+	MmapFile(const string& path,size_t length)throw(nynn_exception_t)
+		:m_path(path),m_length(length),m_offset(0),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR|O_CREAT|O_EXCL,S_IRWXU);
 		if (m_fd<0)
@@ -112,10 +112,10 @@ public:
 			throw_nynn_exception(errno,NULL);
 	}
 
-	void lock(void* addr,size_t m_length)throw(nynn_exception_t)
+	void lock(void* addr,size_t length)throw(nynn_exception_t)
 	{
 
-		if (!checkPagedAlignment(addr,m_length))
+		if (!checkPagedAlignment(addr,length))
 			throw_nynn_exception(ENOMEM,NULL);
 
 		if (mlock(addr,m_length)!=0)

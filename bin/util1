@@ -14,14 +14,9 @@ while(<>){
 @throughput_array=@{$input{throughput}};
 @tbegin_array=@{$input{tbegin}};
 @tend_array=@{$input{tend}};
-
 $output{ave_concurrency}=(sum @ave_concurrency_array)/@ave_concurrency_array;
 $output{ave_throughput}=(sum @ave_throughput_array)/@ave_throughput_array;
 $output{total_concurrency}=(sum @concurrency_array)/((max @tend_array) - (min @tbegin_array));
 $output{total_throughput}=(sum @throughput_array)/((max @tend_array) - (min @tbegin_array));
 
 print join "",map {"$_: $output{$_}\n"} keys %output;
-$t=(max @tend_array)-(min @tbegin_array);
-print "time usage:".$t."\n";
-print "bytes:".sum @throughput_array,"\n";
-print "bytes/perthread:".join "\n",@throughput_array,"\n";

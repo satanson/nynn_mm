@@ -58,6 +58,7 @@ public:
 	
 	void createSubgraph(uint32_t subgraphKey)
 	{
+		ExclusiveSynchronization es(&m_subgraphMapRWLock);
 		string subgraphBasedir=makeSubgraphPath(subgraphKey);
 		string cmd="mkdir -p "+subgraphBasedir;
 		if (system(cmd.c_str())==-1){
@@ -66,6 +67,7 @@ public:
 		}
 		try{
 			SubgraphStorageT::format(subgraphBasedir);
+			m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir));
 		}catch(nynn_exception_t &err){
 			throw_nynn_exception(0,"Fail to format a new Subgraph!");
 		}
@@ -74,11 +76,17 @@ public:
 	void destroySubgraph(uint32_t subgraphKey)
 	{
 
-		string subgraphBasedir=makeSubgraphPath(subgraphKey);
-		string cmd="rm -fr "+subgraphBasedir;
-		if (system(cmd.c_str())==-1){
-			string info="Fail to excecute '"+cmd+"' by invoking 'system'!";
-			throw_nynn_exception(0,info.c_str());
+		ExclusiveSynchronization es(&m_subgraphMapRWLock);
+		try{
+			string subgraphBasedir=makeSubgraphPath(subgraphKey);
+			string cmd="rm -fr "+subgraphBasedir;
+			if (system(cmd.c_str())==-1){
+				string info="Fail to excecute '"+cmd+"' by invoking 'system'!";
+				throw_nynn_exception(0,info.c_str());
+			}
+			m_subgraphMap.erase(subgraphKey);
+		}catch(nynn_exception_t &ex){
+			throw_nynn_exception(0,format("fail to destroy subgraph specified by %d",subgraphKey));
 		}
 	}
 

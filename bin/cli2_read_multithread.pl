@@ -18,5 +18,5 @@ GetOptions(
 ) or die "failed to parse options";
 print qq{./cli2_read_multithread $naddr $daddr $vbegin $vend $thdsz $loop}."\n";
 qx{./cli2_read_multithread $naddr $daddr $vbegin $vend $thdsz $loop};
-system "./util1 output.*|./util1";
+system "./util1 output.*|./quadtuples";
 system "rm -fr output.*";
