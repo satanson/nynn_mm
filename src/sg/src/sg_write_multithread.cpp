@@ -103,6 +103,7 @@ int main(int argc,char**argv)
 			orders[i].vbegin=vbegin+(vend-vbegin)/thdsz*i;
 			orders[i].vend=vbegin+(vend-vbegin)/thdsz*(i+1);
 		}
+		log_i("thread %d vbegin=%d vend=%d",i,orders[i].vbegin,orders[i].vend);
 		threads[i].reset(new thread_t(writer,&orders[i]));
 	}
 	sleep(1);
