@@ -6,7 +6,7 @@ long getTime()
    gettimeofday(&tv,NULL);
    return tv.tv_sec*1000+tv.tv_usec/1000;
 }
-int main()
+int main(int argc,char**argv)
 {
     string basedir=argv[1];
 	string fpath="data.0";
@@ -33,20 +33,20 @@ int main()
         int i=0;
         uint16_t size=0;
         while(i<*p1){
-           if(size<TContent::CONTENT_CAPACITY){
+           if(size<EdgeContent::CONTENT_CAPACITY){
 				ectt->resize(++size);
                 Edge *tmp=ectt->pos(ectt->size()-1);
-                tmp->m_sink=pe->sink;
+                tmp->m_sink=pe->m_sink;
                 tmp->m_weight.m_fval=pe->m_weight.m_fval;
                 tmp->m_timestamp=pe->m_timestamp;    
            } 
-           if(size==TContent::CONTENT_CAPACITY){
+           if(size==EdgeContent::CONTENT_CAPACITY){
                 sgs.push(vtxno,&blk);
                 size=0;
            }
        	   base=++pe;
            i++;
-	    }
-		if(size>0) sgs.push(vtxno,&blk); 
+	   }
+	   if(size>0) sgs.push(vtxno,&blk); 
    }    
 }

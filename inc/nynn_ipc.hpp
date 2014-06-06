@@ -11,6 +11,23 @@ typedef unsigned short int uint16_t;
 typedef short int int16_t;
 typedef unsigned char uint8_t;
 #endif
+
+#ifdef __x86_64__
+inline void* MMAP(void*addr,size_t length,int prot,int flags,int fd,off64_t offset)
+{
+	return mmap64(addr,length,prot,flags,fd,offset);
+}
+typedef off64_t OFF_T;
+#elif defined __i386__
+inline void* MMAP(void*addr,size_t length,int prot,int flags,int fd,off_t offset)
+{
+	return mmap(addr,length,prot,flags,fd,offset);
+}
+typedef off_t OFF_T;
+#else
+#error "unknown architecture"
+#endif
+
 namespace nynn{ 
 //declaration
 enum{
@@ -56,8 +73,7 @@ public:
 		if (m_length==-1)
 			throw_nynn_exception(errno,"");
 
-		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
-				,MAP_SHARED,m_fd,m_offset);
+		m_base=MMAP(NULL,m_length,PROT_WRITE|PROT_READ,MAP_SHARED,m_fd,m_offset);
 
 		if (m_base==MAP_FAILED)
 			throw_nynn_exception(errno,"");
@@ -67,7 +83,7 @@ public:
 	}
 
 	//create a shared mapping file for already existed file
-	MmapFile(const string& path,size_t length,off_t offset)throw(nynn_exception_t)
+	MmapFile(const string& path,size_t length,off64_t offset)throw(nynn_exception_t)
 		:m_path(path),m_length(length),m_offset(offset),m_base(0)
 	{
 		m_fd=open(m_path.c_str(),O_RDWR);
@@ -77,9 +93,8 @@ public:
 		m_length=lseek(m_fd,0,SEEK_END);
 		if (m_length==-1)
 			throw_nynn_exception(errno,"");
+		m_base=MMAP(NULL,m_length,PROT_WRITE|PROT_READ,MAP_SHARED,m_fd,m_offset);
 
-		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
-				,MAP_SHARED,m_fd,m_offset);
 		if (m_base==MAP_FAILED)
 			throw_nynn_exception(errno,"");
 
@@ -102,8 +117,7 @@ public:
 		if (write(m_fd,"\0\0\0\0",4)!=4)
 			throw_nynn_exception(errno,"");
 
-		m_base=mmap(NULL,m_length,PROT_WRITE|PROT_READ
-				,MAP_SHARED,m_fd,m_offset);
+		m_base=MMAP(NULL,m_length,PROT_WRITE|PROT_READ,MAP_SHARED,m_fd,m_offset);
 
 		if (m_base==MAP_FAILED)
 			throw_nynn_exception(errno,"");
@@ -222,7 +236,7 @@ private:
 	string 	m_path;
 	int 	m_fd;
 	size_t 	m_length;
-	off_t 	m_offset;
+	OFF_T   m_offset;
 	void*   m_base;
 };
 

@@ -11,13 +11,13 @@ struct Vertex;
 struct Edge;
 
 template<
-	uint32_t LOG2_BLOCKSZ,
-	uint32_t LOG2_OVERFLOW_BLOCKSZ,
-	uint32_t OVERFLOW_BLOCKNO_MIN,
-	uint32_t BLOCKNO_MAX,
-	uint32_t LOG2_VERTEX_INTERVAL_WIDTH,
-	uint32_t OVERFLOW_NUM,
-	uint32_t MONITOR_NUM
+	size_t LOG2_BLOCKSZ,
+	size_t LOG2_OVERFLOW_BLOCKSZ,
+	size_t OVERFLOW_BLOCKNO_MIN,
+	size_t BLOCKNO_MAX,
+	size_t LOG2_VERTEX_INTERVAL_WIDTH,
+	size_t OVERFLOW_NUM,
+	size_t MONITOR_NUM
 >class SubgraphStorageType;
 
 
@@ -28,22 +28,22 @@ template<
 * [OVERFLOW_BLOCKNO_MIN,BLOCKNO_MAX) mapped into overflow.
 *  */
 template<
-uint32_t LOG2_BLOCKSZ,
-uint32_t LOG2_OVERFLOW_BLOCKSZ,
-uint32_t OVERFLOW_BLOCKNO_MIN,
-uint32_t BLOCKNO_MAX,
-uint32_t LOG2_VERTEX_INTERVAL_WIDTH,
-uint32_t OVERFLOW_NUM,
-uint32_t MONITOR_NUM
+size_t LOG2_BLOCKSZ,
+size_t LOG2_OVERFLOW_BLOCKSZ,
+size_t OVERFLOW_BLOCKNO_MIN,
+size_t BLOCKNO_MAX,
+size_t LOG2_VERTEX_INTERVAL_WIDTH,
+size_t OVERFLOW_NUM,
+size_t MONITOR_NUM
 >class SubgraphStorageType{
 public:
 
-	static uint32_t const BLOCKSZ=1<<LOG2_BLOCKSZ;
-	static uint32_t const OVERFLOW_BLOCKSZ=1<<LOG2_OVERFLOW_BLOCKSZ;
-	static uint32_t const OVERFLOW_BLOCKNO_MASK=(1<<LOG2_OVERFLOW_BLOCKSZ-LOG2_BLOCKSZ)-1;
-	static uint32_t const VOLUME_SIZE=OVERFLOW_BLOCKNO_MIN*BLOCKSZ;
-	static uint32_t const VERTEX_INTERVAL_WIDTH=1<<LOG2_VERTEX_INTERVAL_WIDTH;
-	static uint32_t const SUBGRAPH_ENTRY_NUM=1<<(32-LOG2_VERTEX_INTERVAL_WIDTH);
+	static size_t const BLOCKSZ=1<<LOG2_BLOCKSZ;
+	static size_t const OVERFLOW_BLOCKSZ=1<<LOG2_OVERFLOW_BLOCKSZ;
+	static size_t const OVERFLOW_BLOCKNO_MASK=(1<<LOG2_OVERFLOW_BLOCKSZ-LOG2_BLOCKSZ)-1;
+	static size_t const VOLUME_SIZE=OVERFLOW_BLOCKNO_MIN*BLOCKSZ;
+	static size_t const VERTEX_INTERVAL_WIDTH=1<<LOG2_VERTEX_INTERVAL_WIDTH;
+	static size_t const SUBGRAPH_ENTRY_NUM=1<<(32-LOG2_VERTEX_INTERVAL_WIDTH);
 
 	typedef nynn::mm::BlockType<BLOCKSZ> Block;
 	typedef typename Block::BlockHeader BlockHeader;
@@ -64,7 +64,7 @@ public:
 			munmap(m_data,sizeof(Data));
 		}
 		
-		static uint32_t const SIZE=sizeof(Data);
+		static size_t const SIZE=sizeof(Data);
 		void     loadData(void*superblk) { m_data=static_cast<Data*>(superblk); }
 		uint32_t getSupBlkno()const { return m_data->m_supBlkno; }
 		void     setSupBlkno(uint32_t blkno){ m_data->m_supBlkno=blkno; }
