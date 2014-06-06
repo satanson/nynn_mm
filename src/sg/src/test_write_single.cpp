@@ -41,10 +41,10 @@ int main(int argc,char**argv)
                 tmp->m_sink=pe->m_sink;
                 tmp->m_weight.m_fval=pe->m_weight.m_fval;
                 tmp->m_timestamp=pe->m_timestamp;    
+                counts+=20;
            } 
            if(size==EdgeContent::CONTENT_CAPACITY){
-                sgs.push(vtxno,&blk);
-         
+                sgs.push(vtxno,&blk); 
                 size=0;
            }
        	   base=++pe;
