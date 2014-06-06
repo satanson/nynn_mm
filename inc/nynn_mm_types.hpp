@@ -38,10 +38,9 @@ public:
 	void resize(uint32_t sz) { m_size=sz; }
 	void setHeadBlkno(uint32_t blkno) { m_headBlkno=blkno; }
 	void setTailBlkno(uint32_t blkno) { m_tailBlkno=blkno; }
-};
+}__attribute__((packed));
 
 struct Edge{
-	time_t m_timestamp;
 	uint32_t m_sink;
 	union{
 		void* 	 m_bval;
@@ -49,7 +48,8 @@ struct Edge{
 		double   m_fval;
 		char 	 m_cval[8];
 	}m_weight;
-};
+	uint64_t m_timestamp;
+}__attribute__((packed));
 
 template <uint32_t BLOCKSZ> 
 union BlockType
@@ -73,27 +73,27 @@ public:
 		uint32_t m_source;
 		uint32_t m_prev;
 		uint32_t m_next;	
-		time_t   m_infts;
-		time_t   m_supts;
+		uint64_t   m_infts;
+		uint64_t   m_supts;
 	public:
 
 		void setSource(uint32_t vtxno) { m_source=vtxno; }
 		void setPrev(uint32_t blkno) { m_prev=blkno; }
 		void setNext(uint32_t blkno) { m_next=blkno; }
-		void setInfTimestamp(time_t t) { m_infts=t; }
-		void setSupTimestamp(time_t t) { m_supts=t; }
+		void setInfTimestamp(uint64_t t) { m_infts=t; }
+		void setSupTimestamp(uint64_t t) { m_supts=t; }
 
 		uint32_t getSource() { return m_source; }
 		uint32_t getPrev() { return  m_prev; }
 		uint32_t getNext() { return  m_next; }
-		time_t getInfTimestamp() { return  m_infts; }
-		time_t getSupTimestamp() { return  m_supts; }
+		uint64_t getInfTimestamp() { return  m_infts; }
+		uint64_t getSupTimestamp() { return  m_supts; }
 
 		bool isNewerThan(const BlockHeader *rhs)
 		{ 
 			return this->getInfTimestamp()>=rhs->getSupTimestamp();
 		}
-		bool isNewerThan(time_t timestamp)
+		bool isNewerThan(uint64_t timestamp)
 		{
 			return this->getInfTimestamp()>=timestamp;
 		}
@@ -101,7 +101,7 @@ public:
 		{
 			return this->getSupTimestamp()<=rhs->getInfTimestamp();
 		}
-		bool isOlderThan(time_t timestamp)
+		bool isOlderThan(uint64_t timestamp)
 		{
 			return this->getSupTimestamp()<=timestamp;
 		}
