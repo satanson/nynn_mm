@@ -9,7 +9,7 @@ long getTime()
 int main(int argc,char**argv)
 {
     string basedir=argv[1];
-	string fpath="data.0";
+	string fpath=argv[2];
     SubgraphSet sgs(basedir);
     MmapFile m(fpath);
     void* base=m.getBaseAddress();
@@ -20,6 +20,8 @@ int main(int argc,char**argv)
     pv_end=pc_end;
     Block blk;
     EdgeContent *ectt=blk;
+    double counts=0;
+    long time_pre=getTime();
     while(base!=pv_end){
  		uint32_t *p1=(uint32_t*)base;
         uint32_t vtxno=*p1;
@@ -42,11 +44,14 @@ int main(int argc,char**argv)
            } 
            if(size==EdgeContent::CONTENT_CAPACITY){
                 sgs.push(vtxno,&blk);
+         
                 size=0;
            }
        	   base=++pe;
            i++;
 	   }
 	   if(size>0) sgs.push(vtxno,&blk); 
-   }    
+   }   
+   long time_next=getTime();
+   cout<<"time:"<<time_next-time_pre<<"ms datasize:"<<counts/1024/1024<<"MB throughout:"<<counts/1024/1024/(time_next-time_pre)*1000<<"MB/s";
 }
