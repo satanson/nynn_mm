@@ -21,6 +21,7 @@ int main(int argc,char**argv)
     Block blk;
     EdgeContent *ectt=blk;
     double counts=0;
+    double icounts=0;
     long time_pre=getTime();
     while(base!=pv_end){
  		uint32_t *p1=(uint32_t*)base;
@@ -32,8 +33,9 @@ int main(int argc,char**argv)
         base=++p1;
         base=p1+1;
         Edge* pe=(Edge*)base;
-        int i=0;
+        uint32_t i=0;
         uint16_t size=0;
+        icounts+=8;
         while(i<*p1){
            if(size<EdgeContent::CONTENT_CAPACITY){
 				ectt->resize(++size);
@@ -53,5 +55,6 @@ int main(int argc,char**argv)
 	   if(size>0) sgs.push(vtxno,&blk); 
    }   
    long time_next=getTime();
+   cout<<(icounts+counts)/1024/1024<<endl;
    cout<<"time:"<<time_next-time_pre<<"ms datasize:"<<counts/1024/1024<<"MB throughout:"<<counts/1024/1024/(time_next-time_pre)*1000<<"MB/s";
 }
