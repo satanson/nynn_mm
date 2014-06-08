@@ -25,8 +25,8 @@ int main(int argc,char**argv)
     double col=0;
     long time_pre=getTime();
     while(base!=pv_end){
-        col++;
-	    cout<<base<<"-"<<pv_end<<" "<<length<<" "<<col<<endl;
+       // col++;
+	   // cout<<base<<"-"<<pv_end<<" "<<length<<" "<<col<<endl;
  		uint32_t *p1=(uint32_t*)base;
         uint32_t vtxno=*p1;
         if (unlikely(!sgs.vtx_exists(vtxno))){
