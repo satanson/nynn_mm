@@ -59,5 +59,8 @@ int main(int argc,char**argv)
    }   
    long time_next=getTime();
    cout<<(icounts+counts)/1024/1024<<endl;
-   cout<<"time:"<<time_next-time_pre<<"ms datasize:"<<counts/1024/1024<<"MB throughout:"<<counts/1024/1024/(time_next-time_pre)*1000<<"MB/s";
+   long time1=getTime();
+   cout<<"time:"<<time_next-time_pre<<"ms datasize:"<<counts/1024/1024<<"MB throughout:"<<counts/1024/1024/(time_next-time_pre)*1000<<"MB/s"<<endl;
+   long time2=getTime();
+   count<<time2-time1;
 }
