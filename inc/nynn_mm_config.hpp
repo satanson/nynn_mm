@@ -5,13 +5,13 @@
 #include<nynn_mm_subgraph_set.hpp>
 #include<nynn_mm_graph_cache.hpp>
 using namespace nynn::mm;
-typedef nynn::mm::SubgraphStorageType<12,15,1<<21,~0u,24,1<<10,64> Subgraph;
+typedef nynn::mm::SubgraphStorageType<9,15,1<<21,~0u,10,1<<10,64> Subgraph;
 typedef Subgraph::Block Block;
 typedef Block::TContent<char> CharContent;
 typedef Block::TContent<Edge> EdgeContent;
 typedef Block::RawBlock RawBlock;
 typedef nynn::mm::SubgraphSetType<Subgraph,Block,CharContent,64> SubgraphSet;
-typedef nynn::mm::GraphCacheType<12,1024*128,1024,64> GraphCache;
+typedef nynn::mm::GraphCacheType<9,1024*128,1024,64> GraphCache;
 enum{
 	IS_WRITABLE=SubgraphSet::IS_WRITABLE,
 	IS_READABLE=SubgraphSet::IS_READABLE,

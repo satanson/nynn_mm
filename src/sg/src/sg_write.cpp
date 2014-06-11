@@ -7,8 +7,8 @@ int main(int argc,char**argv)
 {
 	string actid=argv[1];
 	string basedir=argv[2];
-	uint32_t vtxnoBeg=strtoul(argv[3],NULL,0);
-	uint32_t vtxnoEnd=strtoul(argv[4],NULL,0);
+	uint32_t vbegin=strtoul(argv[3],NULL,0);
+	uint32_t vend=strtoul(argv[4],NULL,0);
 	string file=argv[5];
 
 	map<string,Action> actions;
@@ -21,22 +21,7 @@ int main(int argc,char**argv)
 		exit(0);
 	}
 
-	uint32_t sgkeyBeg=vtxnoBeg-vtxnoBeg%SubgraphSet::VERTEX_INTERVAL_WIDTH;
-
 	SubgraphSet sgs(basedir);
-
-	struct timeval beg_tv,end_tv;
-	double t;
-	gettimeofday(&beg_tv,NULL);
-	
-	for (uint32_t sgkey=sgkeyBeg;sgkey<vtxnoEnd;sgkey+=SubgraphSet::VERTEX_INTERVAL_WIDTH){
-		sgs.createSubgraph(sgkey);
-		sgs.attachSubgraph(sgkey);
-	}
-	gettimeofday(&end_tv,NULL);
-	t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-(beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;
-	cout<<"create subgraph:["<<vtxnoBeg<<","<<vtxnoEnd<<")"<<endl;
-	cout<<"time usage:"<<t<<endl;
 
 	ifstream fin(file);
 	vector<string> lines;
@@ -48,21 +33,40 @@ int main(int argc,char**argv)
 		lines.push_back(line);
 	}
 
+	struct timespec begin_ts,end_ts;
+	double tbegin,tend,t;
 	Block blk;
-	CharContent *content=blk;
+	CharContent *cctt=blk;
+	uint64_t concurrency=0;
+	uint64_t nbytes=0;
+	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 
-	gettimeofday(&beg_tv,NULL);
-	for (uint32_t vtxno=vtxnoBeg;vtxno<vtxnoEnd;vtxno++) {
+	for (uint32_t vtxno=vbegin;vtxno<vend;vtxno++) {
+		if (unlikely(!sgs.vtx_exists(vtxno))){
+			uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
+			sgs.createSubgraph(sgkey);
+		}
 		for (uint32_t ln=0;ln<lines.size();ln++){
 			string& line=lines[ln];
-			content->resize(line.size());
-			std::copy(line.begin(),line.end(),content->begin());
+			cctt->resize(line.size());
+			std::copy(line.begin(),line.end(),cctt->begin());
 			(sgs.*act)(vtxno,&blk);
+			concurrency++;
+			nbytes+=CharContent::BLOCK_CONTENT_SIZE;
 		}
 	}
-	gettimeofday(&end_tv,NULL);
-	t=((end_tv.tv_sec*1000+end_tv.tv_usec/1000)-(beg_tv.tv_sec*1000+beg_tv.tv_usec/1000))/1000.0;
-	cout<<"write vtxno("<<vtxnoEnd-vtxnoBeg<<"): ["<<vtxnoEnd<<","<<vtxnoBeg<<")"<<endl;
-	cout<<"time usage:"<<t<<"s"<<endl;
-	cout<<"vtxno per second="<<(vtxnoEnd-vtxnoBeg)/t<<endl;
+	clock_gettime(CLOCK_MONOTONIC,&end_ts);
+	tbegin=begin_ts.tv_sec+begin_ts.tv_nsec/1.0e9;
+	tend=end_ts.tv_sec+end_ts.tv_nsec/1.0e9;
+	t=tend-tbegin;
+	ofstream out(format("output.%d",pthread_self()));
+	out.setf(ios::fixed);
+	out<<"tbegin:"<<tbegin<<endl;
+	out<<"tend:"<<tend<<endl;
+	out<<"t:"<<t<<endl;
+	out<<"nbytes:"<<nbytes<<endl;
+	out<<"concurrency:"<<concurrency<<endl;
+	out<<"throughput:"<<nbytes/1024.0/1024.0<<endl;
+	out<<"ave_concurrency:"<<concurrency/t<<endl;
+	out<<"ave_throughput:"<<nbytes/t/1024.0/1024.0<<endl;
 }
