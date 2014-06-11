@@ -12,7 +12,10 @@ int main(int argc,char**argv)
 	string fpath=argv[2];
     SubgraphSet sgs(basedir);
     MmapFile m(fpath);
-    void* base=m.getBaseAddress();
+    void* data=m.getBaseAddress();
+    void* base=malloc(m.getLength());
+	memcpy(base,data,m.getLength());
+
     char *pc_end=(char *)base;
     void *pv_end;
     size_t length=m.getLength();
