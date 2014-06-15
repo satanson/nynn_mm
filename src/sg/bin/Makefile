@@ -20,7 +20,7 @@ endif
 
 CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS) $(LOG) $(LOCKFREE) $(SCHED)
 
-SRC = sg_format.cpp sg_write.cpp sg_read.cpp sg_readvtx.cpp sg_read_multithread.cpp test_read.cpp test_read1.cpp test_write_single1.cpp 
+SRC = sg_remove_edges2.cpp sg_insert_edges2.cpp sg_insert_edges.cpp sg_dump_edges.cpp sg_modify_edges.cpp sg_format.cpp sg_write.cpp sg_read.cpp sg_readvtx.cpp sg_read_multithread.cpp test_read.cpp test_read1.cpp test_write_single1.cpp zms_client.cpp
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))

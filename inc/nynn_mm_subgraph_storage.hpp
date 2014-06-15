@@ -304,6 +304,19 @@ public:
 		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
 		memcpy(destBlk,blk,sizeof(Block));
 	}
+	void writeBlockContent(uint32_t blkno,Block*blk)
+	{
+		SharedSynchronization ss(&m_superblkRWLock);
+		//Synchronization s(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]);
+		unique_ptr<Synchronization> s;
+	    if (unlikely(isOverflow(blkno)))s.reset(new Synchronization(&m_monitors[Overflow::mapping(blkno)%MONITOR_NUM]));
+
+		Block *destBlk=getBlock(blkno);
+		if (destBlk==NULL)throw_nynn_exception(0,"Fail to get specified block(getBlock)!");
+		size_t off=sizeof(typename Block::BlockHeader);
+		memcpy((char*)destBlk+off,(char*)blk+off,sizeof(Block)-off);
+	}
+
 
 	uint32_t getMinVtxno() { return m_superblk.getMinVtxno(); }
 	uint32_t getMaxVtxno() { return m_superblk.getMaxVtxno(); }

@@ -226,6 +226,21 @@ public:
 			return retblk;
 		}
 	}
+	void write(uint32_t vtxno,uint32_t blkno,Block *blk)	
+	{
+		if (unlikely(vtxno==INVALID_VERTEXNO))return;
+		switch(blkno){
+			case HEAD_BLOCKNO:
+				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
+				break;
+			case TAIL_BLOCKNO:
+				blkno=getSubgraph(vtxno)->getVertex(vtxno)->getTailBlkno();
+				break;
+			default:
+				break;
+		}
+		getSubgraph(vtxno)->writeBlockContent(blkno,blk);
+	}
 
 	void readn(uint32_t vtxno,uint32_t blkno,int32_t n, vector<int8_t>& xblk)
 	{
