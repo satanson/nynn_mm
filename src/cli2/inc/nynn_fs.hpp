@@ -1,7 +1,7 @@
 #ifndef NYNN_FS_HPP_BY_SATANSON
 #define NYNN_FS_HPP_BY_SATANSON
 #include<linuxcpp.hpp>
-#include<zmq.hpp>
+#include<nynn_zmq.hpp>
 #include<nynn_mm_config.hpp>
 #include<nynn_mm_types.hpp>
 #include<nynn_cli.hpp>

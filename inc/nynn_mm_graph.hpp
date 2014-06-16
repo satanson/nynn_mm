@@ -4,7 +4,7 @@
 #include<nynn_common.hpp>
 #include<nynn_mm_config.hpp>
 #include<nynn_zmqprot.hpp>
-#include<zmq.hpp>
+#include<nynn_zmq.hpp>
 
 using namespace std;
 using namespace nynn;

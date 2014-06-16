@@ -22,6 +22,7 @@ private:
 	uint32_t m_headBlkno;
 	uint32_t m_tailBlkno;
 public:
+	static uint32_t const EXIST_BIT=1<<31;
 	explicit Vertex(uint32_t source):
 		m_source(source),m_data(0),m_size(0),
 		m_headBlkno(INVALID_VERTEXNO),
@@ -38,6 +39,10 @@ public:
 	void resize(uint32_t sz) { m_size=sz; }
 	void setHeadBlkno(uint32_t blkno) { m_headBlkno=blkno; }
 	void setTailBlkno(uint32_t blkno) { m_tailBlkno=blkno; }
+
+	void setExistBit(){m_data|=EXIST_BIT;}
+	void resetExistBit(){m_data&=~EXIST_BIT;}
+	bool getExistBit(){return (m_data|~EXIST_BIT)==EXIST_BIT;}
 }__attribute__((packed));
 
 struct Edge{
@@ -168,6 +173,17 @@ private:
 	char     m_data[BLOCKSZ];
 	uint32_t m_indexes[BLOCKSZ/sizeof(uint32_t)];
 	BlockHeader m_header;
+}__attribute__((packed));
+
+struct GraphInfo{
+	uint32_t gi_max_vtxno;
+	uint32_t gi_min_vtxno;
+	uint64_t gi_vtx_num;
+	uint64_t gi_edge_num;
+	void setMaxVtxno(uint32_t maxno){gi_max_vtxno=maxno;}
+	void setMinVtxno(uint32_t minno){gi_min_vtxno=minno;}
+	uint32_t getMaxVtxno(){return gi_max_vtxno;}
+	uint32_t getMinVtxno(){return gi_min_vtxno;}
 }__attribute__((packed));
 
 

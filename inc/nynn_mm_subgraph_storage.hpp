@@ -371,6 +371,7 @@ private:
 			m_superblk.getVertex(vtxno)->setHeadBlkno(INVALID_BLOCKNO);
 			m_superblk.getVertex(vtxno)->setTailBlkno(INVALID_BLOCKNO);
 			m_superblk.getVertex(vtxno)->setSource(vtxno);
+			m_superblk.getVertex(vtxno)->resetExistBit();
 		}
 
 		cout<<"format subgraph:"<<endl;

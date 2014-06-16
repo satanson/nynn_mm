@@ -1,7 +1,7 @@
 #ifndef NYNN_ZMQPROT_HPP_BY_SATANSON
 #define NYNN_ZMQPROT_HPP_BY_SATANSON
 
-#include<zmq.hpp>
+#include<nynn_zmq.hpp>
 #include<linuxcpp.hpp>
 #include<nynn_common.hpp>
 #include<nynn_mm_config.hpp>

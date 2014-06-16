@@ -1,4 +1,4 @@
-#include<zmq.hpp>
+#include<nynn_zmq.hpp>
 #include<linuxcpp.hpp>
 #include<nynn_common.hpp>
 #include<nynn_zmqprot.hpp>

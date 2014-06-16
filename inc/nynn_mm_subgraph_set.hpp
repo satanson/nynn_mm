@@ -287,6 +287,7 @@ public:
 			
 			BlockContent *content=*blk;
 			vtx->resize(vtx->size()+content->size());
+			vtx->setExistBit();
 
 			blk->getHeader()->setSource(vtxno);
 
@@ -321,6 +322,7 @@ public:
 			
 			BlockContent *content=*blk;
 			vtx->resize(vtx->size()+content->size());
+			vtx->setExistBit();
 			
 			blk->getHeader()->setSource(vtxno);
 
@@ -381,6 +383,7 @@ public:
 		BlockContent *newHeadBlkContent=*newHeadBlk;
 	
 		vtx->resize(vtx->size()+newHeadBlkContent->size());
+		vtx->setExistBit();
 		uint32_t newHeadBlkno=subgraph->require();
 		if (newHeadBlkno==INVALID_BLOCKNO)return INVALID_BLOCKNO;
 
@@ -428,7 +431,7 @@ public:
 			memcpy(_blk,oldHeadBlk,sizeof(Block));
 		}
 		subgraph->release(oldHeadBlkno);
-		return newHeadBlkno;
+		return oldHeadBlkno;
 	}
 
 	uint32_t push(uint32_t vtxno,Block*newTailBlk)
@@ -439,6 +442,7 @@ public:
 		BlockContent *newTailBlkContent=*newTailBlk;
 	
 		vtx->resize(vtx->size()+newTailBlkContent->size());
+		vtx->setExistBit();
 		uint32_t newTailBlkno=subgraph->require();
 		if (newTailBlkno==INVALID_BLOCKNO) return INVALID_BLOCKNO;
 
@@ -488,7 +492,7 @@ public:
 			memcpy(_blk,oldTailBlk,sizeof(Block));
 		}
 		subgraph->release(oldTailBlkno);
-		return newTailBlkno;
+		return oldTailBlkno;
 	}
 
 	bool exists(uint32_t sgkey){
@@ -512,11 +516,16 @@ public:
 		uint32_t subgraphKey=strtoul(strSubgraphNo,NULL,16);
 		return subgraphKey;
 	}
+
 	static uint32_t VTXNO2SGKEY(uint32_t vtxno) { return vtxno&~(VERTEX_INTERVAL_WIDTH-1); }
+
 	static uint32_t VTXNO2RWLOCK(uint32_t vtxno){ return vtxno%VERTEX_RWLOCK_NUM;}
 
 	string get_sgsdir(){return m_subgraphSetBasedir;}
-	bool vtx_exists(uint32_t vtxno){ return exists(VTXNO2SGKEY(vtxno)); }
+
+	bool vtx_exists(uint32_t vtxno){
+		return exists(VTXNO2SGKEY(vtxno))&&getSubgraph(vtxno)->getVertex(vtxno)->getExistBit(); 
+	}
 private:
 	string m_subgraphSetBasedir;
 	RWLock m_vertexRWLocks[VERTEX_RWLOCK_NUM];
