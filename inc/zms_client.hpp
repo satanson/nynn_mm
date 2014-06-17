@@ -6,10 +6,10 @@
 #include<stdlib.h>
 #include<pthread.h>
 #define BUF_SIZE 65536
-#define IP_NUM 3
+#define IP_NUM 1
 char io_tmp[1024];
-string ips[IP_NUM]={"192.168.255.115","192.168.255.117","192.168.255.118"};
-//string ips[IP_NUM]={"192.168.255.115"};
+//string ips[IP_NUM]={"192.168.255.115","192.168.255.117","192.168.255.118"};
+string ips[IP_NUM]={"192.168.255.115"};
 struct balance{
 	string ip;
     int num;
@@ -212,8 +212,11 @@ void* my_thread(void *arg)
 {
 	int *n=(int *)arg;
 	string ip=bs_thread[*n].ip;
+    char buff[10];
 	cout<<ip<<endl;
     int fd=getSockfd(ip,9999);
+	write(fd,suffix.c_str(),suffix.length());
+    recv(fd,buff,10,0);    
 	for(int i=0;i<bs_thread[*n].num;i++){
 		string fpath=get_filename(bs_thread[*n].sgs[i]);
         cout<<ip<<" "<<fpath<<endl;
@@ -229,7 +232,7 @@ void io_func(string fpath,int fd)
     char buff[BUF_SIZE];
     double len=0,tmp;
     char* base=(char *)m.getBaseAddress();
-
+   
 /*	write(fd,fpath.c_str(),strlen(fpath.c_str()));
     return;*/
 
@@ -240,11 +243,20 @@ void io_func(string fpath,int fd)
     cout<<length<<" "<<cycle<<" "<<tail<<endl;    
    // long time_pre=getTime();
     for(int n=0;n<cycle;n++){
-        if((n==(cycle-1))&&(tail!=0)) 
+        if((n==(cycle-1))&&(tail!=0)){ 
         	tmp=write(fd,base+n*BUF_SIZE,tail);
-            
-		else
+			if(tmp!=tail){
+				cout<<"write error"<<endl;
+				return;
+			}
+		}    
+		else{
         	tmp=write(fd,base+n*BUF_SIZE,BUF_SIZE);
+            if(tmp!=BUF_SIZE){
+                cout<<"write error"<<endl;
+            	return;
+            }
+		}
         len+=tmp;
     }    
    // long time_next=getTime();
