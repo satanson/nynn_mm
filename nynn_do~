@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /home/bsp/programer/nynn_mm/nynn_env
+source /root/nynn_mm/nynn_env
 
 #deploy host->repo host
 function handin(){
