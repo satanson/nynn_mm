@@ -84,19 +84,19 @@ public:
 	}
 	
 	bool read(uint32_t vtxno,uint32_t blkno,Block* blk){
-		Synchronization get(&_dlock);
+		//Synchronization get(&_dlock);
 		return nynn::mm::read(_dreq,vtxno,blkno,blk);
 	}
 	bool vtx_exists(uint32_t vtxno){
-		Synchronization get(&_dlock);
+		//Synchronization get(&_dlock);
 		return nynn::mm::vtx_exists(_dreq,vtxno);
 	}
 	string get_sgsdir(){
-		Synchronization get(&_dlock);
+		//Synchronization get(&_dlock);
 		return nynn::mm::get_sgsdir(_dreq);
 	}
 	string get_remote(uint32_t vtxno){
-		Synchronization get(&_dlock);
+		//Synchronization get(&_dlock);
 		return nynn::mm::get_remote(_dreq,vtxno);
 	}
 private:

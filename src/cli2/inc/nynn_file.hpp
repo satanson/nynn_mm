@@ -91,7 +91,11 @@ public:
 		}
 	}
 	bool vtx_exists(){
-		return _dcli_ptr->vtx_exists(_vtxno);
+		if (likely(_local)){
+			return _fs.get_sgs().vtx_exists(_vtxno);
+		}else{
+			return _dcli_ptr->vtx_exists(_vtxno);
+		}
 	}
 private:
 	nynn_fs& _fs;
