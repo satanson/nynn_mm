@@ -187,6 +187,7 @@ void input_all(SubgraphSet &sgs,int connfd)
                     if (unlikely(!sgs.exists(sgkey))){
                     	sgs.createSubgraph(sgkey);
                     }
+					sgs.push(vtxno,NULL);
                 	pv++;
                 	base=pv;
                 	size-=4;
