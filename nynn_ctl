@@ -13,7 +13,7 @@ function handin(){
 #repo host->deploy host
 function handout(){
 	pushd ${project_root}
-	git checkout -- *
+	git checkout -- .
 	git pull repo master
 	popd
 }
@@ -80,7 +80,7 @@ function nynn_stop()
 }
 
 function clean_data(){
-	rm -fr `eval "echo ${data_dir}/*"`
+	rm -fr `eval "echo ${data_dir}/subgraph*"`
 }
 
 function stop_iptables()
