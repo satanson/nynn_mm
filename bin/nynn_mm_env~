@@ -10,7 +10,7 @@ export NYNN_MM_NAMESERV_HWM=$((2**${2:-26}))
 export NYNN_MM_NAMESERV_BUF=$((2**${3:-20}))
 export NYNN_MM_NAMESERV_AFFINITY=$((2**${4:-1}-1))
 
-export NYNN_MM_DATASERV_HOST_LIST="blade5 blade7 blade8"
+export NYNN_MM_DATASERV_HOST_LIST="blade4 blade5 blade7 blade8"
 export NYNN_MM_DATASERV_WORKER_NUM=$((2**${5:-2}))
 export NYNN_MM_DATASERV_SOCKET_NUM_PER_WORKER=$((2**${6:-0}))
 
