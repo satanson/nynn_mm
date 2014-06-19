@@ -380,10 +380,11 @@ public:
 		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
-		BlockContent *newHeadBlkContent=*newHeadBlk;
-	
-		vtx->resize(vtx->size()+newHeadBlkContent->size());
 		vtx->setExistBit();
+	
+		if(unlikely(newHeadBlk==NULL))return INVALID_BLOCKNO;
+		BlockContent *newHeadBlkContent=*newHeadBlk;
+		vtx->resize(vtx->size()+newHeadBlkContent->size());
 		uint32_t newHeadBlkno=subgraph->require();
 		if (newHeadBlkno==INVALID_BLOCKNO)return INVALID_BLOCKNO;
 
@@ -439,10 +440,11 @@ public:
 		if (unlikely(vtxno==INVALID_VERTEXNO))return INVALID_BLOCKNO;
 		shared_ptr<SubgraphStorageT> &subgraph=getSubgraph(vtxno);
 		Vertex* vtx=subgraph->getVertex(vtxno);
-		BlockContent *newTailBlkContent=*newTailBlk;
-	
-		vtx->resize(vtx->size()+newTailBlkContent->size());
 		vtx->setExistBit();
+	
+		if (unlikely(newTailBlk==NULL))return INVALID_BLOCKNO;
+		BlockContent *newTailBlkContent=*newTailBlk;
+		vtx->resize(vtx->size()+newTailBlkContent->size());
 		uint32_t newTailBlkno=subgraph->require();
 		if (newTailBlkno==INVALID_BLOCKNO) return INVALID_BLOCKNO;
 

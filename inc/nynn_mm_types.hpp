@@ -42,7 +42,7 @@ public:
 
 	void setExistBit(){m_data|=EXIST_BIT;}
 	void resetExistBit(){m_data&=~EXIST_BIT;}
-	bool getExistBit(){return (m_data|~EXIST_BIT)==EXIST_BIT;}
+	bool getExistBit(){return (m_data&EXIST_BIT)==EXIST_BIT;}
 }__attribute__((packed));
 
 struct Edge{
