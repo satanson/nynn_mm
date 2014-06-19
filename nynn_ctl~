@@ -1,6 +1,6 @@
 #!/bin/bash
 #set -x
-source /root/nynn_mm/nynn_env
+source /home/bsp/programer/nynn_mm/nynn_env
 #deploy host->repo host
 function handin(){
 	pushd ${project_root}
@@ -22,10 +22,10 @@ function handout(){
 function sync_github(){
 	pushd ${project_root}
 	#git branch -d blade
-	git checkout -b blade
-	git push github blade
-	git checkout master
-	git branch -d blade
+	#git checkout -b blade
+	git push github blade 
+	#git checkout master
+	#git branch -d blade
 	popd
 }
 
