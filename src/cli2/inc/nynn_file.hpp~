@@ -20,7 +20,7 @@ public:
 		if(likely(!_writable)){
 			//log_i("vtxno=%d readonly",vtxno);
 			uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
-			if (likely(_fs.get_sgs().exists(sgkey))){
+			if (likely(_fs.get_sgs().vtx_exists(vtxno))){
 				//log_i("vtxno=%d in local",vtxno);
 				_local=true;
 			}else{
