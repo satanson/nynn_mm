@@ -19,7 +19,9 @@ BIN=$(basename $(SRC))
 default:$(BIN_DOT_A)
 	ls *.a|xargs -I{} echo '{}' |perl -ne 'chomp;$$i=$$_;s/\..*//g;rename $$i,$$_'
 	mv -f $(BIN) ../../../bin/
-	rm -fr *.o
+
+cli_read_multithread:cli_read_multithread.o
+	g++ $(CXXFLAGS) -o $@ $^ 
 
 %.a:%.o
 	g++ $(CXXFLAGS) -o $@ $^ 
