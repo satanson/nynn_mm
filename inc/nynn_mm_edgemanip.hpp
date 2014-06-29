@@ -166,6 +166,90 @@ public:
 		}
 		return n;
 	}
+
+	void current_head(uint32_t vtxno,uint32_t *blkno,size_t *size){
+		Subgraph *sg=sgs.getSubgraph(vtxno).get();
+		Vertex *vtx=sg->getVertex(vtxno);
+		*blkno=vtx->getHeadBlkno();
+		if (*blkno==INVALID_BLOCKNO){
+			*size=0;
+			return;
+		}else{
+			Block *blk=sg->getBlock(*blkno);
+			EdgeContent *ectt=*blk;
+			*size=ectt->size();
+			return;
+		}
+	}
+	void current_tail(uint32_t vtxno,uint32_t *blkno,size_t *size){
+		Subgraph *sg=sgs.getSubgraph(vtxno).get();
+		Vertex *vtx=sg->getVertex(vtxno);
+		*blkno=vtx->getTailBlkno();
+		if (*blkno==INVALID_BLOCKNO){
+			*size=0;
+			return;
+		}else{
+			Block *blk=sg->getBlock(*blkno);
+			EdgeContent *ectt=*blk;
+			*size=ectt->size();
+			return;
+		}
+	}
+	
+	bool shift_edges_until(uint32_t vtxno,uint32_t blkno,size_t size){
+		Subgraph *sg=sgs.getSubgraph(vtxno).get();
+		Vertex *vtx=sg->getVertex(vtxno);
+
+		if (blkno==INVALID_BLOCKNO){
+			blkno=vtx->getTailBlkno();
+			assert(size==0);
+		};
+
+		uint32_t b=vtx->getHeadBlkno();
+		int k=0;
+		while(b!=blkno&&b!=INVALID_BLOCKNO){
+			k++;
+			b=sg->getBlock(b)->getHeader()->getNext();
+		}
+		if (b==INVALID_BLOCKNO){
+			return false;
+		}else{
+			while(k-->0)sgs.shift(vtxno,NULL);
+			assert(blkno==b && blkno==vtx->getHeadBlkno());
+			Block *blk=sg->getBlock(blkno);
+			EdgeContent *ectt=*blk;
+			assert(size<ectt->size());
+			ectt->resize(size);
+			return true;
+		}
+	}
+	bool pop_edges_until(uint32_t vtxno,uint32_t blkno,size_t size){
+		Subgraph *sg=sgs.getSubgraph(vtxno).get();
+		Vertex *vtx=sg->getVertex(vtxno);
+
+		if (blkno==INVALID_BLOCKNO){
+			blkno=vtx->getHeadBlkno();
+			assert(size==0);
+		};
+
+		uint32_t b=vtx->getTailBlkno();
+		int k=0;
+		while(b!=blkno&&b!=INVALID_BLOCKNO){
+			k++;
+			b=sg->getBlock(b)->getHeader()->getPrev();
+		}
+		if (b==INVALID_BLOCKNO){
+			return false;
+		}else{
+			while(k-->0)sgs.pop(vtxno,NULL);
+			assert(blkno==b && blkno==vtx->getTailBlkno());
+			Block *blk=sg->getBlock(blkno);
+			EdgeContent *ectt=*blk;
+			assert(size<ectt->size());
+			ectt->resize(size);
+			return true;
+		}
+	}
 private:
 	SubgraphSet &sgs;
 	edge_manip_t(const edge_manip_t&);

@@ -4,19 +4,26 @@ int main(int argc,char**argv){
 	uint32_t vtxno=parse_int(argv[2],0);
 	uint32_t eb=parse_int(argv[3],0);
 	uint32_t ee=parse_int(argv[4],1024);
+	cout<<basedir<<endl;
 	SubgraphSet sgs(basedir);
+	Subgraph *sg=sgs.getSubgraph(vtxno).get();
+	Vertex *vtx=sg->getVertex(vtxno);
+
 	int n=0;
-	Block blk,*retBlk;
-	EdgeContent *ectt=blk;
-	uint32_t blkno=HEAD_BLOCKNO;
-	while((retBlk=sgs.read(vtxno,blkno,&blk))!=NULL){
-		cout<<"size="<<ectt->size()<<endl;
+	Block *blk;
+	EdgeContent *ectt;
+	uint32_t blkno=vtx->getHeadBlkno();
+
+	while(blkno!=INVALID_BLOCKNO){
+		blk=sg->getBlock(blkno);
+		ectt=*blk;
+		cout<<format("[blkno=%u, size=%u]",blkno,ectt->size())<<endl;
 		for(uint32_t i=0;i<ectt->size();i++){
 			n++;
 			if(n<eb||n>=ee)continue;
 			Edge *e=ectt->pos(i);
 			cout<<n<<":["<<e->m_sink<<","<<e->m_weight.m_fval<<","<<e->m_timestamp<<"]"<<endl;
 		}
-		blkno=blk.getHeader()->getNext();
+		blkno=blk->getHeader()->getNext();
 	}
 }
