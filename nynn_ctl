@@ -21,11 +21,11 @@ function handout(){
 #repo_host->github
 function sync_github(){
 	pushd ${project_root}
-	git branch -d blade
-	git checkout -b blade
-	git push github blade 
+	git branch -d blade1
+	git checkout -b blade1
+	git push github blade1
 	git checkout master
-	git branch -d blade
+	git branch -d blade1
 	popd
 }
 

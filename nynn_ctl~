@@ -21,7 +21,7 @@ function handout(){
 #repo_host->github
 function sync_github(){
 	pushd ${project_root}
-	git branch -d blade
+	git branch -d blade1
 	git checkout -b blade
 	git push github blade 
 	git checkout master
@@ -80,7 +80,7 @@ function nynn_stop()
 }
 
 function clean_data(){
-	rm -fr `eval "echo ${data_dir}/*"`
+	rm -fr `eval "echo ${data_dir}/subgraph*"`
 }
 
 function stop_iptables()
