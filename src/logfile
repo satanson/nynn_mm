@@ -1,0 +1,445 @@
+listening....
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+len:4294967295
+listening....hb bind error again
+
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+len:10
+new file:test/1.log
+close old file:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+listening....
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+len:4294967295
+bind error againhb bind error again
+
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+bind error again
+hb bind error again
+listening....
+hb bind error again
+has a connection....
+.log
+rescuefile:test/1.log
+increase over
+listening....
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+hb bind error again
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+rescuefile:test/1.log
+listening....
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:8
+over:4294967295
+size:12
+over:4294967295
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:16
+over:4294967295
+size:20
+over:4294967295
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:24
+over:4294967295
+size:28
+over:4294967295
+bind error againbind ok
+
+accept is coming
+bind error again
+bind error again
+accept ok
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+bind error again
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+over:0
+size:4
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+over:0
+size:4
+over:0
+increase over
+listening....
+listening....bind ok
+
+accept is coming
+accept ok
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+size:8
+over:0
+increase over
+listening....
+listening....
+bind ok
+accept is coming
+accept ok
+listening....
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+size:49152
+size:65544
+size:65540
+size:65536
+size:32784
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:16384
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:49152
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:49164
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:27624
+listening....
+has a connection....
+.log
+size:16388
+size:16392
+size:32780
+size:49152
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:49160
+size:16384
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:32772
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:49156
+size:65552
+size:65548
+size:65544
+size:65540
+size:65536
+size:65552
+size:11248
+listening....
