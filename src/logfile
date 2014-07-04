@@ -443,3 +443,303 @@ size:65536
 size:65552
 size:11248
 listening....
+listening....bind ok
+
+accept is coming
+accept ok
+has a connection....
+.log
+size:4
+size:16388
+over:10
+no end
+len:10
+new file:test/1.log
+/home/bsp/programer/nynn/graph/subgraph0x00000000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x00000000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+size:65554
+size:49184
+size:49168
+size:65544
+size:65548
+size:65548
+size:65548
+size:65548
+size:65548
+size:65536
+size:65544
+size:65552
+size:65548
+size:65544
+size:65548
+size:65552
+size:65544
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65540
+size:32772
+size:49152
+size:65540
+size:65544
+size:65552
+size:49164
+size:65540
+size:16400
+size:49160
+size:65544
+size:16396
+size:65552
+size:65548
+/home/bsp/programer/nynn/graph/subgraph0x00800000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x00800000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x03000000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x03000000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x01000000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x01000000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x02800000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x02800000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x01800000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x01800000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x02000000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x02000000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+/home/bsp/programer/nynn/graph/subgraph0x03800000/superblock.dat(167772172)
+/home/bsp/programer/nynn/graph/subgraph0x03800000/volume.dat(2147483648)
+format subgraph:
+blocksz:(512)
+overflow_blocksz:(32768)
+overflow_blockno_min:(4194304)
+superblk:(167772172)
+volume:(2147483648/4194304)
+	free blocks:(4194304)
+	head blkno:(1)
+	sup blkno:(4194304)
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:44012
+close old file:test/1.log
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+close old file:test/1.log
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+close old file:test/1.log
+size:8
+over:0
+increase over
+listening....
+has a connection....
+.log
+rescuefile:test/1.log
+size:4
+close old file:test/1.log
+size:8
+over:0
+increase over
+listening....
+listening....
+bind ok
+accept is coming
+accept ok
+has a connection....
+.log
+size:4
+size:16388
+over:10
+no end
+len:10
+new file:test/1.log
+size:49184
+size:49164
+size:65540
+size:65544
+size:65548
+size:65548
+size:49164
+size:65552
+size:65552
+size:65544
+size:65540
+size:65536
+size:65536
+size:65536
+size:65548
+size:65552
+size:65540
+size:65536
+size:65552
+size:65548
+size:65544
+size:65552
+size:65552
+size:65544
+size:32776
+size:49156
+size:65552
+size:16396
+size:65552
+size:65548
+size:49164
+size:16400
+size:65544
+size:49164
+size:16396
+size:65552
+size:65548
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:44012
+close old file:test/1.log
+over:0
+increase over
+listening....
+has a connection....
+.log
+size:4
+size:16388
+over:10
+no end
+len:10
+new file:test/1.log
+size:49184
+size:49164
+size:65540
+size:65544
+size:65548
+size:65548
+size:49164
+size:65552
+size:65552
+size:65544
+size:65540
+size:65536
+size:65536
+size:65536
+size:65548
+size:65552
+size:65540
+size:65536
+size:65552
+size:49164
+size:65540
+size:65548
+size:65536
+size:65548
+size:65536
+size:65536
+size:65536
+size:65536
+size:65552
+size:65552
+size:65544
+size:65548
+size:16384
+size:65540
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:65536
+size:11244
+close old file:test/1.log
+over:0
+increase over
+listening....

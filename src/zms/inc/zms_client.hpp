@@ -5,6 +5,7 @@
 #include<dirent.h>
 #include<stdlib.h>
 #include<pthread.h>
+#include<errno.h>
 #define BUF_SIZE 65536
 #define IP_NUM 1
 char io_tmp[1024];
@@ -17,6 +18,7 @@ struct balance{
 };
 struct balance bs[IP_NUM];
 struct balance bs_thread[IP_NUM];
+int success[IP_NUM];
 unsigned int files[2048];
 int file_len;
 //char suffix[10];
@@ -25,6 +27,7 @@ int file_len;
 //int pre_len;
 string prefix;
 string suffix;
+string dirname;
 void init()
 {
 	if(access("balance.cfg",0)!=0){
@@ -108,6 +111,7 @@ void write_balance()
 }
 void print_bs()
 {
+	cout<<"all balance:"<<endl;
 	for(int i=0;i<IP_NUM;i++){
 		cout<<bs[i].ip<<" "<<bs[i].num<<":";
         for(int j=0;j<bs[i].num;j++){
@@ -118,6 +122,7 @@ void print_bs()
 }
 void print_bs_t()
 {
+	cout<<"now balance:"<<endl;
     for(int i=0;i<IP_NUM;i++){
          cout<<bs_thread[i].ip<<" "<<bs_thread[i].num<<":";
          for(int j=0;j<bs_thread[i].num;j++){
@@ -145,11 +150,16 @@ int getSockfd(string ip,uint16_t port)
     servaddr.sin_port=htons(port);
     if(inet_pton(AF_INET,ip.c_str(),&servaddr.sin_addr)<0){
 		cout<<"inte_pton error for "<<ip<<endl;
-        return -2;
+        return -1;
     } 
-    if(connect(sockfd,(struct sockaddr *)&servaddr,sizeof(struct sockaddr))<0){
-		cout<<ip<<" connect error"<<endl;
-        return -3;
+    while(connect(sockfd,(struct sockaddr *)&servaddr,sizeof(struct sockaddr))<0){
+		cout<<ip<<":"<<strerror(errno)<<"  connect again..."<<endl;
+        sleep(5);
+     	close(sockfd);
+     	if((sockfd=socket(AF_INET,SOCK_STREAM,0))<0){
+           cout<<"socket error"<<endl;
+           return -1;
+     	}
     }
     return sockfd;
         
@@ -207,25 +217,82 @@ string get_filename(int i)
 	return filename;
   
 }
-void io_func(string,int);
+int io_func(string,int);
 void* my_thread(void *arg)
 {
 	int *n=(int *)arg;
 	string ip=bs_thread[*n].ip;
-    char buff[10];
+	int number_tmp;
+	success[*n]=0;
+    char buff[5200];
 //	cout<<ip<<endl;
     int fd=getSockfd(ip,9999);
-	write(fd,suffix.c_str(),suffix.length());
-    recv(fd,buff,10,0);    
+	if(fd==-1)	return NULL;
+	number_tmp=write(fd,suffix.c_str(),suffix.length());
+	if(number_tmp<suffix.length())	return NULL;
+    number_tmp=recv(fd,buff,100,0);  
+	if(number_tmp<=0) return NULL;
+	number_tmp=write(fd,dirname.c_str(),dirname.length());
+	if(number_tmp<dirname.length())  return NULL;
+	int m=recv(fd,buff,100,0);
+	if(m<=0) return NULL;
+	buff[m]='\0';
+	uint32_t donefiles[100];
+	uint32_t donelen=0;
+	if(strcmp(buff,"ok")==0){
+		cout<<"good dir"<<endl;
+	}else{
+		cout<<"bad dir"<<endl;
+		number_tmp=write(fd,"file",4);
+		if(number_tmp<4) return NULL;
+		number_tmp=recv(fd,buff,5200,0);
+		if(number_tmp<=0) return NULL;
+		uint32_t *p=(uint32_t *)buff;
+		donelen=*p;
+		for(int i=0;i<donelen;i++){
+			p++;
+			donefiles[i]=*p;
+			cout<<"file:"<<*p<<endl;
+		}	
+		
+	}
 	for(int i=0;i<bs_thread[*n].num;i++){
+		int isflag=1;
+		for(int j=0;j<donelen;j++){
+			if(bs_thread[*n].sgs[i]==donefiles[j]){
+				isflag=0;
+				break;
+			}
+		}
+		if(isflag==0) continue;
 		string fpath=get_filename(bs_thread[*n].sgs[i]);
         cout<<ip<<" "<<fpath<<endl;
-		io_func(fpath,fd);
-	}    
+		uint32_t flag=-1;
+        uint32_t length=fpath.length();
+		number_tmp=write(fd,&flag,sizeof(uint32_t));
+		if(number_tmp<sizeof(uint32_t)) return NULL;
+		number_tmp=write(fd,&length,sizeof(uint32_t));
+		if(number_tmp<sizeof(uint32_t)) return NULL;
+		number_tmp=write(fd,fpath.c_str(),fpath.length());
+		if(number_tmp<fpath.length()) return NULL;
+		if(io_func(fpath,fd)==-1) return NULL;
+	}   
+	uint32_t over=-1;
+	number_tmp=write(fd,&over,sizeof(uint32_t));
+	if(number_tmp<sizeof(uint32_t)) return NULL;
+	over=0;
+	number_tmp=write(fd,&over,sizeof(uint32_t));
+    if(number_tmp<sizeof(uint32_t)) return NULL;
+	m=recv(fd,buff,100,0);
+	if(m<=0) return NULL;
+	buff[m]='\0';
+	success[*n]=1;
+	cout<<buff<<endl;
     close(fd);	
+	
 }
 
-void io_func(string fpath,int fd)
+int io_func(string fpath,int fd)
 {
     MmapFile m(fpath);
     //int fd=getSockfd(ip,9999);
@@ -247,28 +314,30 @@ void io_func(string fpath,int fd)
         	tmp=write(fd,base+n*BUF_SIZE,tail);
 			if(tmp!=tail){
 				cout<<"write error"<<endl;
-				return;
+				return -1;
 			}
 		}    
 		else{
         	tmp=write(fd,base+n*BUF_SIZE,BUF_SIZE);
             if(tmp!=BUF_SIZE){
                 cout<<"write error"<<endl;
-            	return;
+            	return -1;
             }
 		}
         len+=tmp;
     }    
+	return 1;
    // long time_next=getTime();
    // cout<<"time:"<<time_next-time_pre<<"ms datasize:"<<len/1024/1024<<"MB throughout:"<<len/1024/1024/(time_next-time_pre)*1000<<"MB/s"<<endl;
    // close(fd);
 }
-void zms_client(string dir_name)
+int zms_client(string dir_name)
 {
 	pthread_t threads[IP_NUM];
     int args[IP_NUM];
 	init();
-    read_balance();	
+    read_balance();
+	dirname=dir_name;	
 	parse_dir(dir_name);
 	distribute(files,file_len);
 	print_bs();
@@ -281,6 +350,10 @@ void zms_client(string dir_name)
     for(int n=0;n<IP_NUM;n++){
         pthread_join(threads[n],NULL);
     }
+	for(int n=0;n<IP_NUM;n++){
+		if(success[n]!=1) return 0;
+	}
+	return 1;
 }
 
 

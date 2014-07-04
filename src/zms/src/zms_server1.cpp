@@ -326,7 +326,10 @@ void increase(SubgraphSet &sgs,int connfd)
                     	if (unlikely(!sgs.exists(sgkey))){
                     		sgs.createSubgraph(sgkey);
                     	}
-						oflog<<"begin "<<vtxno<<" 1 1"<<endl;
+            	        uint32_t pblk;
+						size_t psize;
+						edgemanip.current_tail(vtxno,&pblk,&psize);
+						oflog<<"begin "<<vtxno<<" "<<pblk<<" "<<psize<<endl;
                 		pv++;
                 		base=pv;
                 		size-=4;
@@ -348,6 +351,8 @@ void increase(SubgraphSet &sgs,int connfd)
 				if(over==0){
 					tail=0;
 					flag=0;
+					nowfile="no";
+					rescuefile="";
 					write(connfd,"success",7);
 				    break;
 				}
