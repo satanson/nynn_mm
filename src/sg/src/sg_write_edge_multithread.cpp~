@@ -42,7 +42,7 @@ void* writer(void* arg){
 		p+=sizeof(uint32_t);
 		Edge *eb=(Edge*)p;
 		Edge *ee=eb+nedges;
-		Edge *eb;
+		Edge *e=eb;
 		p=(char*)eb;
 		concurrency++;
 		nbytes+=sizeof(vtxno)+sizeof(nedges)+sizeof(Edge)*nedges;

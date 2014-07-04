@@ -309,7 +309,7 @@ void increase(SubgraphSet &sgs,int connfd)
     		                if (unlikely(!sgs.exists(sgkey))){
                            		sgs.createSubgraph(sgkey);
                             }
-							uint32_t pblkp;
+							uint32_t pblk;
 							size_t psize;
 							edgemanip.current_tail(vtxno,&pblk,&psize);
 							flog<<"begin "<<vtxno<<" "<<pblk<<" "<<psize<<endl;
