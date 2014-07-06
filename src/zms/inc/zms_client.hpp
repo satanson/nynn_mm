@@ -264,6 +264,7 @@ void* my_thread(void *arg)
 				break;
 			}
 		}
+		cout<<"isflag:"<<isflag<<endl;
 		if(isflag==0) continue;
 		string fpath=get_filename(bs_thread[*n].sgs[i]);
         cout<<ip<<" "<<fpath<<endl;
@@ -283,7 +284,9 @@ void* my_thread(void *arg)
 	over=0;
 	number_tmp=write(fd,&over,sizeof(uint32_t));
     if(number_tmp<sizeof(uint32_t)) return NULL;
+	cout<<"wait recv"<<endl;
 	m=recv(fd,buff,100,0);
+	cout<<"recv ok"<<endl;
 	if(m<=0) return NULL;
 	buff[m]='\0';
 	success[*n]=1;

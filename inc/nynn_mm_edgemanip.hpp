@@ -218,7 +218,7 @@ public:
 			assert(blkno==b && blkno==vtx->getHeadBlkno());
 			Block *blk=sg->getBlock(blkno);
 			EdgeContent *ectt=*blk;
-			assert(size<ectt->size());
+			assert(size<=ectt->size());
 			ectt->resize(size);
 			return true;
 		}
@@ -245,7 +245,7 @@ public:
 			assert(blkno==b && blkno==vtx->getTailBlkno());
 			Block *blk=sg->getBlock(blkno);
 			EdgeContent *ectt=*blk;
-			assert(size<ectt->size());
+			assert(size<=ectt->size());
 			ectt->resize(size);
 			return true;
 		}

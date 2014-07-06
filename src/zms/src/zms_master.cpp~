@@ -61,7 +61,7 @@ int main()
 	for(int i=0;i<NUM;i++){
 		args[i]=i;
 		initflags[i]=0;
-		string comm="ssh bsp@"+ips[i]+" \"/home/bsp/programer/nynn_mm/src/zms_server1 /home/bsp/programer/nynn/graph 100 >>/home/bsp/programer/nynn_mm/src/logfile &\"";
+		string comm="ssh bsp@"+ips[i]+" \"/home/bsp/programer/nynn_mm/src/zms_server1 /home/bsp/programer/nynn/graph  >>/home/bsp/programer/nynn_mm/src/logfile &\"";
 		system(comm.c_str());		
 		pthread_create(&threads[i],NULL,heartbeat,(void *)&args[i]);
 	}
@@ -77,7 +77,7 @@ int main()
 					pthread_cancel(threads[i]);
 					close(fds[i]);	
 					initflags[i]=0;
-					string comm="ssh bsp@"+ips[i]+" \"/home/bsp/programer/nynn_mm/src/zms_server1 /home/bsp/programer/nynn/graph 100 >>/home/bsp/programer/nynn_mm/src/logfile &\"";
+					string comm="ssh bsp@"+ips[i]+" \"/home/bsp/programer/nynn_mm/src/zms_server1 /home/bsp/programer/nynn/graph  >>/home/bsp/programer/nynn_mm/src/logfile &\"";
      	        	system(comm.c_str());       
                 	pthread_create(&threads[i],NULL,heartbeat,(void *)&args[i]);
 				}

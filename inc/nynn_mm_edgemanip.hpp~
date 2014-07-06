@@ -241,11 +241,11 @@ public:
 		if (b==INVALID_BLOCKNO){
 			return false;
 		}else{
-			while(k-->0)sg->pop(vtxno,NULL);
+			while(k-->0)sgs.pop(vtxno,NULL);
 			assert(blkno==b && blkno==vtx->getTailBlkno());
 			Block *blk=sg->getBlock(blkno);
 			EdgeContent *ectt=*blk;
-			assert(size<ectt->size());
+			assert(size<=ectt->size());
 			ectt->resize(size);
 			return true;
 		}

@@ -8,7 +8,7 @@ using namespace nynn::mm;
 using namespace nynn::cli;
 int main(int argc,char**argv){
 	uint32_t vtxno=atoi(argv[1]);
-    nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
+    nynn_fs fs("192.168.255.115:50000","192.168.255.115:60000");
     uint32_t blkno=nynn_file::headblkno;
     nynn_file f(fs,vtxno,false);
     Block blk;

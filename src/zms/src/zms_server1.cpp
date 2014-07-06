@@ -32,6 +32,9 @@ char buff[BUF_SIZE];
 string rescuefile; 
 string nowfile("no");
 int cirtime;
+ofstream ofok,oflog;
+fstream fok,flog;
+
 
 void input_all(SubgraphSet&,int);
 void increase(SubgraphSet&,int);
@@ -74,13 +77,13 @@ void* heartbeat(void *arg)
 		now=time(NULL);
 	}
     close(connfd);
-	close(listenfd);	
+	close(listenfd);
+	exit(0);	
 }
 
 int main(int argc,char**argv)
 {
     string basedir=argv[1];
-	cirtime=atoi(argv[2]);
     SubgraphSet sgs(basedir);
 	pthread_t thread;
 	pthread_create(&thread,NULL,heartbeat,NULL);
@@ -121,10 +124,18 @@ int main(int argc,char**argv)
 			suffix=buff;
 			cout<<suffix<<endl;
 			write(connfd,"ok",2);
+			tail=0;
+			flag=0;
 			if(strcmp(buff,".data")==0){
 				input_all(sgs,connfd);
 			}else 
 				if(strcmp(buff,".log")==0){
+					nowfile="no";
+					rescuefile="";
+					ofok.close();
+					fok.close();
+					oflog.close();
+					flog.close();
 					increase(sgs,connfd);
 				}
 		}		
@@ -142,8 +153,6 @@ void increase(SubgraphSet &sgs,int connfd)
 	
 	//get dirname
 	n=recv(connfd,buff,BUF_SIZE,0);
-	ofstream ofok,oflog;
-    fstream fok,flog;
 	uint32_t donefiles[100];
 	uint32_t donelen=0;
 	int isput;
@@ -202,10 +211,6 @@ void increase(SubgraphSet &sgs,int connfd)
 
 	while((n=recv(connfd,buff,BUF_SIZE,0))>0){
 		uint32_t cmp=-1;
-		cirtime--;
-		if(cirtime==0){
-			return;
-		}
 		memcpy(all_data,no_done,tail);
         memcpy(all_data+tail,buff,n);
         size=tail+n;
@@ -218,6 +223,7 @@ void increase(SubgraphSet &sgs,int connfd)
 					vtxno=*pv;
 					//cout<<vtxno<<endl;
 					if(vtxno==cmp){
+						cout<<"vtxno:"<<vtxno<<endl;
 						flag=3;
 						//close old file
 						if(strcmp(nowfile.c_str(),"no")!=0){
@@ -266,7 +272,8 @@ void increase(SubgraphSet &sgs,int connfd)
                     if(nowfile==rescuefile){
 						if(isput==0){
 							string begin;
-							uint32_t vtx,blk,sizeno;
+							uint32_t vtx,blk;
+							size_t sizeno;
 							if(flog>>begin>>vtx>>blk>>sizeno){
 								string end;
 								if(flog>>end){
@@ -283,6 +290,7 @@ void increase(SubgraphSet &sgs,int connfd)
 									flog.clear();
 									flog.seekp(0,fstream::end);
 									cout<<"rescue...."<<vtx<<endl;
+									edgemanip.pop_edges_until(vtx,blk,sizeno);
 									isput=1;
 									uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
     	                            	if (unlikely(!sgs.exists(sgkey))){
@@ -470,12 +478,21 @@ void increase(SubgraphSet &sgs,int connfd)
 		len+=n;
 	}  
     if(n==0){
-        cout<<"increase over"<<endl;
+		cout<<"increase over"<<endl;
     }
 }
 
 void input_all(SubgraphSet &sgs,int connfd)
 {
+    n=recv(connfd,buff,BUF_SIZE,0);
+	if(n>0){
+		buff[n]='\0';
+		dirname=buff;	
+	}
+		
+	write(connfd,"ok",2);
+	uint32_t cmp=-1;
+
     while((n=recv(connfd,buff,BUF_SIZE,0))>0){
        /* buff[n]='\0';
 		cout<<buff<<endl;
@@ -484,11 +501,23 @@ void input_all(SubgraphSet &sgs,int connfd)
         memcpy(all_data+tail,buff,n);
         size=tail+n;
         base=all_data;
+		cout<<"size:"<<size<<endl;
         while(1){
 			if(flag==0){
                 if(size>=4){
                 	uint32_t *pv=(uint32_t *)base;
 					vtxno=*pv;
+					cout<<"here"<<vtxno<<endl;
+					if(vtxno==cmp){
+						cout<<"-1"<<endl;
+						flag=3;
+						if(size<8){
+							tail=size;
+							memcpy(no_done,base,tail);
+							break;
+						}
+						continue;
+					}
 				//	cout<<vtxno<<endl;
                     uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
                     if (unlikely(!sgs.exists(sgkey))){
@@ -526,6 +555,34 @@ void input_all(SubgraphSet &sgs,int connfd)
                     break;
 				}                    
             }
+			if(flag==3){
+				uint32_t *pover=(uint32_t *)base;
+				uint32_t over=*(pover+1);
+				if(over==0){
+					tail=0;
+					flag=0;
+					write(connfd,"success",7);
+					break;
+				}else{
+					if(size<50){
+						tail=size;
+						memcpy(no_done,base,tail);
+						break;
+					}
+				}
+				cout<<"no end"<<endl;
+				uint32_t *pnew=(uint32_t *)base;
+				pnew++;
+				uint32_t len=*pnew;
+				pnew++;
+				string name((char*)pnew,len);
+				char *ptmp=(char*)pnew;
+				ptmp+=len;
+				base=ptmp;
+				size-=(4+4+len);
+				flag=0;
+				continue;
+			}
             if(flag==2){
                 while((size>=e_size)&&(edge_num>0)){
 					pe=(Edge *)base;
