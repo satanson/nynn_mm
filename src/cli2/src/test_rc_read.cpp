@@ -12,7 +12,7 @@ int main(int argc,char**argv){
     ofstream out("3.txt");
     uint32_t vtxno=0;
     nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
-    nynn_file f(fs,vtxno,true);
+    nynn_file f(fs,vtxno);
     Block blk;
     CharContent *cctt=blk;
     uint32_t blkno=nynn_file::headblkno;

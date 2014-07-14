@@ -37,7 +37,7 @@ int main(int argc,char**argv)
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 	for (int i=0;i<loop;i++)
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
-		nynn_file f(fs,vtxno,false);
+		nynn_file f(fs,vtxno);
 		uint32_t blkno=firstblkno;
 		while(blkno!=nynn_file::invalidblkno){
 			if(!f.read(blkno,&blk))break;

@@ -27,7 +27,7 @@ int main(int argc,char**argv){
         vtxno=0;
         while(vtxno<64){
             j=0;
-        	nynn_file f(fs,vtxno,true);
+        	nynn_file f(fs,vtxno);
             while(j<4){
 				cctt->resize(data.size());
 				std::copy(data.begin(),data.end(),cctt->begin());

@@ -20,7 +20,7 @@ int main(int argc,char**argv){
 				&Block::BlockHeader::getNext;
 
 	nynn_fs fs(naddr,daddr);
-	nynn_file f(fs,vtxno,false);
+	nynn_file f(fs,vtxno);
 
 	Block blk;
 	CharContent *cctt=blk;

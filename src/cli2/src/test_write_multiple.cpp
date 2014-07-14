@@ -29,7 +29,7 @@ void*  my_thread(void *arg){
     counts[*n]=0;
     for(uint32_t vtxno=begin;vtxno<end;vtxno++){
         int j=0;
-        nynn_file f(fs,vtxno,true);
+        nynn_file f(fs,vtxno);
         while(j<blkNum){
 			cctt->resize(data.size());
 			std::copy(data.begin(),data.end(),cctt->begin());

@@ -95,7 +95,7 @@ public:
 		//Synchronization get(&_dlock);
 		return nynn::mm::get_sgsdir(_dreq);
 	}
-	string get_remote(uint32_t vtxno){
+	uint64_t get_remote(uint32_t vtxno){
 		//Synchronization get(&_dlock);
 		return nynn::mm::get_remote(_dreq,vtxno);
 	}

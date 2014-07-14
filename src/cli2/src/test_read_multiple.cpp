@@ -28,7 +28,7 @@ void*  my_thread(void *arg){
     counts[*n]=0;
     while(vtxno<vtxend){
          uint32_t blkno=nynn_file::headblkno;
-         nynn_file f(fs,vtxno,false);
+         nynn_file f(fs,vtxno);
          while(blkno!=nynn_file::invalidblkno){
             if(!f.read(blkno,&blk)) break;
             blkno=(blk.getHeader()->getNext)();

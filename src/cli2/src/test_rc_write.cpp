@@ -13,7 +13,7 @@ int main(int argc,char**argv){
     string tmp;
     uint32_t vtxno=0;
     nynn_fs fs("192.168.255.114:50000","192.168.255.114:60000");
-    nynn_file f(fs,vtxno,true);
+    nynn_file f(fs,vtxno);
     Block blk;
     CharContent *cctt=blk;
     while(getline(in,tmp)){

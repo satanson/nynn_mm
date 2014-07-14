@@ -56,7 +56,7 @@ public:
 			dclimap[host].reset(new nynn_dcli(ctx,ip2string(host)+":"+to_string(port)));
 		return dclimap[host];
 	}
-	shared_ptr<nynn_dcli>& get_localdcli(){return dclimap[localhost];}
+	shared_ptr<nynn_dcli>& get_localdcli(){return nynn_dcli[localhost];}
 	uint32_t get_localhost()const{return localhost;}
 
 	uint64_t where(uint32_t vtxno){

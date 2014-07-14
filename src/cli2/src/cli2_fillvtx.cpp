@@ -20,7 +20,7 @@ int main(int argc,char**argv){
 	Perform perform=pmap[p];
 
 	nynn_fs fs(naddr,daddr);
-	nynn_file f(fs,vtxno,true);
+	nynn_file f(fs,vtxno);
 	Block blk;
 	CharContent *cctt=blk;
 	string line;

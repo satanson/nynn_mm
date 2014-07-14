@@ -306,7 +306,7 @@ void handle_get_remote(prot::Replier& rep,Graph& g,RWLock& glk,uint16_t dport){
 	auto ptr2mf=&Graph::which_host;
 	uint32_t ip=mfsyncr<uint32_t>(glk,g,ptr2mf,vtxno);
 	uint64_t hostport=ip;
-	hostport<<=32;
+	hostport<<32;
 	hostport+=dport;
 	rep.ans(prot::STATUS_OK,&hostport,sizeof(hostport));
 }

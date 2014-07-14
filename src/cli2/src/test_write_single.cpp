@@ -32,7 +32,7 @@ int main(int argc,char**argv){
         vtxno=atoi(argv[1]);
         while(vtxno<vtxend){
             j=0;
-        	nynn_file f(fs,vtxno,true);
+        	nynn_file f(fs,vtxno);
             while(j<blkNum){
 				cctt->resize(data.size());
 				std::copy(data.begin(),data.end(),cctt->begin());

@@ -26,7 +26,7 @@ void*  my_thread(void *arg){
     data.resize(CharContent::CONTENT_CAPACITY);
     for(uint32_t vtxno=begin;vtxno<end;vtxno++){
         int j=0;
-        nynn_file f(fs,vtxno,true);
+        nynn_file f(fs,vtxno);
         while(j<4){
 			cctt->resize(data.size());
 			std::copy(data.begin(),data.end(),cctt->begin());

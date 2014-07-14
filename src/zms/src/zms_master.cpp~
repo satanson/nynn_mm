@@ -10,8 +10,8 @@
 #include<errno.h>
 #include<stdlib.h>
 using namespace std;
-#define NUM 1
-string ips[NUM]={"192.168.255.115"};
+#define NUM 2
+string ips[NUM]={"192.168.255.115","192.168.255.117"};
 int flags[NUM];
 int fds[NUM];
 pthread_t threads[NUM];
@@ -67,10 +67,12 @@ int main()
 	}
 	for(int i=0;i<NUM;i++){
 		times[i]=time(NULL);
+		cout<<i<<"time(init):"<<times[i]<<endl;
 	}
 	while(1){	
 		time_t now=time(NULL);
 		for(int i=0;i<NUM;i++){
+			cout<<i<<"cha:"<<now-times[i]<<endl;
             if((now-times[i])>15){
 				if(initflags[i]==1){
 					cout<<"chaole"<<endl;

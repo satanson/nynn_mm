@@ -1,9 +1,0 @@
-#include<nynn_nynn_config.hpp>
-using namespace std;
-int main(){
-	Vertex vtx;
-	vtx.resetExistBit();
-	cout<<vtx.getExistBit()<<endl;
-	vtx.setExistBit();
-	cout<<vtx.getExistBit()<<endl;
-}

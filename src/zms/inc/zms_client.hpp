@@ -9,7 +9,7 @@
 #define BUF_SIZE 65536
 #define IP_NUM 2
 char io_tmp[1024];
-string ips[IP_NUM]={"192.168.255.117","192.168.255.118"};
+string ips[IP_NUM]={"192.168.255.115","192.168.255.117"};
 //string ips[IP_NUM]={"192.168.255.115"};
 struct balance{
 	string ip;
