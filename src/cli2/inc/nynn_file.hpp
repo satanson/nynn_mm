@@ -20,6 +20,7 @@ public:
 		if (unlikely(!fs.get_sgs()->exists(sgkey))){
 			uint64_t hostport=fs.where(sgkey);
 			here= (hostport>>32)==fs.get_localhost();
+			vtx=fs.fetchvtx(vtxno);
 		}else{
 			here=true;
 		}
@@ -37,24 +38,30 @@ public:
 	uint32_t pop(Block *blk){
 		return fs.get_ncli()->pop(vtxno,blk);
 	}
+
 	Block* read(uint32_t blkno,Block *blk){
 		if(here){
 			return fs.get_sgs()->read(vtxno,blkno,blk);
 		}else{
-			return fs.get_dcli(vtxno)->read(vtxno,blkno,blk)?blk:NULL;
+			shared_ptr<Block> b=fs.fetchblk(vtxno,blkno,0);
+			if (!b.get())return NULL;
+			memcpy(blk,b.get(),sizeof(Block));
+			return blk;
 		}
 	}
+
 	bool vtx_exists(){
 		if(here){
 			return fs.get_sgs()->vtx_exists(vtxno);
 		}else{
-			return fs.get_dcli(vtxno)->vtx_exists(vtxno);
+			return vtx->getExistBit();
 		}
 	}
 private:
 	nynn_fs& fs;
 	uint32_t vtxno;
 	bool here;
+	shared_ptr<Vertex> vtx;
 
 	nynn_file(const nynn_file&);
 	nynn_file& operator=(const nynn_file&);

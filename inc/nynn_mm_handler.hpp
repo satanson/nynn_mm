@@ -198,23 +198,6 @@ void *read(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block* blk){
 }
 void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSockMap& datasocks){
 	ReadOptions& rdopts=*(ReadOptions*)rep.get_options();
-	//uint32_t targetip=g.which_host(rdopts->vtxno);
-	//Block blk;
-	////vtx non-exists!
-	//if(targetip==0){
-	//	rep.ans(prot::STATUS_ERR,NULL,0);
-	//	return;
-	//	//vtx exists in local host
-	//}else if (targetip==localip){
-	//	void *retblk=g.read(rdopts->vtxno,rdopts->blkno,&blk);
-	//	if (unlikely(retblk==NULL)){
-	//		rep.ans(prot::STATUS_ERR,NULL,0);
-	//	}else{
-	//		rep.ans(prot::STATUS_OK,&blk,sizeof(Block));
-	//	}
-	//	return;
-	//	//vtx exists in remote host
-	//}
 	uint32_t vtxno=rdopts->vtxno;
 	uint32_t blkno=rdopts->blkno;
 	Block blk;
@@ -309,6 +292,112 @@ void handle_get_remote(prot::Replier& rep,Graph& g,RWLock& glk,uint16_t dport){
 	hostport<<=32;
 	hostport+=dport;
 	rep.ans(prot::STATUS_OK,&hostport,sizeof(hostport));
+}
+
+void vtx_batch(prot::Requester& req,uint32_t vtxno,
+		unordered_map<uint32_t,shared_ptr<Vertex> >& vtxcache){
+	VtxOptions& vtxopts=*VtxOptions::make(1);
+	unique_ptr<void> just_for_auto_delete(&vtxopts);
+	vtxopts[0]=vtxno;
+
+	req.ask(prot::CMD_VTX_BATCH,&vtxopts,vtxopts.size(),NULL,0);
+	req.parse_ans();
+	vector<Vertex> vtxArray;
+	if (likely(req.get_status()==prot::STATUS_OK)){
+		VarString& vs=*(VarString*)req.get_data();
+		size_t n=vs.length()/sizeof(Vertex);
+		Vertex *vb=(Vertex*)vs.begin();
+		Vertex *ve=vb+n;
+		for (Vertex *v=vb;v!=ve;v++){
+			vtxcache[v->getSource()].reset(new Vertex(*v));
+		}
+	}
+}
+
+void handle_vtx_batch(prot::Replier& rep,Graph& g){
+
+	VtxOptions& vtxopts=*(VtxOptions*)rep.get_options();
+	uint32_t begin_vtxno=vtxopts[0];
+	SubgraphSet& sgs=g.get_sgs();
+	uint32_t end_vtxno=begin_vtxno+(1<<16)/sizeof(Vertex);
+	uint32_t sup_vtxno=SubgraphSet::VTXNO2SGKEY(begin_vtxno)
+					  +SubgraphSet::VERTEX_INTERVAL_WIDTH;
+	end_vtxno=(end_vtxno<sup_vtxno)?end_vtxno:sup_vtxno;
+	uint32_t vtxnum=end_vtxno-begin_vtxno;
+	VarString& vs=*VarString::make(sizeof(Vertex)*vtxnum);
+	unique_ptr<void> just_for_auto_delete(&vs);
+	Vertex *vb=sgs.getSubgraph(begin_vtxno)->getVertex(begin_vtxno);
+	std::copy(vb,vb+vtxnum,(Vertex*)vs.begin());
+	rep.ans(prot::STATUS_OK,&vs,vs.size());
+}
+inline uint64_t vtxnoblkno(uint32_t vtxno,uint32_t blkno){
+	uint64_t i=vtxno;
+	i<<=32;
+	i+=blkno;
+	return i;
+}
+void blk_batch(prot::Requester& req,uint32_t vtxno,uint32_t blkno,uint32_t direction,
+		unordered_map<uint64_t,shared_ptr<Block> >& blkcache){
+
+	ReadOptions& rdopts=*ReadOptions::make(0);
+	unique_ptr<void> just_for_auto_delete(&rdopts);
+	rdopts->vtxno=vtxno;
+	rdopts->blkno=blkno;
+	rdopts->direction=direction;
+	req.ask(prot::CMD_BLK_BATCH,&rdopts,rdopts.size(),NULL,0);
+	req.parse_ans();
+	vector<Block> blkArray;
+	if (req.get_status()==prot::STATUS_OK){
+		VarString& vs=*(VarString*)req.get_data();
+		size_t n=vs.length()/sizeof(Block);
+		Block *bb=(Block*)vs.begin();
+		Block *be=bb+n;
+		for (Block *b=bb;b!=be;b++){
+			uint32_t vtxno=b->getHeader()->getSource();
+			uint32_t blkno=b->getHeader()->getBlkno();
+			blkcache[vtxnoblkno(vtxno,blkno)].reset(new Block(*b));
+		}
+	}
+}
+
+void handle_blk_batch(prot::Replier& rep, Graph& g){
+	ReadOptions& rdopts=*(ReadOptions*)rep.get_options();
+	uint32_t vtxno=rdopts->vtxno;
+	uint32_t blkno=rdopts->blkno;
+	uint32_t direction=rdopts->direction;
+
+	uint32_t (Block::BlockHeader::*next)();
+	uint32_t (Vertex::*first)()const;
+
+	if (!direction){
+		next=&Block::BlockHeader::getNext;
+		first=&Vertex::getHeadBlkno;
+	} else {
+		next=&Block::BlockHeader::getPrev;
+		first=&Vertex::getTailBlkno;
+	}
+
+	size_t nbytes=1<<16;
+	size_t maxblknum=nbytes/sizeof(Block);
+	size_t blknum=0;
+
+	size_t maxvtxno=SubgraphSet::VTXNO2SGKEY(vtxno)+SubgraphSet::VERTEX_INTERVAL_WIDTH;
+	VarString &vs=*VarString::make(nbytes);
+	SubgraphSet& sgs=g.get_sgs(); 
+	while(vtxno<maxvtxno && blknum<maxblknum){
+		while(blkno==INVALID_BLOCKNO && vtxno<maxvtxno-1){
+			vtxno++;
+			blkno=(sgs.getSubgraph(vtxno)->getVertex(vtxno)->*first)();
+		}
+		if (blkno==INVALID_BLOCKNO && vtxno==maxvtxno-1)break;
+		Block *blk=(Block*)&vs[blknum*sizeof(Block)];
+		sgs.read(vtxno,blkno,blk);
+		blk->getHeader()->setBlkno(blkno);
+		blkno=(blk->getHeader()->*next)();
+		blknum++;
+	}
+	vs.relength(sizeof(Block)*blknum);
+	rep.ans(prot::STATUS_OK,&vs,vs.size());
 }
 }}
 #endif

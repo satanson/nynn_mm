@@ -69,6 +69,7 @@ public:
 	try:_ctx(ctx),_dsock(_ctx,ZMQ_REQ),_dreq(_dsock)
 	{
 		string data_endpoint="tcp://"+daddr;
+		//log_i("conntect to %s",data_endpoint.c_str());
 		_dsock.connect(data_endpoint.c_str());
 	}catch(...){
 		throw_nynn_exception(0,"failed to initializing data server client");
@@ -99,6 +100,7 @@ public:
 		//Synchronization get(&_dlock);
 		return nynn::mm::get_remote(_dreq,vtxno);
 	}
+  	prot::Requester& get_req(){return _dreq;}
 private:
 	nynn_dcli(nynn_dcli const& rhs);
 	nynn_dcli& operator=(nynn_dcli const& rhs);

@@ -10,8 +10,9 @@
 #include<errno.h>
 #include<stdlib.h>
 using namespace std;
-#define NUM 2
-string ips[NUM]={"192.168.255.115","192.168.255.117"};
+#define NUM 1
+//string ips[NUM]={"192.168.255.115","192.168.255.117"};
+string ips[NUM]={"192.168.255.115"};
 int flags[NUM];
 int fds[NUM];
 pthread_t threads[NUM];

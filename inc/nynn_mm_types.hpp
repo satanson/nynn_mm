@@ -76,6 +76,7 @@ public:
 	{
 	private:
 		uint32_t m_source;
+		uint32_t m_blkno;
 		uint32_t m_prev;
 		uint32_t m_next;	
 		uint64_t   m_infts;
@@ -83,12 +84,14 @@ public:
 	public:
 
 		void setSource(uint32_t vtxno) { m_source=vtxno; }
+		void setBlkno(uint32_t blkno){ m_blkno=blkno;}
 		void setPrev(uint32_t blkno) { m_prev=blkno; }
 		void setNext(uint32_t blkno) { m_next=blkno; }
 		void setInfTimestamp(uint64_t t) { m_infts=t; }
 		void setSupTimestamp(uint64_t t) { m_supts=t; }
 
 		uint32_t getSource() { return m_source; }
+		uint32_t getBlkno(){ return m_blkno; }
 		uint32_t getPrev() { return  m_prev; }
 		uint32_t getNext() { return  m_next; }
 		uint64_t getInfTimestamp() { return  m_infts; }
@@ -214,6 +217,7 @@ struct Varied{
 	operator bool(){return len!=0;}
 	size_t size(){return sizeof(Varied)+sizeof(VariedElement)*len;}
 	size_t length(){return len;}
+	void relength(size_t l){len=l;}
 	Fixed* operator ->(){return &fix;}
 };
 
@@ -226,6 +230,7 @@ struct WriteOptionsFixed{
 struct ReadOptionsFixed{
 	uint32_t vtxno;
 	uint32_t blkno;
+	uint32_t direction;
 };
 struct SubmitOptionsFixed{
 	uint32_t ip;
@@ -247,6 +252,7 @@ typedef Varied<HelloOptionsFixed,JustPadding> HelloOptions;
 typedef Varied<JustPadding,JustPadding> NotifyOptions;
 typedef Varied<JustPadding,JustPadding> NullOptions;
 typedef Varied<JustPadding,STEntry> ShardTable;
+
 typedef Varied<JustPadding,char> VarString;
 typedef Varied<JustPadding,uint32_t> VtxOptions;
 }}

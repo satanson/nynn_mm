@@ -7,10 +7,10 @@
 #include<pthread.h>
 #include<errno.h>
 #define BUF_SIZE 65536
-#define IP_NUM 2
+#define IP_NUM 1
 char io_tmp[1024];
-string ips[IP_NUM]={"192.168.255.115","192.168.255.117"};
-//string ips[IP_NUM]={"192.168.255.115"};
+//string ips[IP_NUM]={"192.168.255.115","192.168.255.117"};
+string ips[IP_NUM]={"192.168.255.115"};
 struct balance{
 	string ip;
     int num;

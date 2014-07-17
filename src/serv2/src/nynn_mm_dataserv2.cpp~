@@ -127,13 +127,13 @@ void* worker(void*args)
 #ifdef DEBUG
 					log_i("handle_vtx_batch");
 #endif
-					handle_vtx_batch(rep,*graph.get());
+					handle_vtx_batch(rep,&graph.get());
 					break;}
 				case prot::CMD_BLK_BATCH:{
 #ifdef DEBUG
 					log_i("handle_blk_batch");
 #endif
-					handle_blk_batch(rep,*graph.get());
+					handle_blk_batch(rep,&graph.get());
 					break;}
 				default:{
 					log_w("ignore invalid request cmd");

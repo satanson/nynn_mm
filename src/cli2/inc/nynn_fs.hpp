@@ -51,7 +51,7 @@ public:
 	shared_ptr<nynn_dcli>& get_dcli(uint32_t vtxno){
 		uint64_t hostport=where(vtxno);
 		uint32_t host=hostport>>32;
-		uint32_t port=hostport&&0xffff;
+		uint32_t port=hostport&0xffff;
 		if (dclimap.count(host)==0)
 			dclimap[host].reset(new nynn_dcli(ctx,ip2string(host)+":"+to_string(port)));
 		return dclimap[host];
@@ -65,6 +65,21 @@ public:
 			dsmap[sgkey]=dclimap[localhost]->get_remote(sgkey);
 		return dsmap[sgkey];
 	}
+	shared_ptr<Vertex> fetchvtx(uint32_t vtxno){
+		if (vtxcache.count(vtxno)==0)
+			vtx_batch(get_dcli(vtxno)->get_req(),vtxno,vtxcache);
+		shared_ptr<Vertex> vtx=vtxcache[vtxno];
+		vtxcache.erase(vtxno);
+		return vtx;
+	}
+	shared_ptr<Block> fetchblk(uint32_t vtxno,uint32_t blkno,uint32_t direction){
+		uint64_t key=vtxnoblkno(vtxno,blkno);
+		if (blkcache.count(key)==0)
+			blk_batch(get_dcli(vtxno)->get_req(),vtxno,blkno,direction,blkcache);
+		shared_ptr<Block> blk=blkcache[key];
+		blkcache.erase(key);
+		return blk;
+	}
 private:
 	zmq::context_t ctx;
 	uint32_t localhost;
@@ -73,6 +88,8 @@ private:
 	shared_ptr<nynn_ncli> ncli;
 	unordered_map<uint32_t,shared_ptr<nynn_dcli> > dclimap;
 	unordered_map<uint32_t,uint64_t> dsmap;
+	unordered_map<uint32_t,shared_ptr<Vertex> > vtxcache;
+	unordered_map<uint64_t,shared_ptr<Block> > blkcache;
 
 	string sgsdir;
 	shared_ptr<SubgraphSet> sgs;
