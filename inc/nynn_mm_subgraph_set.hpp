@@ -69,6 +69,7 @@ public:
 			SubgraphStorageT::format(subgraphBasedir);
 			m_subgraphMap[subgraphKey].reset(new SubgraphStorageT(subgraphBasedir));
 		}catch(nynn_exception_t &err){
+			cerr<<err.what()<<endl;
 			throw_nynn_exception(0,"Fail to format a new Subgraph!");
 		}
 	}
