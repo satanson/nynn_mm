@@ -39,14 +39,13 @@ public:
 		return fs.get_ncli()->pop(vtxno,blk);
 	}
 
-	Block* read(uint32_t blkno,Block *blk){
+	shared_ptr<Block> read(uint32_t blkno){
 		if(here){
-			return fs.get_sgs()->read(vtxno,blkno,blk);
-		}else{
-			shared_ptr<Block> b=fs.fetchblk(vtxno,blkno,0);
-			if (!b.get())return NULL;
-			memcpy(blk,b.get(),sizeof(Block));
+			shared_ptr<Block> blk(new Block);
+			fs.get_sgs()->read(vtxno,blkno,blk.get());
 			return blk;
+		}else{
+			return fs.fetchblk(vtxno,blkno,0);
 		}
 	}
 

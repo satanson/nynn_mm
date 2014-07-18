@@ -11,12 +11,11 @@ int main(int argc,char**argv){
     nynn_fs fs("192.168.255.115:50000","192.168.255.115:60000");
     uint32_t blkno=nynn_file::headblkno;
     nynn_file f(fs,vtxno);
-    Block blk;
-    EdgeContent *ectt=blk;
     cout<<vtxno<<":"<<endl;
     while(blkno!=nynn_file::invalidblkno){
-        if(!f.read(blkno,&blk)) break;
-        blkno=(blk.getHeader()->getNext)();
+		shared_ptr<Block> blk=f.read(blkno);
+        blkno=(blk->getHeader()->getNext)();
+    	EdgeContent *ectt=*blk.get();
         uint16_t size=ectt->size();
         for(uint16_t i=0;i<size;i++){
 			cout<<ectt->pos(i)->m_sink<<" "<<ectt->pos(i)->m_weight.m_fval<<" "<<ectt->pos(i)->m_timestamp<<endl;

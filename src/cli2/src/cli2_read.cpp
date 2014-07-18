@@ -29,8 +29,6 @@ int main(int argc,char**argv)
 
 	struct timespec begin_ts,end_ts;
 	double tbegin,tend,t;
-	Block blk;
-	CharContent *cctt=blk;
 
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
@@ -40,8 +38,8 @@ int main(int argc,char**argv)
 		nynn_file f(fs,vtxno);
 		uint32_t blkno=firstblkno;
 		while(blkno!=nynn_file::invalidblkno){
-			if(!f.read(blkno,&blk))break;
-			blkno=(blk.getHeader()->*next)();
+			shared_ptr<Block> blk=f.read(blkno);
+			blkno=(blk->getHeader()->*next)();
 			concurrency++;
 			nbytes+=sizeof(Block);
 		}

@@ -325,11 +325,15 @@ void handle_vtx_batch(prot::Replier& rep,Graph& g){
 	end_vtxno=(end_vtxno<sup_vtxno)?end_vtxno:sup_vtxno;
 	uint32_t vtxnum=end_vtxno-begin_vtxno;
 	VarString& vs=*VarString::make(sizeof(Vertex)*vtxnum);
-	unique_ptr<void> just_for_auto_delete(&vs);
+	//unique_ptr<void> just_for_auto_delete(&vs);
 	Vertex *vb=sgs.getSubgraph(begin_vtxno)->getVertex(begin_vtxno);
 	std::copy(vb,vb+vtxnum,(Vertex*)vs.begin());
-	rep.ans(prot::STATUS_OK,&vs,vs.size());
+
+	//rep.ans(prot::STATUS_OK,&vs,vs.size());
+	rep.set_odata_msg(&vs,vs.size(),dealloc);
+	rep.ans(prot::STATUS_OK);
 }
+
 inline uint64_t vtxnoblkno(uint32_t vtxno,uint32_t blkno){
 	uint64_t i=vtxno;
 	i<<=32;
@@ -397,7 +401,9 @@ void handle_blk_batch(prot::Replier& rep, Graph& g){
 		blknum++;
 	}
 	vs.relength(sizeof(Block)*blknum);
-	rep.ans(prot::STATUS_OK,&vs,vs.size());
+	rep.set_odata_msg(&vs,vs.size(),dealloc);
+	//rep.ans(prot::STATUS_OK,&vs,vs.size());
+	rep.ans(prot::STATUS_OK);
 }
 }}
 #endif

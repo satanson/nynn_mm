@@ -189,6 +189,7 @@ struct GraphInfo{
 	uint32_t getMinVtxno(){return gi_min_vtxno;}
 }__attribute__((packed));
 
+void dealloc(void* p,void*hint){operator delete(p);}
 
 template <typename Fixed,typename VariedElement>
 struct Varied{

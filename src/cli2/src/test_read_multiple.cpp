@@ -22,16 +22,15 @@ void*  my_thread(void *arg){
     int *n=(int *)arg;
     uint32_t vtxno=all_vtxno;
     uint32_t vtxend=vtxno+vtxNum;
- 	Block blk;
-	CharContent *cctt=blk;
     uint32_t blkno=nynn_file::headblkno;
     counts[*n]=0;
     while(vtxno<vtxend){
          uint32_t blkno=nynn_file::headblkno;
          nynn_file f(fs,vtxno);
          while(blkno!=nynn_file::invalidblkno){
-            if(!f.read(blkno,&blk)) break;
-            blkno=(blk.getHeader()->getNext)();
+			shared_ptr<Block> blk=f.read(blkno);
+            blkno=(blk->getHeader()->getNext)();
+			CharContent *cctt=*blk.get();
             string line(cctt->begin(),cctt->end());
             counts[*n]+=line.size();
          }

@@ -16,8 +16,6 @@ void* reader(void*arg){
 
 	struct timespec begin_ts,end_ts;
 	double tbegin,tend,t;
-	Block blk;
-	CharContent *cctt=blk;
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
@@ -26,8 +24,8 @@ void* reader(void*arg){
 		nynn_file f(fs,vtxno);
 		uint32_t blkno=nynn_file::headblkno;
 		while(blkno!=nynn_file::invalidblkno){
-			if(!f.read(blkno,&blk))break;
-			blkno=blk.getHeader()->getNext();
+			shared_ptr<Block> blk=f.read(blkno);
+			blkno=blk->getHeader()->getNext();
 			concurrency++;
 			nbytes+=sizeof(Block);
 		}

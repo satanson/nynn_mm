@@ -23,9 +23,29 @@ static string v2s(uint32_t version_no){
 class Requester{
 public:
 	explicit Requester(zmq::socket_t& s):sock(s){}
-	void ask(uint8_t cmd,const void*options,size_t osize,const void*data,size_t dsize){
-		zmq::message_t omsg[ASK_SIZE];
+	void set_odata_msg(void* data,size_t size,void(*f)(void*,void*)){
+		omsg[ASK_DATA].rebuild(data,size,f,NULL);
+	}
+	void ask(uint8_t cmd,const void*options,size_t osize){
+		//zmq::message_t omsg[ASK_SIZE];
+		omsg[ASK_VERSION].rebuild(sizeof(uint32_t));
+		*(uint32_t*)omsg[ASK_VERSION].data()=VERSION_NO;
 		
+		omsg[ASK_CMD].rebuild(sizeof(uint8_t));
+		*(uint8_t*)omsg[ASK_CMD].data()=cmd;
+		
+		omsg[ASK_OPTIONS].rebuild(osize);
+		memcpy(omsg[ASK_OPTIONS].data(),options,osize);
+		
+		int i=0;
+		while(i<ASK_SIZE-1)sock.send(omsg[i++],ZMQ_SNDMORE);
+		sock.send(omsg[i],0);
+
+	}
+
+	void ask(uint8_t cmd,const void*options,size_t osize,const void*data,size_t dsize){
+		
+		//zmq::message_t omsg[ASK_SIZE];
 		omsg[ASK_VERSION].rebuild(sizeof(uint32_t));
 		*(uint32_t*)omsg[ASK_VERSION].data()=VERSION_NO;
 		
@@ -61,12 +81,16 @@ public:
 		if(likely(get_data_size()))return imsg[ANS_DATA].data();
 		else return NULL;
 	}
+	void get_idata_msg(zmq::message_t& msg){
+		imsg[ANS_DATA].move(&msg);
+	}
 	size_t get_data_size(){
 		return imsg[ANS_DATA].size();
 	}
 
 private:
 	zmq::socket_t& sock;
+	zmq::message_t omsg[ASK_SIZE];
 	zmq::message_t imsg[ANS_SIZE];
 	Requester(Requester const&);
 	Requester& operator=(Requester const&);
@@ -110,8 +134,22 @@ public:
 	size_t get_data_size(){
 		return imsg[ASK_DATA].size();
 	}
+	void set_odata_msg(void* data,size_t size,void(*f)(void*,void*)){
+		omsg[ANS_DATA].rebuild(data,size,f,NULL);
+	}
+	void ans(uint32_t status){
+		//zmq::message_t omsg[ANS_SIZE];	
+		omsg[ANS_STATUS].rebuild(sizeof(uint32_t));
+		*(uint32_t*)omsg[ANS_STATUS].data()=status;
+		//omsg[ANS_DATA].rebuild(size);
+		//memcpy(omsg[ANS_DATA].data(),data,size);
+
+		int i=0;
+		while(i<ANS_SIZE-1)sock.send(omsg[i++],ZMQ_SNDMORE);
+		sock.send(omsg[i],0);
+	}
 	void ans(uint32_t status,void* data,size_t size){
-		zmq::message_t omsg[ANS_SIZE];	
+		//zmq::message_t omsg[ANS_SIZE];	
 		omsg[ANS_STATUS].rebuild(sizeof(uint32_t));
 		*(uint32_t*)omsg[ANS_STATUS].data()=status;
 		omsg[ANS_DATA].rebuild(size);
@@ -126,6 +164,7 @@ public:
 	//void ans_end()
 private:
 	zmq::socket_t& sock;
+	zmq::message_t omsg[ANS_SIZE];	
 	zmq::message_t imsg[ASK_SIZE];
 	Replier(Replier const&);
 	Replier& operator=(Replier const&);

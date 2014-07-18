@@ -22,16 +22,15 @@ int main(int argc,char**argv){
 	nynn_fs fs(naddr,daddr);
 	nynn_file f(fs,vtxno);
 
-	Block blk;
-	CharContent *cctt=blk;
 
 	//uint32_t blkno = (p=="pop"?(nynn_file::tailblkno):(nynn_file::headblkno));
 	uint32_t blkno=nynn_file::invalidblkno;
 	if (p=="pop")blkno=nynn_file::tailblkno;
 	else blkno=nynn_file::headblkno;
 	while(blkno!=nynn_file::invalidblkno){
-		if(!f.read(blkno,&blk))break;
-		blkno=(blk.getHeader()->*next)();
+		shared_ptr<Block> blk=f.read(blkno);
+		blkno=(blk->getHeader()->*next)();
+		CharContent *cctt=*blk.get();
 		string line(cctt->begin(),cctt->end());
 		cout<<line<<endl;
 	}
