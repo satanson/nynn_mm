@@ -17,8 +17,10 @@ int main(int argc,char**argv){
         blkno=(blk->getHeader()->getNext)();
     	EdgeContent *ectt=*blk.get();
         uint16_t size=ectt->size();
+		cout<<"size:"<<size<<endl;
         for(uint16_t i=0;i<size;i++){
-			cout<<ectt->pos(i)->m_sink<<" "<<ectt->pos(i)->m_weight.m_fval<<" "<<ectt->pos(i)->m_timestamp<<endl;
+			cout<<ectt->pos(i)->m_sink<<" "<<ectt->pos(i)->m_timestamp<<" "<<ectt->pos(i)->type<<" "<<ectt->pos(i)->topic<<endl;
+
         }
     }
 }
