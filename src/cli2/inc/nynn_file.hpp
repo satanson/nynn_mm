@@ -43,14 +43,14 @@ public:
 		if(here){
 			return fs.get_sgs()->getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
 		}else{
-			return vtx->getHeadblkno();
+			return vtx->getHeadBlkno();
 		}
 	}
 	uint32_t gettailblkno(){
 		if(here){
 			return fs.get_sgs()->getSubgraph(vtxno)->getVertex(vtxno)->getTailBlkno();
 		}else{
-			return vtx->getTailblkno();
+			return vtx->getTailBlkno();
 		}
 	}
 	shared_ptr<Block> read(uint32_t blkno){

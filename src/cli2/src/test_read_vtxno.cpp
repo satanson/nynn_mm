@@ -24,7 +24,7 @@ int main(int argc,char**argv){
         uint16_t size=ectt->size();
 		cout<<"size:"<<size<<endl;
         for(uint16_t i=0;i<size;i++){
-			cout<<ectt->pos(i)->m_sink<<" "<<ectt->pos(i)->m_timestamp<<" "<<ectt->pos(i)->type<<" "<<ectt->pos(i)->topic<<endl;
+			//cout<<ectt->pos(i)->m_sink<<" "<<ectt->pos(i)->m_timestamp<<" "<<ectt->pos(i)->type<<" "<<ectt->pos(i)->topic<<endl;
 
         }
     }

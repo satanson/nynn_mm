@@ -44,7 +44,6 @@ public:
 	void resetExistBit(){m_data&=~EXIST_BIT;}
 	bool getExistBit(){return (m_data&EXIST_BIT)==EXIST_BIT;}
 }__attribute__((packed));
-/*  
 struct Edge{
 	uint32_t m_sink;
 	union{
@@ -55,15 +54,14 @@ struct Edge{
 	}m_weight;
 	uint64_t m_timestamp;
 }__attribute__((packed));
-*/
- 
+#if 0 
 struct Edge{
 	uint32_t m_sink;
 	uint32_t m_timestamp;
 	uint32_t type;
     uint32_t topic;	
 }__attribute__((packed));
-
+#endif 
 
 
 template <uint32_t BLOCKSZ> 
