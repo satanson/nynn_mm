@@ -22,7 +22,7 @@ int main(int argc,char**argv){
 			n++;
 			if(n<eb||n>=ee)continue;
 			Edge *e=ectt->pos(i);
-			cout<<n<<":["<<e->m_sink<<","<<e->m_weight.m_fval<<","<<e->m_timestamp<<"]"<<endl;
+			cout<<n<<endl;
 		}
 		blkno=blk->getHeader()->getNext();
 	}

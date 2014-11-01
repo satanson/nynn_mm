@@ -39,10 +39,25 @@ public:
 		return fs.get_ncli()->pop(vtxno,blk);
 	}
 
+	uint32_t getheadblkno(){
+		if(here){
+			return fs.get_sgs()->getSubgraph(vtxno)->getVertex(vtxno)->getHeadBlkno();
+		}else{
+			return vtx->getHeadblkno();
+		}
+	}
+	uint32_t gettailblkno(){
+		if(here){
+			return fs.get_sgs()->getSubgraph(vtxno)->getVertex(vtxno)->getTailBlkno();
+		}else{
+			return vtx->getTailblkno();
+		}
+	}
 	shared_ptr<Block> read(uint32_t blkno){
 		if(here){
 			shared_ptr<Block> blk(new Block);
-			fs.get_sgs()->read(vtxno,blkno,blk.get());
+			if (fs.get_sgs()->read(vtxno,blkno,blk.get())==NULL)
+				blk.reset();
 			return blk;
 		}else{
 			return fs.fetchblk(vtxno,blkno,0);

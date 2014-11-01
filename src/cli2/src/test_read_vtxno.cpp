@@ -12,6 +12,11 @@ int main(int argc,char**argv){
     uint32_t blkno=nynn_file::headblkno;
     nynn_file f(fs,vtxno);
     cout<<vtxno<<":"<<endl;
+	shared_ptr<Block> blk=f.read(blkno);
+	if (blk.get()==0){
+		cout<<"empty vertex"<<endl;
+		return 0;
+	}
     while(blkno!=nynn_file::invalidblkno){
 		shared_ptr<Block> blk=f.read(blkno);
         blkno=(blk->getHeader()->getNext)();
