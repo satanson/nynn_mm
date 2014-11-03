@@ -3,7 +3,7 @@ use strict;
 use Getopt::Long;
 use Carp qw(carp croak cluck confess);
 
-my $actid="pop";
+my $actid="push";
 my $sgsdir="/home/bsp/programer/nynn/graph/";
 my $vtxno=int(rand(1024));
 GetOptions(
@@ -12,5 +12,6 @@ GetOptions(
 	"vtxno=i"=>\$vtxno,
 ) or croak "Something wrong with GetOptions";
 
-print "./sg_readvtx $actid $sgsdir $vtxno"."\n";
-system "./sg_readvtx $actid $sgsdir $vtxno";
+my ($vbegin,$vend)=($vtxno,$vtxno+1);
+print "./sg_write $actid $sgsdir $vbegin $vend poet.txt"."\n";
+system "./sg_write $actid $sgsdir $vbegin $vend poet.txt";

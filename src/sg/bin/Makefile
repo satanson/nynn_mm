@@ -20,7 +20,7 @@ endif
 
 CXXFLAGS =-std=c++0x -L/usr/local/lib -lzmq -I../inc -I../../../inc -I/usr/include/c++/4.4.7/ $(DEBUG) $(READ_WITHOUT_ABUSE_COPYS) $(LOG) $(LOCKFREE) $(SCHED)
 
-SRC = cli2_fillvtx.cpp cli2_read.cpp cli2_read_multithread.cpp cli2_readvtx.cpp read_single.cpp write_single.cpp test_write_single.cpp test_write_multiple.cpp test_write_single_16.cpp test_write_multiple_16.cpp test_rc_write.cpp test_rc_read.cpp test_read_single.cpp test_read_multiple.cpp test_read_vtxno.cpp test_fetchvtx.cpp  test_fetchblk.cpp
+SRC = sg_tidyvtx.cpp sg_remove_edges2.cpp sg_insert_edges2.cpp sg_insert_edges.cpp sg_dump_edges.cpp sg_modify_edges.cpp sg_format.cpp sg_write.cpp sg_read.cpp sg_readvtx.cpp sg_read_multithread.cpp test_read.cpp test_read1.cpp test_write_single1.cpp zms_client.cpp
 		  
 OBJ=$(addsuffix .o, $(basename $(SRC)))
 BIN_DOT_A=$(addsuffix .a, $(basename $(SRC)))
@@ -30,6 +30,7 @@ BIN=$(basename $(SRC))
 default:$(BIN_DOT_A)
 	ls *.a|xargs -I{} echo '{}' |perl -ne 'chomp;$$i=$$_;s/\..*//g;rename $$i,$$_'
 	mv -f $(BIN) ../../../bin/
+	rm -fr *.o
 
 %.a:%.o
 	g++ $(CXXFLAGS) -o $@ $^ 
