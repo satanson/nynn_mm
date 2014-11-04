@@ -9,23 +9,11 @@ int main(int argc,char**argv)
 	string daddr=argv[2];
 	uint32_t vtxno_begin=parse_int(argv[3],~0u);
 	uint32_t vtxno_end=parse_int(argv[4],~0u);
-	string actid=argv[5];
-	uint32_t loop=parse_int(argv[6],~0u);
 
 	assert(vtxno_begin!=~0u);
 	assert(vtxno_end!=~0u);
-	assert(actid=="pop"||actid=="shift");
-
-	Next next = actid=="pop"?
-				&Block::BlockHeader::getPrev
-				:
-				&Block::BlockHeader::getNext;
 
 	nynn_fs fs(naddr,daddr);
-
-	uint32_t firstblkno=nynn_file::invalidblkno;
-	if (actid=="pop")firstblkno=nynn_file::tailblkno;
-	else firstblkno=nynn_file::headblkno;
 
 	struct timespec begin_ts,end_ts;
 	double tbegin,tend,t;
@@ -33,13 +21,14 @@ int main(int argc,char**argv)
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
-	for (int i=0;i<loop;i++)
+
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
 		nynn_file f(fs,vtxno);
-		uint32_t blkno=firstblkno;
+		uint32_t blkno=f.getheadblkno();
 		while(blkno!=nynn_file::invalidblkno){
 			shared_ptr<Block> blk=f.read(blkno);
-			blkno=(blk->getHeader()->*next)();
+			assert(blk.get()!=NULL);
+			blkno=blk->getHeader()->getNext();
 			concurrency++;
 			nbytes+=sizeof(Block);
 		}
