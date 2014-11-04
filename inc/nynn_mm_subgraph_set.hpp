@@ -499,7 +499,7 @@ public:
 	}
 
 	bool exists(uint32_t sgkey){
-		return m_subgraphMap.count(sgkey)>0;
+		return m_subgraphMap.count(VTXNO2SGKEY(sgkey))>0;
 	}
 
 	string makeSubgraphPath(uint32_t vtxno)

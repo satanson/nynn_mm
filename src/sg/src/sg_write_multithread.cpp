@@ -32,7 +32,7 @@ void* writer(void* arg){
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 	for (int i=0;i<loop;i++)
 	for (uint32_t vtxno=vbegin;vtxno<vend;vtxno++) {
-		if (unlikely(!sgs.vtx_exists(vtxno))){
+		if (unlikely(!sgs.exists(vtxno))){
 			uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
 			sgs.createSubgraph(sgkey);
 		}

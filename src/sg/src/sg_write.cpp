@@ -42,7 +42,7 @@ int main(int argc,char**argv)
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 
 	for (uint32_t vtxno=vbegin;vtxno<vend;vtxno++) {
-		if (unlikely(!sgs.vtx_exists(vtxno))){
+		if (unlikely(!sgs.exists(vtxno))){
 			uint32_t sgkey=SubgraphSet::VTXNO2SGKEY(vtxno);
 			sgs.createSubgraph(sgkey);
 		}

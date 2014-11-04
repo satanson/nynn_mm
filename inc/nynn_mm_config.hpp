@@ -5,7 +5,7 @@
 #include<nynn_mm_subgraph_set.hpp>
 #include<nynn_mm_graph_cache.hpp>
 using namespace nynn::mm;
-typedef nynn::mm::SubgraphStorageType<9,20,1<<19,~0u,23,1<<10,64> Subgraph;
+typedef nynn::mm::SubgraphStorageType<9,20,1<<19,~0u,22,1<<10,64> Subgraph;
 typedef Subgraph::Block Block;
 typedef Block::TContent<char> CharContent;
 typedef Block::TContent<Edge> EdgeContent;
