@@ -6,27 +6,33 @@ using namespace std;
 typedef unique_ptr<thread_t> Thread;
 typedef unique_ptr<Thread[]> ThreadArray;
 
-uint32_t vtxno_beg;
-uint32_t vtxno_end;
-uint32_t loop;
 uint32_t thdsz;
+string naddr,daddr;
 
 void* reader(void*arg){
-	nynn_fs& fs=*(nynn_fs*)arg;
+	int N=(intptr_t)arg;
 
+	nynn_fs fs(naddr,daddr);
 	struct timespec begin_ts,end_ts;
 	double tbegin,tend,t;
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
-	for (int i=0;i<loop;i++)
-	for (uint32_t vtxno=vtxno_beg;vtxno<vtxno_end;vtxno++) {
+	uint32_t w=SubgraphSet::VERTEX_INTERVAL_WIDTH;
+	uint32_t vtxno_beg=w*N;
+	uint32_t vtxno_end=w*(N+1);
+	uint32_t cnt=0;
+	for (uint32_t vtxno=vtxno_beg;vtxno<vtxno_end && cnt<w;vtxno++) {
 		nynn_file f(fs,vtxno);
-		uint32_t blkno=nynn_file::headblkno;
+		uint32_t blkno=f.getheadblkno();
 		while(blkno!=nynn_file::invalidblkno){
 			shared_ptr<Block> blk=f.read(blkno);
+			assert(blk.get()!=NULL);
 			blkno=blk->getHeader()->getNext();
-			concurrency++;
+			EdgeContent *ectt=*blk.get();
+			concurrency+=ectt->end()-ectt->begin();
+			++cnt;
+			if (cnt%100000==0) cout<<cnt<<endl;
 			nbytes+=sizeof(Block);
 		}
 	}
@@ -46,18 +52,12 @@ void* reader(void*arg){
 	out<<"ave_throughput:"<<nbytes/t/1024.0/1024.0<<endl;
 	pthread_exit(NULL);
 }
-
 int main(int argc,char**argv)
 {
-	string naddr=argv[1];
-	string daddr=argv[2];
-	vtxno_beg=parse_int(argv[3],~0u);
-	vtxno_end=parse_int(argv[4],~0u);
-	thdsz=parse_int(argv[5],16);
-	loop=parse_int(argv[6],16);
+	naddr=argv[1];
+	daddr=argv[2];
+	thdsz=parse_int(argv[3],16);
 
-	assert(vtxno_beg!=~0u);
-	assert(vtxno_end!=~0u);
 #ifdef SCHED
 #pragma message "sched_setscheduler"
 	int num_cpus=sysconf(_SC_NPROCESSORS_ONLN);
@@ -77,11 +77,10 @@ int main(int argc,char**argv)
 	CPU_FREE(cpuset);
 #endif
 
-	nynn_fs fs(naddr,daddr);
 
 	ThreadArray threads(new Thread[thdsz]);
 	for(int i=0;i<thdsz;i++){
-		threads[i].reset(new thread_t(reader,&fs));
+		threads[i].reset(new thread_t(reader,(void*)i));
 #ifdef SCHED
 #pragma message "sched_setscheduler"
 		struct sched_param param;

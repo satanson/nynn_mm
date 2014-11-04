@@ -11,33 +11,45 @@ typedef unique_ptr<thread_t> Thread;
 typedef unique_ptr<Thread[]> ThreadArray;
 
 string ip;
-uint32_t port_min;
-uint32_t port_max;
-uint32_t vtxno_beg;
-uint32_t vtxno_end;
-uint32_t loop;
+uint32_t port;
 uint32_t thdsz;
 
 void* reader(void*arg){
-	zmq::socket_t& sock=*(zmq::socket_t*)arg;
+	int N=(intptr_t)arg;
+
+	zmq::context_t ctx;
+	zmq::socket_t sock(ctx,ZMQ_REQ);
+	
+	string endpoint=string("tcp://")+ip+":"+to_string(port);
+	sock.connect(endpoint.c_str());
+
 	prot::Requester req(sock);
+
+	uint32_t w=SubgraphSet::VERTEX_INTERVAL_WIDTH;
+	uint32_t vtxno_beg=w*N;
+	uint32_t vtxno_end=w*(N+1);
+	uint32_t cnt=0;
+
 	struct timespec begin_ts,end_ts;
 	double tbegin,tend,t;
 	Block blk;
-	CharContent *cctt=blk;
+	EdgeContent *ectt=blk;
 	uint64_t concurrency=0;
 	uint64_t nbytes=0;
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
-	for (int i=0;i<loop;i++)
-	for (uint32_t vtxno=vtxno_beg;vtxno<vtxno_end;vtxno++) {
+
+	for (uint32_t vtxno=vtxno_beg;vtxno<vtxno_end && cnt<w;vtxno++) {
 		uint32_t blkno=HEAD_BLOCKNO;
 		while(blkno!=INVALID_BLOCKNO){
 			if(!read(req,vtxno,blkno,&blk))break;
 			blkno=blk.getHeader()->getNext();
-			concurrency++;
+			concurrency+=ectt->end()-ectt->begin();
 			nbytes+=sizeof(Block);
 		}
+		++cnt;
+		if (cnt%100==0) cout<<cnt<<endl;
 	}
+
 	clock_gettime(CLOCK_MONOTONIC,&end_ts);
 	tbegin=begin_ts.tv_sec+begin_ts.tv_nsec/1.0e9;
 	tend=end_ts.tv_sec+end_ts.tv_nsec/1.0e9;
@@ -58,24 +70,15 @@ void* reader(void*arg){
 int main(int argc,char**argv)
 {
 	ip=argv[1];
-	port_min=parse_int(argv[2],60000);
-	port_max=parse_int(argv[3],60001);
-	vtxno_beg=parse_int(argv[4],~0u);
-	vtxno_end=parse_int(argv[5],~0u);
-	thdsz=parse_int(argv[6],16);
-	loop=parse_int(argv[7],1024);
+	port=parse_int(argv[2],61000);
+	thdsz=parse_int(argv[3],16);
 
-	assert(vtxno_beg!=~0u);
-	assert(vtxno_end!=~0u);
-
-	zmq::context_t ctx;
 	ZMQSockArray socks(new  ZMQSock[thdsz]);
 	ThreadArray threads(new Thread[thdsz]);
+	string endpoint="tcp://"+ip+":"+to_string(port);
+
 	for(int i=0;i<thdsz;i++){
-		socks[i].reset(new zmq::socket_t(ctx,ZMQ_REQ));
-		string endpoint="tcp://"+ip+":"+to_string(port_min+i%(port_max-port_min));
-		socks[i]->connect(endpoint.c_str());
-		threads[i].reset(new thread_t(reader,socks[i].get()));
+		threads[i].reset(new thread_t(reader,(void*)i));
 	}
 	sleep(1);
 	for (int i=0;i<thdsz;i++)threads[i]->start();

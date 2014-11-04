@@ -22,6 +22,7 @@ int main(int argc,char**argv)
 	uint64_t nbytes=0;
 	clock_gettime(CLOCK_MONOTONIC,&begin_ts);
 
+	int cnt=0;
 	for (uint32_t vtxno=vtxno_begin;vtxno<vtxno_end;vtxno++) {
 		nynn_file f(fs,vtxno);
 		uint32_t blkno=f.getheadblkno();
@@ -29,7 +30,10 @@ int main(int argc,char**argv)
 			shared_ptr<Block> blk=f.read(blkno);
 			assert(blk.get()!=NULL);
 			blkno=blk->getHeader()->getNext();
-			concurrency++;
+			EdgeContent *ectt=*blk.get();
+			concurrency+=ectt->end()-ectt->begin();
+			++cnt;
+			if (cnt%100000==0)cout<<cnt<<endl;
 			nbytes+=sizeof(Block);
 		}
 	}
