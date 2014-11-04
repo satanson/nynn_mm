@@ -3,7 +3,7 @@ use strict;
 use Getopt::Long;
 my $sgsdir="/home/bsp/programer/nynn/graph/";
 my $thdsz=16;
-my $base="/home/bsp/programer/dataset/twitter-2010/twitter-2010.split.";
+my $base="/home/bsp/programer/dataset/twitter-2010/twitter-2010.split";
 
 GetOptions(
 	"sgsdir=s"=>\$sgsdir,

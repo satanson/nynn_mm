@@ -44,8 +44,8 @@ void* writer(void* arg){
 		Edge *ee=eb+nedges;
 		Edge *e=eb;
 		p=(char*)ee;
-		concurrency++;
-		if (concurrency%10000==0)cout<<concurrency/10000<<endl;
+		concurrency+=nedges;
+		//if (concurrency%10000==0)cout<<concurrency/10000<<endl;
 		nbytes+=sizeof(vtxno)+sizeof(nedges)+sizeof(Edge)*nedges;
 		while(e+max_nedges<ee){
 			ectt->resize(max_nedges);

@@ -12,10 +12,10 @@ GetOptions(
 	"sgnum=s"=>\$sgnum,
 ) or croak "Something wrong with GetOptions";
 my @pids;
-foreach my $i (0..$sgnum) {
+foreach my $i (0..$sgnum-1) {
 	my $pid=fork;
 	if ($pid==0){
-		my $sgkey=$i*2**23;
+		my $sgkey=$i*2**22;
 		exec "./sg_format $sgsdir $sgkey";
 		exit 0;
 	}elsif ($pid>0){
