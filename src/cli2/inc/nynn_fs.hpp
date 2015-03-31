@@ -11,8 +11,10 @@ using namespace nynn::cli;
 namespace nynn{namespace cli{
 class nynn_fs{
 public:
-	nynn_fs(string na,string da)
+
+	nynn_fs(string na,string da,uint32_t prefetch=PREFETCH_POLICY_NOP)
 	try:
+		prefetch_policy(prefetch),
 		localhost(get_ip()),
 		naddr(na),
 		ncli(new nynn_ncli(ctx,naddr)),
@@ -67,7 +69,7 @@ public:
 	}
 	shared_ptr<Vertex> fetchvtx(uint32_t vtxno){
 		if (vtxcache.count(vtxno)==0)
-			vtx_batch(get_dcli(vtxno)->get_req(),vtxno,vtxcache);
+			vtx_batch(get_dcli(vtxno)->get_req(),vtxno,prefetch_policy,vtxcache);
 		shared_ptr<Vertex> vtx=vtxcache[vtxno];
 		vtxcache.erase(vtxno);
 		return vtx;
@@ -75,13 +77,14 @@ public:
 	shared_ptr<Block> fetchblk(uint32_t vtxno,uint32_t blkno,uint32_t direction){
 		uint64_t key=vtxnoblkno(vtxno,blkno);
 		if (blkcache.count(key)==0)
-			blk_batch(get_dcli(vtxno)->get_req(),vtxno,blkno,direction,blkcache);
+			blk_batch(get_dcli(vtxno)->get_req(),vtxno,blkno,direction,prefetch_policy,blkcache);
 		shared_ptr<Block> blk=blkcache[key];
 		blkcache.erase(key);
 		return blk;
 	}
 private:
 	zmq::context_t ctx;
+	uint32_t prefetch_policy;
 	uint32_t localhost;
 	string naddr;
 	string daddr;

@@ -10,3 +10,5 @@ for i in `eval "echo {0..$((2**${log2_cli_num}-1))}"`;do
 done
 wait
 echo DONE
+./util1 output.*|./quadtuples
+rm -fr output.*

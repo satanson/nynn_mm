@@ -54,6 +54,14 @@ struct Edge{
 	}m_weight;
 	uint64_t m_timestamp;
 }__attribute__((packed));
+
+struct PREFETCH_POLICY {
+	const static uint32_t NOP=0;
+	const static uint32_t SEQ=1;
+	const static uint32_t BFS=2;
+	const static uint32_t DFS=3;
+};
+
 #if 0 
 struct Edge{
 	uint32_t m_sink;
@@ -236,11 +244,6 @@ struct WriteOptionsFixed{
 	uint32_t blkno;
 	uint32_t replicas;
 };
-struct ReadOptionsFixed{
-	uint32_t vtxno;
-	uint32_t blkno;
-	uint32_t direction;
-};
 struct SubmitOptionsFixed{
 	uint32_t ip;
 };
@@ -254,8 +257,17 @@ struct STEntry{
 struct JustPadding{
 	uint32_t padding;
 };
+struct VtxPrefetchOptionsFixed{
+	uint32_t vtxno;
+	uint32_t prefetch;
+};
+struct BlkPrefetchOptionsFixed{
+	uint32_t vtxno;
+	uint32_t blkno;
+	uint32_t direction;
+	uint32_t prefetch;
+};
 typedef Varied<WriteOptionsFixed,uint32_t> WriteOptions;
-typedef Varied<ReadOptionsFixed,JustPadding> ReadOptions;
 typedef Varied<SubmitOptionsFixed,uint32_t> SubmitOptions;
 typedef Varied<HelloOptionsFixed,JustPadding> HelloOptions;
 typedef Varied<JustPadding,JustPadding> NotifyOptions;
@@ -264,5 +276,7 @@ typedef Varied<JustPadding,STEntry> ShardTable;
 
 typedef Varied<JustPadding,char> VarString;
 typedef Varied<JustPadding,uint32_t> VtxOptions;
+typedef Varied<BlkPrefetchOptionsFixed,JustPadding> BlkPrefetchOptions;
+typedef Varied<VtxPrefetchOptionsFixed,JustPadding> VtxPrefetchOptions;
 }}
 #endif

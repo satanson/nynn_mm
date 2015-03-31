@@ -183,11 +183,11 @@ void handle_write_g(prot::Replier& rep,Graph& g,RWLock& glk,ZMQSockMap& datasock
 	}
 }
 void *read(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block* blk){
-	ReadOptions& rdopts=*ReadOptions::make(0);
-	unique_ptr<void> just_for_auto_delete(&rdopts);
-	rdopts->vtxno=vtxno;
-	rdopts->blkno=blkno;
-	req.ask(prot::CMD_READ,&rdopts,rdopts.size(),NULL,0);
+	BlkPrefetchOptions& bprefetchopts=*BlkPrefetchOptions::make(0);
+	unique_ptr<void> just_for_auto_delete(&bprefetchopts);
+	bprefetchopts->vtxno=vtxno;
+	bprefetchopts->blkno=blkno;
+	req.ask(prot::CMD_READ,&bprefetchopts,bprefetchopts.size(),NULL,0);
 	req.parse_ans();
 	if (likely(req.get_status()==prot::STATUS_OK)){
 		memcpy(blk,req.get_data(),sizeof(Block));
@@ -197,9 +197,9 @@ void *read(prot::Requester& req,uint32_t vtxno,uint32_t blkno,Block* blk){
 	}
 }
 void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSockMap& datasocks){
-	ReadOptions& rdopts=*(ReadOptions*)rep.get_options();
-	uint32_t vtxno=rdopts->vtxno;
-	uint32_t blkno=rdopts->blkno;
+	BlkPrefetchOptions& bprefetchopts=*(BlkPrefetchOptions*)rep.get_options();
+	uint32_t vtxno=bprefetchopts->vtxno;
+	uint32_t blkno=bprefetchopts->blkno;
 	Block blk;
 	uint32_t targetip=0;
 
@@ -225,11 +225,11 @@ void handle_read(prot::Replier& rep,Graph& g,RWLock& glk,uint32_t localip,ZMQSoc
 	//vtx non-exists in local cache,request data from remote host
 	//}else{
 		prot::Requester req(*datasocks[targetip].get());
-		req.ask(prot::CMD_READ,&rdopts,rdopts.size(),NULL,0);
+		req.ask(prot::CMD_READ,&bprefetchopts,bprefetchopts.size(),NULL,0);
 		req.parse_ans();
 		//successfully
 		if (likely(req.get_status()==prot::STATUS_OK)){
-			g.write_cache(rdopts->vtxno,rdopts->blkno,req.get_data());
+			g.write_cache(bprefetchopts->vtxno,bprefetchopts->blkno,req.get_data());
 			rep.ans(prot::STATUS_OK,req.get_data(),sizeof(Block));
 			return;
 		//failed to fetch data from remote host
@@ -294,13 +294,14 @@ void handle_get_remote(prot::Replier& rep,Graph& g,RWLock& glk,uint16_t dport){
 	rep.ans(prot::STATUS_OK,&hostport,sizeof(hostport));
 }
 
-void vtx_batch(prot::Requester& req,uint32_t vtxno,
+void vtx_batch(prot::Requester& req,uint32_t vtxno,uint32_t prefetch,
 		unordered_map<uint32_t,shared_ptr<Vertex> >& vtxcache){
-	VtxOptions& vtxopts=*VtxOptions::make(1);
-	unique_ptr<void> just_for_auto_delete(&vtxopts);
-	vtxopts[0]=vtxno;
+	VtxPrefetchOptions& vprefetchopts=*VtxPrefetchOptions::make(0);
+	unique_ptr<void> just_for_auto_delete(&vprefetchopts);
+	vprefetchopts->vtxno=vtxno;
+	vprefetchopts->prefetch=prefetch;
 
-	req.ask(prot::CMD_VTX_BATCH,&vtxopts,vtxopts.size(),NULL,0);
+	req.ask(prot::CMD_VTX_BATCH,&vprefetchopts,vprefetchopts.size(),NULL,0);
 	req.parse_ans();
 	vector<Vertex> vtxArray;
 	if (likely(req.get_status()==prot::STATUS_OK)){
@@ -316,22 +317,73 @@ void vtx_batch(prot::Requester& req,uint32_t vtxno,
 
 void handle_vtx_batch(prot::Replier& rep,Graph& g){
 
-	VtxOptions& vtxopts=*(VtxOptions*)rep.get_options();
-	uint32_t begin_vtxno=vtxopts[0];
-	SubgraphSet& sgs=g.get_sgs();
-	uint32_t end_vtxno=begin_vtxno+(1<<16)/sizeof(Vertex);
-	uint32_t sup_vtxno=SubgraphSet::VTXNO2SGKEY(begin_vtxno)
-					  +SubgraphSet::VERTEX_INTERVAL_WIDTH;
-	end_vtxno=(end_vtxno<sup_vtxno)?end_vtxno:sup_vtxno;
-	uint32_t vtxnum=end_vtxno-begin_vtxno;
-	VarString& vs=*VarString::make(sizeof(Vertex)*vtxnum);
-	//unique_ptr<void> just_for_auto_delete(&vs);
-	Vertex *vb=sgs.getSubgraph(begin_vtxno)->getVertex(begin_vtxno);
-	std::copy(vb,vb+vtxnum,(Vertex*)vs.begin());
+	VtxPrefetchOptions& vprefetchopts=*(VtxPrefetchOptions*)rep.get_options();
+	uint32_t begin_vtxno=vprefetchopts->vtxno;
+	uint32_t prefetch=vprefetchopts->prefetch;
 
-	//rep.ans(prot::STATUS_OK,&vs,vs.size());
-	rep.set_odata_msg(&vs,vs.size(),dealloc);
-	rep.ans(prot::STATUS_OK);
+	SubgraphSet& sgs=g.get_sgs();
+	
+	switch(prefetch){
+	case PREFETCH_POLICY::SEQ: {
+		uint32_t end_vtxno=begin_vtxno+(1<<16)/sizeof(Vertex);
+		uint32_t sup_vtxno=SubgraphSet::VTXNO2SGKEY(begin_vtxno)
+			+SubgraphSet::VERTEX_INTERVAL_WIDTH;
+		end_vtxno=(end_vtxno<sup_vtxno)?end_vtxno:sup_vtxno;
+		uint32_t vtxnum=end_vtxno-begin_vtxno;
+		VarString& vs=*VarString::make(sizeof(Vertex)*vtxnum);
+		//unique_ptr<void> just_for_auto_delete(&vs);
+		Vertex *vb=sgs.getSubgraph(begin_vtxno)->getVertex(begin_vtxno);
+		std::copy(vb,vb+vtxnum,(Vertex*)vs.begin());
+
+		//rep.ans(prot::STATUS_OK,&vs,vs.size());
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		rep.ans(prot::STATUS_OK);
+		break;
+	}case PREFETCH_POLICY::BFS: {
+		uint32_t vtxnum_max=(1<<16)/sizeof(Vertex);
+		uint32_t vtxnum=0;
+		VarString& vs=*VarString::make(sizeof(Vertex)*vtxnum_max);
+		unordered_set<uint32_t> m;
+		list<uint32_t> q;
+		m.insert(begin_vtxno);
+		q.push_back(begin_vtxno);
+
+		Block blk;
+		while(!q.empty()&&vtxnum<vtxnum_max){
+			size_t n=q.size();
+			for(int i=0;i<n;++i){
+				uint32_t v=q.front();q.pop_front();
+				++vtxnum;
+				Vertex *vtx=(Vertex*)vs.begin()+vtxnum;
+				*vtx = *sgs.getSubgraph(v)->getVertex(v);
+				uint32_t b=vtx->getHeadBlkno();
+				while(b!=INVALID_BLOCKNO){
+					assert(sgs.read(v,b,&blk));
+					EdgeContent *ectt=blk;
+					Edge *eb=ectt->begin(),*ee=ectt->end();
+					while(eb!=ee){
+						uint32_t dst=eb->m_sink;
+						++eb;
+						if(!sgs.vtx_exists(dst)||m.count(dst))continue;
+						q.push_back(dst);
+						m.insert(dst);
+					}
+				}
+			}
+		}
+		vs.relength(sizeof(Vertex)*vtxnum);
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		rep.ans(prot::STATUS_OK);
+		break;
+	}default:{
+		VarString& vs=*VarString::make(sizeof(Vertex)*1);
+		Vertex *vb=sgs.getSubgraph(begin_vtxno)->getVertex(begin_vtxno);
+		std::copy(vb,vb+1,(Vertex*)vs.begin());
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		rep.ans(prot::STATUS_OK);
+		break;
+	}
+	}
 }
 
 inline uint64_t vtxnoblkno(uint32_t vtxno,uint32_t blkno){
@@ -341,14 +393,17 @@ inline uint64_t vtxnoblkno(uint32_t vtxno,uint32_t blkno){
 	return i;
 }
 void blk_batch(prot::Requester& req,uint32_t vtxno,uint32_t blkno,uint32_t direction,
+		uint32_t prefetch,
 		unordered_map<uint64_t,shared_ptr<Block> >& blkcache){
 
-	ReadOptions& rdopts=*ReadOptions::make(0);
-	unique_ptr<void> just_for_auto_delete(&rdopts);
-	rdopts->vtxno=vtxno;
-	rdopts->blkno=blkno;
-	rdopts->direction=direction;
-	req.ask(prot::CMD_BLK_BATCH,&rdopts,rdopts.size(),NULL,0);
+	BlkPrefetchOptions& bprefetchopts=*BlkPrefetchOptions::make(0);
+	unique_ptr<void> just_for_auto_delete(&bprefetchopts);
+	bprefetchopts->vtxno=vtxno;
+	bprefetchopts->blkno=blkno;
+	bprefetchopts->direction=direction;
+	bprefetchopts->prefetch=prefetch;
+
+	req.ask(prot::CMD_BLK_BATCH,&bprefetchopts,bprefetchopts.size(),NULL,0);
 	req.parse_ans();
 	vector<Block> blkArray;
 	if (req.get_status()==prot::STATUS_OK){
@@ -365,10 +420,11 @@ void blk_batch(prot::Requester& req,uint32_t vtxno,uint32_t blkno,uint32_t direc
 }
 
 void handle_blk_batch(prot::Replier& rep, Graph& g){
-	ReadOptions& rdopts=*(ReadOptions*)rep.get_options();
-	uint32_t vtxno=rdopts->vtxno;
-	uint32_t blkno=rdopts->blkno;
-	uint32_t direction=rdopts->direction;
+	BlkPrefetchOptions& bprefetchopts=*(BlkPrefetchOptions*)rep.get_options();
+	uint32_t vtxno=bprefetchopts->vtxno;
+	uint32_t blkno=bprefetchopts->blkno;
+	uint32_t direction=bprefetchopts->direction;
+	uint32_t prefetch=bprefetchopts->prefetch;
 
 	uint32_t (Block::BlockHeader::*next)();
 	uint32_t (Vertex::*first)()const;
@@ -382,28 +438,76 @@ void handle_blk_batch(prot::Replier& rep, Graph& g){
 	}
 
 	size_t nbytes=1<<16;
-	size_t maxblknum=nbytes/sizeof(Block);
+	size_t blknum_max=nbytes/sizeof(Block);
 	size_t blknum=0;
 
-	size_t maxvtxno=SubgraphSet::VTXNO2SGKEY(vtxno)+SubgraphSet::VERTEX_INTERVAL_WIDTH;
 	VarString &vs=*VarString::make(nbytes);
 	SubgraphSet& sgs=g.get_sgs(); 
-	while(vtxno<maxvtxno && blknum<maxblknum){
-		while(blkno==INVALID_BLOCKNO && vtxno<maxvtxno-1){
-			vtxno++;
-			blkno=(sgs.getSubgraph(vtxno)->getVertex(vtxno)->*first)();
+	switch(prefetch){
+	case PREFETCH_POLICY::SEQ:{
+		size_t maxvtxno=SubgraphSet::VTXNO2SGKEY(vtxno)+SubgraphSet::VERTEX_INTERVAL_WIDTH;
+		while(vtxno<maxvtxno && blknum<blknum_max){
+		  while(blkno==INVALID_BLOCKNO && vtxno<maxvtxno-1){
+			  vtxno++;
+			  blkno=(sgs.getSubgraph(vtxno)->getVertex(vtxno)->*first)();
+		  }
+		  if (blkno==INVALID_BLOCKNO && vtxno==maxvtxno-1)break;
+		  Block *blk=(Block*)&vs[blknum*sizeof(Block)];
+		  assert(sgs.read(vtxno,blkno,blk));
+		  blk->getHeader()->setBlkno(blkno);
+		  blkno=(blk->getHeader()->*next)();
+		  blknum++;
 		}
-		if (blkno==INVALID_BLOCKNO && vtxno==maxvtxno-1)break;
+		vs.relength(sizeof(Block)*blknum);
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		//rep.ans(prot::STATUS_OK,&vs,vs.size());
+		rep.ans(prot::STATUS_OK);
+		break;
+	}case PREFETCH_POLICY::BFS:{
+		unordered_set<uint64_t> m;
+		list<uint64_t> q;
+		uint64_t vb=vtxnoblkno(vtxno,blkno);
+		m.insert(vb);
+		q.push_back(vb);
+
+		while(!q.empty()&&blknum<blknum_max){
+			size_t n=q.size();
+			for(int i=0;i<n;++i){
+				uint64_t vb=q.front();q.pop_front();
+				uint32_t v=vb>>32;
+				uint32_t b=vb&0xffffffffu;
+				while(b!=INVALID_BLOCKNO){
+		  			Block *blk=(Block*)&vs[blknum*sizeof(Block)];
+					++blknum;
+					assert(sgs.read(v,b,blk));
+					EdgeContent *ectt=*blk;
+					Edge *eb=ectt->begin(),*ee=ectt->end();
+					while(eb!=ee){
+						v=eb->m_sink;
+						++eb;
+						if (!sgs.vtx_exists(v))continue;
+						b=sgs.getSubgraph(v)->getVertex(v)->getHeadBlkno();
+						vb=vtxnoblkno(v,b);
+						if (m.count(vb))continue;
+						q.push_back(vb);
+						m.insert(vb);
+					}
+				}
+			}
+		}
+		vs.relength(sizeof(Block)*blknum);
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		rep.ans(prot::STATUS_OK);
+		break;
+	}default:{
 		Block *blk=(Block*)&vs[blknum*sizeof(Block)];
-		sgs.read(vtxno,blkno,blk);
-		blk->getHeader()->setBlkno(blkno);
-		blkno=(blk->getHeader()->*next)();
-		blknum++;
+		assert(sgs.read(vtxno,blkno,blk));
+		vs.relength(sizeof(Block));
+		rep.set_odata_msg(&vs,vs.size(),dealloc);
+		rep.ans(prot::STATUS_OK);
+		break;
 	}
-	vs.relength(sizeof(Block)*blknum);
-	rep.set_odata_msg(&vs,vs.size(),dealloc);
-	//rep.ans(prot::STATUS_OK,&vs,vs.size());
-	rep.ans(prot::STATUS_OK);
+	}
 }
 }}
 #endif
